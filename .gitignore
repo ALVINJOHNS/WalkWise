@@ -20,5 +20,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 *.log
+*.tsbuildinfo
 
 # Add entries appropriate to your chosen language or framework.

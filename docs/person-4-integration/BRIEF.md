@@ -11,26 +11,35 @@ Own the seams and keep a working app available throughout the build. Wire the th
 
 ## Build first (first 45 minutes)
 
-1. Read repository rules, freeze stack, create the minimal Vite React TypeScript app shell and shared `Venue` type from `docs/SHARED_CONTRACT.md`.
-2. Make organizer and visitor routes render placeholders immediately. Commit the runnable shell and make a preview deployment if the team has a ready HTTPS host.
-3. Add a realistic, hand-authored seed venue with a map image, connected three-edge graph, three destinations, and one optional blocked-edge/status toggle. Keep its data in one fixture file.
-4. Add local load/save for the venue snapshot (localStorage). Use a key scoped to app + venue slug and handle invalid JSON with a visible reset/retry message.
+1. Freeze the Vite React TypeScript + Tailwind frontend, FastAPI API, Postgres/PostGIS, Redis, and Celery stack.
+2. Create Compose services and health checks, environment example, API and worker skeletons, and a runnable frontend shell.
+3. Add domain stubs and task split docs so team members can begin parallel work against stable boundaries.
+4. Add a realistic, hand-authored seed venue with a connected graph and destinations; preserve local snapshot save/load as a browser adapter.
 
 ## Phases
 
 Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with the [phase template](../PHASE_TEMPLATE.md). Keep package and shared-contract edits integration-owned.
 
-### P4-INT-1 — Runnable shell and seed
+### P4-INT-1 — Runnable full-stack foundation
 
-- Status: not started
-- Scope: Freeze stack, create minimal app shell/routes, shared contract and realistic seed; install/start commands documented in README.
-- Exit checks: Actual project start command works; both routes render seed/placeholder; focused build check passes.
+- Status: in progress
+- Scope: Establish the team foundation requested on 2026-10-11: Vite/React/TypeScript/Tailwind web shell, FastAPI API, PostgreSQL/PostGIS, Redis/Celery worker, Compose services, shared domain contract, seed, and contributor/task-split docs. Add scaffold files only inside feature-owned folders; leave feature behavior to each owner.
+- Acceptance criteria:
+  - [ ] `docker compose up --build` starts healthy database, Redis, API, and worker services.
+  - [ ] Frontend install/dev/build commands are documented and usable.
+  - [ ] API health and domain stub endpoints return explicit responses.
+  - [ ] Teammates have clear owned paths and interface guidance.
+- Dependencies: None.
+- Out of scope: Authentication, production deployment, full map editor, routing implementation, GPS calibration, and realtime sync.
+- Verification record: 2026-10-11T02:23+05:30 — `npm install` completed; `npm run build` passed; `docker compose config --quiet` passed; `python3 -m compileall -q api/app` passed; `git diff --check` passed; Vite dev server served the app shell with HTTP 200 using the elevated local-server check. `docker compose up --build -d` could not run because the local Docker daemon socket is absent. Full service integration remains unverified.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — expanded the original browser-only shell to the user's explicitly requested Docker/PostgreSQL, server, Celery, and Redis foundation. The architecture brief supplied with the request recommends a single Next.js API and excludes queues; to preserve the existing Vite React team contract and satisfy the more specific latest request, this starter uses a small FastAPI API plus a Celery worker as a modular development stack.
 - Next: P4-INT-2.
 
-### P4-INT-2 — Local venue persistence
+### P4-INT-2 — Venue API persistence
 
 - Status: not started
-- Scope: Load/save scoped venue snapshot and recover visibly from invalid stored JSON.
+- Scope: Add database schema/migration and venue/event persistence endpoints; keep frontend snapshot adapter as fallback.
 - Exit checks: Save survives same-browser reload; invalid storage has useful recovery; focused check passes.
 - Next: P4-INT-3.
 

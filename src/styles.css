@@ -1,0 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+body { margin: 0; background: #f7f8fa; color: #17212b; font-family: 'DM Sans', sans-serif; }
+.card { display: flex; min-height: 150px; flex-direction: column; gap: 12px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; padding: 22px; font-weight: 600; text-decoration: none; color: inherit; }
+.card svg { color: #0f766e; }
+.card span { font-size: 14px; font-weight: 400; color: #64748b; }

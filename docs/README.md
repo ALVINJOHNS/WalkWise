@@ -8,11 +8,11 @@ Use these four briefs as the execution plan derived from [Walkwise_Development_P
 
 ## Shared decisions before anyone starts coding
 
-- Build one responsive React + TypeScript + Vite app. Freeze the stack and install dependencies during the first 15 minutes.
+- Build one responsive React + TypeScript + Vite app, a FastAPI modular API, PostgreSQL/PostGIS, and a Celery worker using Redis. Keep the server and worker as supporting services for the app, not product microservices.
 - Keep one app shell and shared data contract. Each owner works only inside their feature folder; the integration owner owns app routing, shared types, package scripts, and final merge.
 - Use the contract in [SHARED_CONTRACT.md](SHARED_CONTRACT.md). Treat it as frozen after the first 15 minutes; discuss any necessary change in chat before editing it.
 - Each feature must render with the included seed venue and work against a local adapter/mock. Do not wait for another person's API or UI.
-- MVP persistence is browser local storage plus an exportable/publishable venue JSON package. Do not introduce accounts, a database, or realtime setup unless the app is already wired to one and the core demo is green.
+- MVP persistence may use browser local storage while API persistence is built. The Compose database, API, Redis, and worker establish the team foundation; do not add accounts or realtime sync.
 - Keep edits in owned paths, use small commits, and merge each feature as soon as it builds. Integration lead resolves conflicts and maintains the working demo.
 - Use one realistic venue, one connected three-edge route, three destinations, and one status change. Complete the core QR-to-map-to-route flow before stretch work.
 

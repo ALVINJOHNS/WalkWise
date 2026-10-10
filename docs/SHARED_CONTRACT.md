@@ -4,7 +4,7 @@ Freeze this small contract in the first 15 minutes. It lets features develop ind
 
 ## App-level assumptions
 
-- One React + TypeScript + Vite app, one package manifest, one app shell.
+- One React + TypeScript + Vite app and one FastAPI API; PostgreSQL is the shared durable store, Redis is the Celery broker.
 - Integration owner owns app-level routing and shared types. Feature owners do not edit those files without agreement.
 - Keep feature code under `src/features/organizer`, `src/features/visitor`, and `src/features/navigation`. Integration owns `src/app` and `src/shared`.
 - Each feature exports one default screen or a small documented function and uses fixture data/local adapters so it can be built without the backend or other feature being finished.
@@ -43,7 +43,7 @@ type Venue = {
 };
 ```
 
-Use this shape in shared types after integration owner creates it. Until then, each feature may define a local type matching this shape. Keep coordinates normalized so an image can be resized without changing saved points. No account fields, schema framework, or generalized API layer in the MVP.
+Use the browser shape for the demo fixture and adapters. Backend persistence may model the broader VenueFlow architecture; keep plan coordinates distinct from geographic coordinates. No account fields or authentication in this MVP.
 
 ## Feature boundaries
 
