@@ -37,6 +37,12 @@ Work phase by phase within each participant's assigned section. Keep commits sma
 - Validate inputs, handle errors explicitly, and show useful failure messages. Do not hide failures behind fabricated success or demo data.
 - Keep changes focused. Explain the reason for non-obvious decisions in short comments or project documentation.
 
+## Follow the declared project stack
+
+- Use the languages, frameworks, package managers, runtimes, and tools declared by the active phase brief, shared contract, and existing project files. Do not switch to a different stack or choose an alternative library, tool, or implementation route just because the declared one is missing from the machine.
+- If a required runtime, tool, or dependency is missing, install or set it up using the project's documented version and official or otherwise trusted source, then continue with the declared stack. Preserve the project's lockfile and use its package manager; do not silently upgrade, replace, or add competing tools.
+- If installation is blocked by permissions, network access, compatibility, or another real constraint, report the exact missing requirement and evidence, then pause only the work that depends on it. Ask for input when a decision or access change is needed; do not quietly substitute an alternative.
+
 ## Document every meaningful change
 
 - Update [CHANGELOG.md](CHANGELOG.md) in the same commit as each meaningful change. Record the date and time with timezone, what changed, why, the affected files or feature, validation performed, and known limitations.

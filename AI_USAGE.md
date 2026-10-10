@@ -4,6 +4,8 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex updated `AGENTS.md` to require use of the active phase's declared technology stack, including installing missing required tools and dependencies rather than silently substituting alternatives. Human review: pending. Validation: reviewed consistency with existing dependency guidance and ran `git diff --check` successfully; no application runtime check applies.
+
 On 11 October 2026, Codex reviewed the WalkWise product plan, shared contract, and active integration brief, then added a concise project description and product-direction section to `README.md`. The wording distinguishes the intended QR-accessible, organizer-maintained venue-map MVP from unverified implementation. Human review: pending. Validation: plan/contract consistency review, referenced Markdown target checks, and `git diff --check` passed.
 
 On 11 October 2026, Codex added phase-based execution and minimal handoff guidance to `AGENTS.md`, introduced `docs/PHASE_TEMPLATE.md`, added stable phase IDs and exit checks to the four participant briefs, linked the process from `docs/README.md`, and created `handoff.md`. The goal is small verified increments, documented plan changes, and commit-ready participant phases with just enough continuation context. Human review: pending. Validation: changed-document Markdown targets and `git diff --check` passed; no application code or runtime checks apply.

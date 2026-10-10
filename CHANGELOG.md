@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T02:47:24+05:30 — Require agents to use the declared project stack
+
+- Changed: Added guidance to `AGENTS.md` to install missing required runtimes, tools, and dependencies and continue with the phase's declared stack, with explicit direction against silent substitutions.
+- Why: Keep implementation aligned with project technology choices and make genuine installation blockers visible.
+- Validation: Reviewed the wording against the existing dependency and tool guidance; `git diff --check` passed.
+- Limitations: Documentation-only change; no installation or application runtime behavior was needed or checked.
+
 ## 2026-10-11T02:19:37+05:30 — Describe the WalkWise product in the README
 
 - Changed: Replaced the README project-name and short-description placeholders with the WalkWise concept and added a concise product-direction section.
