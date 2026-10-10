@@ -43,12 +43,13 @@
         <label>Category<input data-field="category" maxlength="60" placeholder="food, stage, facility…"></label>
         <label>Description<textarea data-field="description" rows="2" placeholder="What visitors should know"></textarea></label>
         <label>Status<select data-field="status"><option value="open">Open</option><option value="closed">Closed</option><option value="delayed">Delayed</option></select></label>
-        <div class="place-location"><button type="button" class="button secondary" data-set-place-location>Use current GPS for this destination</button><p data-place-location class="muted">No GPS location saved for this destination.</p></div>
+        <div class="place-location"><button type="button" class="button secondary" data-set-place-location>Use current GPS for this destination</button><button type="button" class="button secondary" data-place-on-map hidden>Place destination on street map</button><p data-place-location class="muted">No GPS location saved for this destination.</p></div>
         <button type="button" class="text-button" data-delete-place>Remove destination</button>
       </div>
       <div data-node-fields class="fields" hidden>
         <p class="muted">Selected path point</p>
         <button type="button" class="button secondary" data-set-node-location>Set point to current GPS</button>
+        <button type="button" class="button secondary" data-node-on-map hidden>Place path point on street map</button>
         <p data-node-location class="muted">No GPS coordinate saved for this path point.</p>
       </div>
       <h3 class="section-title">Walkable path points</h3><ul data-node-list class="item-list"></ul>

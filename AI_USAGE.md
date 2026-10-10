@@ -4,6 +4,8 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, after the user reported that destinations and path points disappeared in street-map view, Codex added selection-aware Leaflet markers and a click-to-place action for selected items that do not yet have geographic coordinates. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; browser interaction remains unverified.
+
 On 11 October 2026, after the user shared the OpenStreetMap 403 tile, Codex configured Leaflet tile images to send a valid cross-origin `Referer` under OSM’s policy. Human review: pending. Validation: rebuild completed, organizer returned HTTP 200, served JavaScript contained the policy, and JavaScript syntax/diff whitespace checks passed; browser-visible tile loading still needs confirmation.
 
 On 11 October 2026, Codex added a Leaflet 1.9.4 street-map layer using attributed OpenStreetMap tiles, GPS-centered pan/zoom, live recorded trace and position/accuracy overlays, GPS destination/path-point markers, and measured recorded-track and geolocated edge distances. Street-map and floor-plan views remain separate; the editor does not claim road snapping or directions. Human review: pending. Validation: JavaScript syntax, diff whitespace, and source checks passed; browser map/GPS verification was unavailable.

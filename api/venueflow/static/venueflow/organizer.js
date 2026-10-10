@@ -7,16 +7,16 @@
   const venuePicker = $ ("[data-venue]");
   if (!canvas || !venuePicker) return;
 
-  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, selected: null, dirty: false, drag: null };
+  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, selected: null, dirty: false, drag: null };
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
     fields: $("[data-place-fields]"), errors: $("[data-errors]"), saveState: $("[data-save-state]"),
     gpsStatus: $("[data-gps-status]"), startOutline: $("[data-start-outline]"), stopOutline: $("[data-stop-outline]"),
-    placeLocation: $("[data-place-location]"), setPlaceLocation: $("[data-set-place-location]"),
+    placeLocation: $("[data-place-location]"), setPlaceLocation: $("[data-set-place-location]"), placeOnMap: $("[data-place-on-map]"),
     leafletMap: $("[data-leaflet-map]"), mapStatus: $("[data-map-status]"), gpsDistance: $("[data-gps-distance]"),
     mapViewTools: $("[data-map-view-tools]"), floorplanView: $("[data-map-view='floorplan']"), nodeFields: $("[data-node-fields]"),
-    nodeLocation: $("[data-node-location]"), setNodeLocation: $("[data-set-node-location]"),
+    nodeLocation: $("[data-node-location]"), setNodeLocation: $("[data-set-node-location]"), nodeOnMap: $("[data-node-on-map]"),
   };
   const makeId = (prefix) => `${prefix}-${crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10)}`;
   const setDirty = () => { state.dirty = true; controls.saveState.textContent = "Unsaved changes"; };
@@ -130,12 +130,18 @@
     controls.fields.hidden = !place;
     controls.setPlaceLocation.hidden = !place;
     controls.placeLocation.hidden = !place;
+    controls.placeOnMap.hidden = !place || state.mapMode !== "street";
     controls.nodeFields.hidden = !node;
+    controls.nodeOnMap.hidden = !node || state.mapMode !== "street";
     if (place) {
       root.querySelectorAll("[data-field]").forEach((field) => { if (field.value !== esc(place[field.dataset.field])) field.value = esc(place[field.dataset.field]); });
-      controls.placeLocation.textContent = place.geolocation ? `GPS: ${place.geolocation.latitude.toFixed(6)}, ${place.geolocation.longitude.toFixed(6)} · ±${Math.round(place.geolocation.accuracy)} m` : "No GPS location saved for this destination.";
+      controls.placeLocation.textContent = place.geolocation ? `GPS: ${place.geolocation.latitude.toFixed(6)}, ${place.geolocation.longitude.toFixed(6)} · ±${Math.round(place.geolocation.accuracy || 0)} m` : "No GPS location saved. Place it on the street map to make it visible there.";
     }
-    if (node) controls.nodeLocation.textContent = node.geolocation ? `GPS: ${node.geolocation.latitude.toFixed(6)}, ${node.geolocation.longitude.toFixed(6)} · ±${Math.round(node.geolocation.accuracy)} m` : "No GPS coordinate saved for this path point.";
+    if (node) controls.nodeLocation.textContent = node.geolocation ? `GPS: ${node.geolocation.latitude.toFixed(6)}, ${node.geolocation.longitude.toFixed(6)} · ±${Math.round(node.geolocation.accuracy || 0)} m` : "No GPS coordinate saved. Place it on the street map to make it visible there.";
+    if (state.mapPlacement) {
+      controls.mapStatus.textContent = "Click the street map to place the selected item.";
+      if (state.leafletMap) state.leafletMap.getContainer().style.cursor = "crosshair";
+    }
     renderLeafletLayers();
   }
 
@@ -146,6 +152,19 @@
       return false;
     }
     state.leafletMap = window.L.map(controls.leafletMap, { zoomControl: true, scrollWheelZoom: true });
+    state.leafletMap.on("click", (event) => {
+      if (!state.mapPlacement) return;
+      const item = selectedItem();
+      if (!item || !state.selected) return;
+      item.geolocation = {
+        latitude: event.latlng.lat, longitude: event.latlng.lng, accuracy: 0,
+        timestamp: new Date().toISOString(),
+      };
+      state.mapPlacement = false;
+      state.leafletMap.getContainer().style.cursor = "";
+      setDirty(); render();
+      controls.mapStatus.textContent = `Placed ${state.selected.type} on the street map.`;
+    });
     const tiles = window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
       referrerPolicy: "strict-origin-when-cross-origin",
@@ -172,16 +191,29 @@
     state.places.forEach((place) => {
       if (!place.geolocation) return;
       const marker = window.L.circleMarker([place.geolocation.latitude, place.geolocation.longitude], {
-        radius: 8, color: "#ffffff", weight: 2, fillColor: "#0f8b83", fillOpacity: 1,
+        radius: state.selected?.type === "place" && state.selected.id === place.id ? 11 : 8,
+        color: state.selected?.type === "place" && state.selected.id === place.id ? "#f59e0b" : "#ffffff",
+        weight: 3, fillColor: "#0f8b83", fillOpacity: 1,
       }).addTo(state.leafletLayers);
       const label = document.createElement("span"); label.textContent = place.name || "Destination";
       marker.bindTooltip(label);
+      marker.on("click", (event) => {
+        window.L.DomEvent.stopPropagation(event);
+        state.selected = { type: "place", id: place.id }; state.mapPlacement = false; render();
+      });
     });
     state.nodes.forEach((node) => {
       if (!node.geolocation) return;
-      window.L.circleMarker([node.geolocation.latitude, node.geolocation.longitude], {
-        radius: 6, color: "#ffffff", weight: 2, fillColor: "#6d45c7", fillOpacity: 1,
+      const marker = window.L.circleMarker([node.geolocation.latitude, node.geolocation.longitude], {
+        radius: state.selected?.type === "node" && state.selected.id === node.id ? 9 : 6,
+        color: state.selected?.type === "node" && state.selected.id === node.id ? "#f59e0b" : "#ffffff",
+        weight: 3, fillColor: "#6d45c7", fillOpacity: 1,
       }).addTo(state.leafletLayers);
+      marker.bindTooltip(node.name || "Path point");
+      marker.on("click", (event) => {
+        window.L.DomEvent.stopPropagation(event);
+        state.selected = { type: "node", id: node.id }; state.mapPlacement = false; render();
+      });
     });
     state.edges.forEach((edge) => {
       const from = state.nodes.find((node) => node.id === edge.from);
@@ -226,7 +258,11 @@
       const li = document.createElement("li"); li.className = `item-row ${state.selected?.id === item.id ? "active" : ""}`;
       const button = document.createElement("button"); button.type = "button";
       button.textContent = type === "place" ? (item.name || `Destination ${index + 1}`) : item.name;
-      button.addEventListener("click", () => { state.selected = { type, id: item.id }; render(); });
+      button.addEventListener("click", () => {
+        state.selected = { type, id: item.id }; state.mapPlacement = false;
+        if (state.leafletMap) state.leafletMap.getContainer().style.cursor = "";
+        render();
+      });
       li.append(button);
       if (type === "place") { const status = document.createElement("small"); status.textContent = item.status || "open"; li.append(status); }
       list.append(li);
@@ -388,8 +424,18 @@
     if (!node || state.selected.type !== "node") return;
     node.geolocation = fix; state.mapMode = "street"; setDirty(); render();
   }));
+  controls.placeOnMap.addEventListener("click", () => {
+    state.mapPlacement = true; controls.mapStatus.textContent = "Click the street map to place the selected destination.";
+    state.leafletMap?.getContainer().style.setProperty("cursor", "crosshair");
+  });
+  controls.nodeOnMap.addEventListener("click", () => {
+    state.mapPlacement = true; controls.mapStatus.textContent = "Click the street map to place the selected path point.";
+    state.leafletMap?.getContainer().style.setProperty("cursor", "crosshair");
+  });
   root.querySelectorAll("[data-map-view]").forEach((button) => button.addEventListener("click", () => {
     state.mapMode = button.dataset.mapView;
+    state.mapPlacement = false;
+    if (state.leafletMap) state.leafletMap.getContainer().style.cursor = "";
     render();
     window.setTimeout(() => state.leafletMap?.invalidateSize(), 0);
   }));

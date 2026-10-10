@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:14:00+05:30 — Place organizer items on the street map
+
+- Changed: Added map-placement controls for selected destinations and path points, click-to-assign geographic coordinates, selectable/highlighted street-map markers, and text explaining why local-only points are absent from the geographic view. Updated organizer phase, README, and handoff.
+- Why: Floor-plan `x/y` positions are unrelated to latitude/longitude; organizers need to place or GPS-locate an item before it can appear at a truthful geographic position.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Compose rebuilt and started; organizer returned HTTP 200 and served JavaScript contained the map-placement behavior.
+- Limitations: Interactive browser verification is pending.
+
 ## 2026-10-11T04:09:00+05:30 — Record OSM referrer fix checkpoint
 
 - Changed: Recorded fix commit `ce7e6f7` in the organizer phase and handoff.
