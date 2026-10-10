@@ -4,7 +4,14 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
-No project implementation has been recorded yet. Replace this sentence with entries as you build:
+## 2026-10-11T01:30:58+05:30 — Add six-hour parallel team plan
+
+- Changed: Added four role briefs, shared implementation contract, six-hour schedule and cut order under `docs/`; linked the team plan from `README.md`.
+- Why: Adapt the full Hereabouts plan to a four-person, six-hour hackathon build with parallel work and predictable feature ownership.
+- Validation: Checked the source plan and repository rules; verified all four briefs use distinct feature paths and the shared venue shape. Markdown links and `git diff --check` checked after editing.
+- Limitations: Planning documentation only; no application code, hosting, or demo has been built or verified.
+
+Replace this sentence with entries as you build:
 
 ```text
 ## <actual timestamp> — <short change title>

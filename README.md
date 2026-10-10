@@ -31,6 +31,8 @@ This template has no application code or required technology stack. The document
 
 ## Project overview — complete during the event
 
+For a four-person, six-hour build, use the [team execution plan](docs/README.md), its [shared contract](docs/SHARED_CONTRACT.md), and the four role briefs. The full product plan remains in [docs/Walkwise_Development_Plan.md](docs/Walkwise_Development_Plan.md).
+
 - **Project name:** TODO
 - **Short description:** TODO — what it does, who it helps, and why it matters.
 - **Team:** TODO — participant names and GitHub handles; maximum 4 members.

@@ -4,7 +4,7 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
-No participant AI usage has been recorded yet. Replace the placeholder row as you build. Mark human review as pending until someone has reviewed the contribution.
+Codex reviewed `RULES.md` and `docs/Walkwise_Development_Plan.md`, then drafted the six-hour split, shared contract, and four teammate briefs in `docs/`, with a discovery link in `README.md` and records in `CHANGELOG.md`. This is planning assistance only; no app code was implemented. Human review: pending. Validation: checked role ownership/paths and ran the documented Markdown and whitespace checks; no runtime check applies.
 
 | Date and time with timezone | Tool / model, if known | Task | Assistance and affected files | Human review / corrections | Validation and result |
 | --- | --- | --- | --- | --- | --- |
