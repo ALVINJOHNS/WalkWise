@@ -18,11 +18,29 @@
   .visitor-map-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .35rem .35rem .85rem; }
   .visitor-map-heading { font-size: .9rem; font-weight: 750; }
   .visitor-map-hint { color: #64748b; font-size: .75rem; }
+  .visitor-search-controls { display: grid; gap: .65rem; margin: .9rem 0 .75rem; }
+  .visitor-field-label { display: block; margin-bottom: .3rem; color: #475569; font-size: .75rem; font-weight: 700; }
+  .visitor-search, .visitor-filter { width: 100%; min-height: 2.75rem; padding: .6rem .75rem; border: 1px solid #cbd5e1; border-radius: .65rem; background: #fff; color: #0f172a; font-size: .9rem; }
+  .visitor-search:focus, .visitor-filter:focus, .visitor-place:focus-visible, .visitor-pin:focus-visible, .visitor-locate:focus-visible { outline: 3px solid #5eead4; outline-offset: 2px; }
+  .visitor-result-count { color: #64748b; font-size: .75rem; }
+  .visitor-freshness { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .65rem; margin: 0 0 1rem; padding: .65rem .8rem; border: 1px solid #dce8e6; border-radius: .75rem; background: #fff; color: #334155; font-size: .78rem; }
+  .visitor-freshness-state { display: inline-flex; align-items: center; gap: .4rem; font-weight: 750; }
+  .visitor-freshness-dot { width: .55rem; height: .55rem; border-radius: 50%; background: #0f766e; }
+  .visitor-freshness[data-state="paused"] .visitor-freshness-dot { background: #b45309; }
+  .visitor-freshness[data-state="saved"] .visitor-freshness-dot { background: #64748b; }
+  .visitor-freshness-time { color: #64748b; }
+  .visitor-locate-row { display: grid; gap: .6rem; margin: .85rem 0; }
+  .visitor-locate { width: fit-content; min-height: 2.7rem; padding: .6rem .9rem; border-radius: .7rem; background: #0f766e; color: #fff; font-size: .85rem; font-weight: 750; cursor: pointer; }
+  .visitor-locate:hover { background: #115e59; }
+  .visitor-location-message { color: #475569; font-size: .8rem; line-height: 1.5; }
+  .visitor-start-marker { position: absolute; z-index: 3; width: 1rem; height: 1rem; border: 3px solid #fff; border-radius: 50%; background: #7c3aed; box-shadow: 0 0 0 3px #7c3aed55; transform: translate(-50%, -50%); pointer-events: none; }
+  .visitor-route-slot { margin-top: .8rem; padding: .75rem; border: 1px dashed #cbd5e1; border-radius: .7rem; color: #64748b; font-size: .78rem; }
   .visitor-map { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border: 1px solid #d9e7e3; border-radius: .8rem; background-color: #e8f1ef; background-image: linear-gradient(30deg, #d8e8e3 12%, transparent 12.5%, transparent 87%, #d8e8e3 87.5%, #d8e8e3), linear-gradient(150deg, #d8e8e3 12%, transparent 12.5%, transparent 87%, #d8e8e3 87.5%, #d8e8e3), linear-gradient(30deg, #d8e8e3 12%, transparent 12.5%, transparent 87%, #d8e8e3 87.5%, #d8e8e3), linear-gradient(150deg, #d8e8e3 12%, transparent 12.5%, transparent 87%, #d8e8e3 87.5%, #d8e8e3), linear-gradient(60deg, #c8ddd6 25%, transparent 25.5%, transparent 75%, #c8ddd6 75%, #c8ddd6), linear-gradient(60deg, #c8ddd6 25%, transparent 25.5%, transparent 75%, #c8ddd6 75%, #c8ddd6); background-position: 0 0, 0 0, 22px 39px, 22px 39px, 0 0, 22px 39px; background-size: 44px 78px; }
   .visitor-plan { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
   .visitor-paths { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   .visitor-path { stroke: #0f766e; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-  .visitor-pin { position: absolute; z-index: 1; display: flex; max-width: 45%; align-items: center; gap: .35rem; transform: translate(-50%, -50%); }
+  .visitor-pin { position: absolute; z-index: 1; display: flex; max-width: 45%; align-items: center; gap: .35rem; padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; transform: translate(-50%, -50%); }
+  .visitor-pin[aria-pressed="true"] .visitor-pin-label { border-color: #0f766e; box-shadow: 0 0 0 3px #5eead455; }
   .visitor-pin-dot { flex: 0 0 auto; width: .9rem; height: .9rem; border: 2px solid white; border-radius: 50%; background: #0f766e; box-shadow: 0 1px 5px #0f172a66; }
   .visitor-pin-label { max-width: 100%; padding: .2rem .45rem; overflow-wrap: anywhere; border: 1px solid #dbe3e9; border-radius: 999px; background: #fff; color: #0f172a; font-size: clamp(.65rem, 2.4vw, .8rem); font-weight: 650; line-height: 1.2; box-shadow: 0 1px 4px #0f172a22; }
   .visitor-pin-closed .visitor-pin-dot { background: #b91c1c; }
@@ -37,8 +55,9 @@
   .visitor-place-card { padding: 1rem; }
   .visitor-place-card h2 { font-size: 1rem; font-weight: 750; }
   .visitor-place-intro { margin-top: .25rem; color: #64748b; font-size: .8rem; }
-  .visitor-place-list { display: grid; gap: .6rem; margin-top: .85rem; }
-  .visitor-place { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; padding: .75rem; border: 1px solid #edf2f1; border-radius: .8rem; background: #fbfdfd; }
+  .visitor-place-list { display: grid; gap: .6rem; margin-top: .65rem; }
+  .visitor-place { display: flex; width: 100%; align-items: flex-start; justify-content: space-between; gap: .75rem; padding: .75rem; border: 1px solid #edf2f1; border-radius: .8rem; background: #fbfdfd; color: inherit; cursor: pointer; text-align: left; }
+  .visitor-place:hover, .visitor-place[aria-pressed="true"] { border-color: #5eead4; background: #f0fdfa; }
   .visitor-place-name { font-weight: 650; }
   .visitor-place-kind { margin-top: .15rem; color: #64748b; font-size: .8rem; }
   .visitor-status { flex: 0 0 auto; padding: .25rem .55rem; border: 1px solid transparent; border-radius: 999px; background: #f1f5f9; color: #334155; font-size: .7rem; font-weight: 750; }
@@ -46,6 +65,10 @@
   .visitor-status-closed { background: #fee2e2; color: #991b1b; }
   .visitor-status-delayed { background: #fef3c7; color: #92400e; }
   .visitor-empty { padding: 1rem 0 0; color: #475569; font-size: .9rem; }
+  .visitor-details { margin-top: 1rem; padding: 1rem; border: 1px solid #ccebe5; border-radius: .85rem; background: #f0fdfa; }
+  .visitor-details-label { color: #0f766e; font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .visitor-details-name { margin-top: .25rem; font-size: 1.05rem; font-weight: 800; }
+  .visitor-details-copy { margin-top: .35rem; color: #475569; font-size: .85rem; line-height: 1.5; }
   @media (min-width: 48rem) { .visitor-shell { padding: 1.75rem 1.25rem 4rem; } .visitor-heading { margin: 2.5rem 0 1.75rem; } .visitor-layout { grid-template-columns: minmax(0, 1.65fr) minmax(17rem, .85fr); align-items: start; } .visitor-map-card { padding: 1rem; } .visitor-place-card { padding: 1.25rem; } }
 </style>
 <main class="visitor-shell">
@@ -58,12 +81,17 @@
     <h1 class="visitor-title">{{ venue.name }}</h1>
     <p class="visitor-subtitle">Explore the venue layout and find organizer-marked destinations.</p>
   </header>
+  <div class="visitor-freshness" data-state="{{ freshness_state }}" aria-label="Venue data freshness">
+    <span class="visitor-freshness-state"><i class="visitor-freshness-dot"></i>{% if freshness_state == 'current' %}Current published map{% elif freshness_state == 'paused' %}Updates paused{% else %}Saved venue map{% endif %}</span>
+    <span class="visitor-freshness-time">Venue record saved {{ freshness_updated_at|date:"M j, Y g:i A" }}</span>
+  </div>
 
   <div class="visitor-layout">
     <section class="visitor-map-card" aria-label="Map of {{ venue.name }}">
       <div class="visitor-map-header"><h2 class="visitor-map-heading">Venue overview</h2><span class="visitor-map-hint">Organizer-mapped paths and places</span></div>
-      <div class="visitor-map" role="img" aria-label="Venue plan with walking paths and destination pins">
+      <div class="visitor-map" data-visitor-map role="group" tabindex="0" aria-describedby="visitor-location-message" aria-label="Venue plan with walking paths and destination pins. Click or press Enter to mark a starting point.">
         {% if venue.plan_image_url %}<img class="visitor-plan" src="{{ venue.plan_image_url }}" alt="" loading="eager">{% endif %}
+        <span class="visitor-start-marker" data-start-marker hidden aria-hidden="true"></span>
         {% if venue.path_edges.all %}
           <svg class="visitor-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
             {% for edge in venue.path_edges.all %}
@@ -73,9 +101,9 @@
         {% endif %}
         {% for feature in venue.features.all %}
           {% with state=feature.properties.status|default:""|lower %}
-          <div class="visitor-pin{% if state == 'closed' %} visitor-pin-closed{% elif state == 'delayed' %} visitor-pin-delayed{% endif %}" style="left:{% widthratio feature.plan_x 1 100 %}%;top:{% widthratio feature.plan_y 1 100 %}%;" aria-label="{{ feature.name }}: {% if state == 'open' %}Open{% elif state == 'closed' %}Closed{% elif state == 'delayed' %}Delayed{% else %}Status unavailable{% endif %}">
+          <button class="visitor-pin{% if state == 'closed' %} visitor-pin-closed{% elif state == 'delayed' %} visitor-pin-delayed{% endif %}" type="button" data-place-pin data-place-id="{{ feature.pk }}" data-place-name="{{ feature.name }}" data-place-kind="{{ feature.kind|title }}" data-place-status="{% if state == 'open' or state == 'closed' or state == 'delayed' %}{{ state }}{% else %}unavailable{% endif %}" style="left:{% widthratio feature.plan_x 1 100 %}%;top:{% widthratio feature.plan_y 1 100 %}%;" aria-label="{{ feature.name }}: {% if state == 'open' %}Open{% elif state == 'closed' %}Closed{% elif state == 'delayed' %}Delayed{% else %}Status unavailable{% endif %}" aria-pressed="false">
             <span class="visitor-pin-dot"></span><span class="visitor-pin-label">{{ feature.name }}</span>
-          </div>
+          </button>
           {% endwith %}
         {% empty %}
           <p class="visitor-map-empty">No destinations have been added to this venue yet.</p>
@@ -88,21 +116,48 @@
         <span class="visitor-legend"><i class="visitor-legend-dot delayed"></i> Delayed</span>
         <span class="visitor-legend">Line · mapped path</span>
       </div>
+      <div class="visitor-locate-row">
+        <button class="visitor-locate" type="button" data-locate-me>Locate me</button>
+        <p class="visitor-location-message" id="visitor-location-message" data-location-message aria-live="polite">Tap “Locate me” to request device location, or tap the map to mark an approximate start.</p>
+      </div>
     </section>
 
     <aside class="visitor-place-card" aria-labelledby="visitor-places-title">
       <h2 id="visitor-places-title">Places on this map</h2>
       <p class="visitor-place-intro">Place status is shown when it is available in the venue data.</p>
+      <div class="visitor-search-controls">
+        <div>
+          <label class="visitor-field-label" for="visitor-search">Find a destination</label>
+          <input class="visitor-search" id="visitor-search" type="search" placeholder="Search places" autocomplete="off" data-place-search>
+        </div>
+        <div>
+          <label class="visitor-field-label" for="visitor-status-filter">Filter by status</label>
+          <select class="visitor-filter" id="visitor-status-filter" data-status-filter>
+            <option value="all">All statuses</option><option value="open">Open</option><option value="closed">Closed</option><option value="delayed">Delayed</option><option value="unavailable">Status unavailable</option>
+          </select>
+        </div>
+        <p class="visitor-result-count" data-result-count aria-live="polite"></p>
+      </div>
+      <div class="visitor-place-list" data-place-list>
       {% for feature in venue.features.all %}
         {% with state=feature.properties.status|default:""|lower %}
-        <div class="visitor-place">
+        <button class="visitor-place" type="button" data-place-item data-place-id="{{ feature.pk }}" data-place-name="{{ feature.name }}" data-place-kind="{{ feature.kind|title }}" data-place-status="{% if state == 'open' or state == 'closed' or state == 'delayed' %}{{ state }}{% else %}unavailable{% endif %}" data-place-description="{{ feature.properties.description|default:"" }}" aria-pressed="false">
           <div><p class="visitor-place-name">{{ feature.name }}</p><p class="visitor-place-kind">{{ feature.kind|title }}</p></div>
           <span class="visitor-status{% if state == 'open' %} visitor-status-open{% elif state == 'closed' %} visitor-status-closed{% elif state == 'delayed' %} visitor-status-delayed{% endif %}">{% if state == 'open' %}Open{% elif state == 'closed' %}Closed{% elif state == 'delayed' %}Delayed{% else %}Status unavailable{% endif %}</span>
-        </div>
+        </button>
         {% endwith %}
         {% empty %}
         <p class="visitor-empty">No destination details are available yet.</p>
       {% endfor %}
+        <p class="visitor-empty" data-no-results hidden>No places match that search and filter.</p>
+      </div>
+      <section class="visitor-details" data-place-details aria-live="polite" aria-atomic="true">
+        <p class="visitor-details-label">Selected destination</p>
+        <h3 class="visitor-details-name" data-detail-name>Choose a place</h3>
+        <p class="visitor-details-copy" data-detail-copy>Select a map pin or destination to see its details.</p>
+        <p class="visitor-details-copy" data-detail-status></p>
+      </section>
+      <div class="visitor-route-slot" data-route-slot>Route guidance will appear here when navigation is connected.</div>
     </aside>
   </div>
 </main>

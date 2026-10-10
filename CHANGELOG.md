@@ -4,6 +4,20 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:59:24+05:30 — Add visitor search and destination details
+
+- Changed: Added name search, status filtering, synchronized map/list selection, a selected-place detail card, accessible empty/result states, and no-mutation visitor interactions in the owned visitor template and JavaScript.
+- Why: Complete P2-VIS-2 so visitors can find and inspect organizer-provided places.
+- Validation: `node --check api/venueflow/static/venueflow/visitor.js` passed; Django template render and output assertions passed; `git diff --check` passed.
+- Limitations: Live search/filter and selection interactions were not manually exercised in the app browser.
+
+## 2026-10-11T04:59:24+05:30 — Add freshness and manual orientation
+
+- Changed: Added explicit visitor freshness context from event publication state and venue save time, a locate button that requests GPS only after activation, map/keyboard manual start markers, and a visible route placeholder. Updated the shared context contract.
+- Why: Complete P2-VIS-3 while keeping location permission and offline claims explicit and user controlled.
+- Validation: `python -m py_compile api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/visitor.js`, representative template renders for all three freshness states, and `git diff --check` passed.
+- Limitations: Actual browser geolocation, manual marker placement, and mobile layout remain unverified in the app browser.
+
 ## 2026-10-11T04:37:00+05:30 — Start and verify the visitor map
 
 - Changed: Added explicit DRF router basenames for the venue and event viewsets so Django's URL checks and migration command can run. Completed P2-VIS-1 runtime evidence and clarified how to find the Compose host port in `README.md`.

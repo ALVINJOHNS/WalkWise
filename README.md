@@ -58,7 +58,7 @@ Templates and the API are served by the same Django process. When changing Tailw
 
 ### Project status
 
-- Implemented: Django SSR landing and organizer pages; visitor snapshot map rendering for venue plan images, saved path edges, destination pins, and supplied open/closed/delayed status; Tailwind static styles and JS; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Visitor search/selection and freshness/location behavior are still pending. Backend runtime remains unverified while Docker is unavailable.
+- Implemented: Django SSR landing and organizer pages; visitor map with saved paths, destination pins/status, search, status filters, selected-place details, server-supplied publication freshness, and user-triggered location/manual start-point fallback; Tailwind static styles and JS; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Route calculation, GPS snapping, publishing workflow, and offline caching remain pending.
 - Not implemented: Map editing, route calculation (returns 501), publishing, QR, auth, and production deployment.
 - OpenStreetMap and Leaflet have not yet been added; add OSM attribution when the map view is introduced.
 

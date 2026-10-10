@@ -53,7 +53,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 ### P2-VIS-2 — Find and inspect a destination
 
-- Status: `not started`
+- Status: `in progress`
 - Goal: Let visitors search or filter destinations, select one, and inspect its details and status.
 - Scope: Add search/filter controls, selection behavior, and a selected-place detail panel/card using the supplied snapshot props and the owned visitor JavaScript/template paths.
 - Acceptance criteria:
@@ -64,15 +64,15 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Checks: Run the focused Django/page check and manually exercise search, filters, selection changes, empty results, and status consistency on the seeded venue.
 - Dependencies: P2-VIS-1; visitor view data must expose the fields needed to search and display place details.
 - Out of scope: Route calculation and publishing/model/API changes.
-- Verification record: Not run; phase not started.
+- Verification record: 2026-10-11 IST — `node --check api/venueflow/static/venueflow/visitor.js` passed. Django template rendering with representative names, statuses, and descriptions passed; rendered HTML contains the search/status controls, place data, and detail panel with no unrendered Django tags. `git diff --check` passed. Live click/filter interaction remains unverified in the app browser.
 - Commit: Pending.
 - Plan changes: 2026-10-11 — Isolated discovery and selected-place details from the base map outcome for focused review.
 
 ### P2-VIS-3 — Show freshness and offer manual orientation
 
-- Status: `not started`
+- Status: `in progress`
 - Goal: Communicate server-supplied snapshot freshness and provide an accessible starting point for navigation.
-- Scope: Render a truthful saved/current/paused freshness cue from explicit view props; add a prominent “Locate me” entry point with a useful map-tap/manual-start prompt when GPS is unavailable or denied; ensure narrow mobile layout; reserve a visible route-overlay slot for the navigation workstream.
+- Scope: Render a truthful saved/current/paused freshness cue from explicit view props; add a prominent “Locate me” entry point with a useful map-tap/manual-start prompt when GPS is unavailable or denied; ensure narrow mobile layout; reserve a visible route-overlay slot for the navigation workstream. A context-only change to the visitor function in integration-owned `api/venueflow/pages.py` is in scope because the current view provides no freshness prop; preserve URL, model, and API contracts and flag the change for integration review.
 - Acceptance criteria:
   - [ ] Freshness wording is derived only from explicit server props and does not infer live/offline status from connectivity.
   - [ ] The page does not request location on load; location is requested only after the visitor activates “Locate me”.
@@ -80,11 +80,11 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
   - [ ] At narrow phone width, search/list, map, details, freshness, and locate entry remain usable without horizontal overflow.
   - [ ] A route overlay placeholder is present and does not claim to calculate or display a route before routing integration.
 - Checks: Run the focused Django/page check; manually verify each freshness prop state, no location prompt on initial load, the locate fallback, and narrow-width layout.
-- Dependencies: P2-VIS-1 and P2-VIS-2; freshness context must be supplied by the Django visitor view. Route placeholder is an integration point only.
+- Dependencies: P2-VIS-1 and P2-VIS-2; visitor page view supplies explicit publication state and last-saved timestamp. Route placeholder is an integration point only.
 - Out of scope: GPS snapping, route computation, spoken directions, QR generation, cache/offline implementation, and external map tiles.
-- Verification record: Not run; phase not started.
+- Verification record: 2026-10-11 IST — `python -m py_compile api/venueflow/pages.py` and `node --check api/venueflow/static/venueflow/visitor.js` passed. Django template rendering for `saved`, `current`, and `paused` props passed with expected labels and no unrendered tags. Code inspection confirms `getCurrentPosition` is registered on the explicit button click only; manual map click and keyboard start markers are wired. `git diff --check` passed. Actual GPS permission/fallback and narrow-screen browser behavior remain unverified.
 - Commit: Pending.
-- Plan changes: 2026-10-11 — Made freshness/location/mobile behavior a separate final visitor phase, keeping navigation integration and QR/cache ownership explicit.
+- Plan changes: 2026-10-11 — Made freshness/location/mobile behavior a separate final visitor phase, keeping navigation integration and QR/cache ownership explicit. Added a narrow visitor-view context exception because the existing Django view supplies no freshness props required by this phase.
 
 After P2-VIS-3, hand off for integration review. QR and cache remain integration-owned.
 
