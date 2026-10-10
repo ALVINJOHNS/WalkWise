@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:03:00+05:30 — Record Leaflet implementation checkpoint
+
+- Changed: Marked P1-ORG-4 implementation complete, added commit `3fcdea5` to its phase record, and updated the handoff pointer.
+- Why: Tie phase status and next steps to the committed implementation.
+- Validation: `git diff --check` passed.
+- Limitations: Browser map/GPS and Django persistence verification remain pending.
+
 ## 2026-10-11T04:02:00+05:30 — Add Leaflet street map and GPS path distance
 
 - Changed: Added Leaflet 1.9.4 with integrity-pinned CDN assets and attributed OpenStreetMap tiles; centered the street view on GPS, rendered the live position/accuracy and recorded track, added geolocated destination/path-point markers and per-edge straight-line distances, and retained a separate floor-plan view. Updated organizer phase, README, AI usage, and handoff documentation.

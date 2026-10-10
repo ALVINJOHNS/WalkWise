@@ -51,7 +51,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 ### P1-ORG-3 — GPS capture and venue outline
 
-- Status: in progress
+- Status: implementation complete; browser verification pending
 - Goal: Let an organizer explicitly request a current GPS fix for a destination and record a live GPS perimeter trace.
 - Scope: Browser permission request from user-triggered controls; current location capture; start/stop/clear outline recording; visible GPS trace and location/accuracy status; save timestamped geolocation samples in the existing organizer draft JSON.
 - Acceptance criteria:
@@ -80,7 +80,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: P1-ORG-3, CDN availability, and internet access for OSM tiles.
 - Out of scope: Offline tiles, routing instructions or road/path network snapping, and conversion between geographic and floor-plan coordinates.
 - Verification record: 2026-10-11 04:02 IST — `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, and a source check for the Leaflet/OSM integration passed. Browser/phone interaction and runtime save/load remain unverified because Docker access is denied.
-- Commit: Pending.
+- Commit: `3fcdea5` — `feat: add OSM map and GPS distances`.
 - Plan changes: 2026-10-11 — User requested Leaflet and OpenStreetMap as the location background with path distance; added this phase after GPS capture.
 
 ## Cut first
