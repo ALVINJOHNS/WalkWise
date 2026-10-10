@@ -25,7 +25,8 @@ Use [the phase template](../PHASE_TEMPLATE.md) and follow each phase document as
 1. [P3-NAV-1 — Graph route core](phases/P3-NAV-1.md): pure graph traversal, closed/directed-edge handling, and explicit failure results.
 2. [P3-NAV-2 — Route metrics and output contract](phases/P3-NAV-2.md): distance, ETA, ordered IDs, and route geometry lookup contract.
 3. [P3-NAV-3 — Next-place suggestion](phases/P3-NAV-3.md): rank open, routable places and explain the selected result.
-4. [P3-NAV-4 — Approximate manual start](phases/P3-NAV-4.md): optional nearest-node mapping, only after the first three phases are verified and integration confirms the needed input shape.
+4. [P3-NAV-5 — Map API contract review and routing handoff](phases/P3-NAV-5.md): reconcile persisted map records with the pure routing inputs and agree the integration wrapper boundary.
+5. [P3-NAV-4 — Approximate manual start](phases/P3-NAV-4.md): optional nearest-node mapping, only after the first three phases are verified and integration confirms the needed input shape.
 
 ## Independent development
 

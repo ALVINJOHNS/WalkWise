@@ -4,6 +4,20 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:32:00+05:30 — Review Person 3 map API contract
+
+- Changed: Completed source-level mapping of map-draft nodes, edges, and features to pure routing inputs; documented a proposed published-snapshot `/api/route` request/response boundary and integration handoff in P3-NAV-5.
+- Why: Connect verified routing helpers to persisted map data without inferring graph links from coordinates or routing visitor requests against mutable drafts.
+- Validation: Inspected the map-draft view/serializer, ORM models, seed, and routing code. `git diff --check` and local Markdown target checks passed. Docker API probe could not run because access to the Docker Desktop named pipe was denied.
+- Limitations: The integration route is still a 501 stub; map features have no access-node field and PathEdge has no geometry field. Wrapper contract awaits Person 4 agreement; no application code changed.
+
+## 2026-10-11T05:18:41+05:30 — Plan Person 3 map API contract review
+
+- Changed: Added P3-NAV-5 to review the persisted map-draft response, map its records to Person 3 routing inputs, and agree the integration-owned route wrapper boundary. Updated the Person 3 phase sequence.
+- Why: P4-INT-3 now persists native map rows, but the API contract does not yet document place access-node, strict open-status, or wait-estimate mapping required by `suggest_next_place`.
+- Validation: Compared Person 3 helpers, P4-INT-3 and shared contract; `git diff --check` passed; local Markdown targets in the changed brief, phase document, and handoff resolved.
+- Limitations: Planning only; no endpoint probe or application code changes.
+
 ## 2026-10-11T05:11:00+05:30 — Verify organizer map-resource persistence
 
 - Changed: Added `PathNode.properties` with a migration; added venue-scoped `GET`/full-snapshot `PUT /api/venues/{id}/map-draft/`; validate finite normalized coordinates, duplicate IDs, edge endpoints and supported route direction; replace features/nodes/edges atomically and remove legacy collection arrays from calibration. Updated the organizer to load/save through this API, merge legacy drafts by stable ID for migration, retain image/GPS metadata, and expose removal controls for path points/connections. Documented the API contract and behavior.
