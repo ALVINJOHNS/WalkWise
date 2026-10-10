@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:14:03+05:30 — Record independent destination pin commit
+
+- Changed: Recorded P1-ORG-8 commit `6783821` in the phase brief and handoff.
+- Why: Keep the organizer phase record aligned with the committed pin behavior.
+- Validation: `git diff --check` passed.
+- Limitations: Manual drag and draft save/reload behavior remain unverified.
+
 ## 2026-10-11T05:13:00+05:30 — Add independent destination pins
 
 - Changed: Added persistent pin numbers to each destination, displayed the pin number on floor-plan markers and labeled Leaflet markers, made each street-map pin independently draggable, and updated only that destination's geolocation on drag. Updated organizer phase, README, and AI usage record.

@@ -160,7 +160,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: P1-ORG-1, P1-ORG-3, P1-ORG-4, existing `organizer_draft` persistence.
 - Out of scope: GPS snapping, clustering, and changing the physical coordinate stored for any other destination.
 - Verification record: 2026-10-11 05:13 IST — `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Restarted the API and verified the ngrok organizer page and JS each returned HTTP 200 with the per-destination pin and drag handler. Individual pin dragging and save/reload behavior were not manually exercised in the browser.
-- Commit: pending.
+- Commit: `6783821` — `fix: keep destination map pins independent`.
 - Plan changes: 2026-10-11 — Organizer reported that placing one destination pin appeared to move the same point when selecting another destination. Added explicit per-destination identity and individual street-map movement to make the existing per-place coordinate model clear and editable.
 
 ## Cut first
