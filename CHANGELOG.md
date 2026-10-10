@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:55:21+05:30 — Record named team-plan asset commit
+
+- Changed: Recorded `5de080a` in P1-ORG-5 and handoff for the Team 1–10 sample image and extraction prompt update.
+- Why: Preserve the committed sample asset and its matching AI recognition behavior in the current phase record.
+- Validation: `git diff --check` passed.
+- Limitations: OpenAI image recognition still awaits a configured API key and an organizer-triggered analysis.
+
 ## 2026-10-11T04:55:00+05:30 — Label team tables for AI extraction
 
 - Changed: Added the sample rectangular room PNG with exactly ten named developer tables, Team 1 through Team 10; updated the AI prompt to preserve each label as its own `team table` destination; documented the sample asset.
