@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T02:19:37+05:30 — Describe the WalkWise product in the README
+
+- Changed: Replaced the README project-name and short-description placeholders with the WalkWise concept and added a concise product-direction section.
+- Why: Make the repository identify the intended temporary-venue mapping experience before application implementation begins.
+- Validation: Compared the wording with `docs/Walkwise_Development_Plan.md`, `docs/SHARED_CONTRACT.md`, and the active integration brief; referenced Markdown targets and `git diff --check` passed.
+- Limitations: This documents planned MVP behavior only; no application code, routing, QR flow, saved snapshot, or offline behavior has been implemented or verified.
+
 ## 2026-10-11T01:50:33+05:30 — Add phased development and handoff workflow
 
 - Changed: Expanded `AGENTS.md` with a phase-by-phase implement, verify, fix, document, commit, and handoff loop; added `docs/PHASE_TEMPLATE.md`; added stable phase IDs and exit checks to all four participant briefs; linked phase execution guidance from `docs/README.md`; created root `handoff.md`.

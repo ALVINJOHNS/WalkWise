@@ -33,11 +33,15 @@ This template has no application code or required technology stack. The document
 
 For a four-person, six-hour build, use the [team execution plan](docs/README.md), its [shared contract](docs/SHARED_CONTRACT.md), and the four role briefs. The full product plan remains in [docs/Walkwise_Development_Plan.md](docs/Walkwise_Development_Plan.md).
 
-- **Project name:** TODO
-- **Short description:** TODO — what it does, who it helps, and why it matters.
+- **Project name:** WalkWise
+- **Short description:** WalkWise is a QR-accessible, organizer-maintained map for temporary venues. It is designed to help visitors find destinations along organizer-defined walking paths, see current place status, and keep a saved venue snapshot useful when connectivity is limited.
 - **Team:** TODO — participant names and GitHub handles; maximum 4 members.
 - **Working demo:** TODO — link or local demo instructions.
 - **Technology stack:** TODO
+
+### What we are building
+
+Temporary events such as college fests, fairs, and pop-up venues often rely on static maps that cannot show an updated route or whether a destination is open. WalkWise will let organizers publish a venue layout, paths, and place updates through a QR-accessible visitor map. The hackathon MVP focuses on one realistic venue, organizer-defined routes, clear destination status, and honest saved/offline state rather than claiming live or cross-device updates that have not been verified.
 
 ### Run the project
 
