@@ -12,11 +12,12 @@ Build the organizer's usable venue editor as a self-contained feature. A user sh
 ## Build now
 
 1. Create server-rendered organizer templates that work with the Django ORM data contract and seed venue.
-2. Support image selection (PNG/JPG) with an image backdrop. For the six-hour MVP, skip geographic calibration; use normalized local image coordinates.
+2. Support image selection (PNG/JPG) with an image backdrop and normalized local image coordinates.
 3. Add/select/move destination pins and edit name, category, description, and open/closed/delayed status.
 4. Add walk graph nodes and connect two selected nodes with an edge. Provide a simple visual line/point editor; no automatic tracing.
 5. Validate duplicate/blank names, dangling edge node IDs, and places missing names; show messages in the UI.
 6. Use a Django form or DRF endpoint to persist edits and show validation feedback. Do not implement publishing.
+7. Request geolocation only after a clear user action; save latitude, longitude, accuracy, altitude, heading, speed, and timestamp for destination fixes and a recorded venue-outline track.
 
 ## Independent development
 
@@ -47,6 +48,22 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Scope: Add/connect nodes and edges; validate blank/duplicate names and dangling references; expose save callback and unsaved state.
 - Exit checks: Author connected three-edge path; invalid data shows useful messages without crash; saved venue contains edited status; focused Django check passes.
 - Next: integration review; do not add calibration or storage.
+
+### P1-ORG-3 — GPS capture and venue outline
+
+- Status: in progress
+- Goal: Let an organizer explicitly request a current GPS fix for a destination and record a live GPS perimeter trace.
+- Scope: Browser permission request from user-triggered controls; current location capture; start/stop/clear outline recording; visible GPS trace and location/accuracy status; save timestamped geolocation samples in the existing organizer draft JSON.
+- Acceptance criteria:
+  - [ ] User action invokes geolocation and gives clear success, denial, unsupported, timeout, and insecure-context feedback.
+  - [ ] Selected destination stores latitude, longitude, accuracy, altitude, heading, speed, and timestamp when available.
+  - [ ] Start/stop records a live track, draws the outline, and persists the captured samples with the venue draft.
+- Checks: JavaScript syntax, diff whitespace, and browser geolocation/save round-trip when runtime is available.
+- Dependencies: Existing `Venue.calibration.organizer_draft` save/load path.
+- Out of scope: Background tracking after leaving the page, map tile integration, geospatial automatic snapping or conversion from GPS to floor-plan coordinates.
+- Verification record: Pending.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — User requested explicit GPS location capture and live perimeter recording; revised earlier no-calibration cut to support real coordinates while keeping local plan coordinates separate.
 
 ## Cut first
 

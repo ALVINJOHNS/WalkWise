@@ -7,11 +7,13 @@
   const venuePicker = $ ("[data-venue]");
   if (!canvas || !venuePicker) return;
 
-  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], selected: null, dirty: false, drag: null };
+  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], geoOutline: [], currentLocation: null, geoWatchId: null, selected: null, dirty: false, drag: null };
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
     fields: $("[data-place-fields]"), errors: $("[data-errors]"), saveState: $("[data-save-state]"),
+    gpsStatus: $("[data-gps-status]"), startOutline: $("[data-start-outline]"), stopOutline: $("[data-stop-outline]"),
+    placeLocation: $("[data-place-location]"), setPlaceLocation: $("[data-set-place-location]"),
   };
   const makeId = (prefix) => `${prefix}-${crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10)}`;
   const setDirty = () => { state.dirty = true; controls.saveState.textContent = "Unsaved changes"; };
@@ -35,11 +37,30 @@
       canvas.style.aspectRatio = "1.45";
       canvas.style.minHeight = "420px";
     }
-    controls.empty.hidden = Boolean(controls.backdrop.src);
+    controls.empty.hidden = Boolean(controls.backdrop.src) || state.geoOutline.length > 0;
     controls.markers.replaceChildren();
     controls.lines.replaceChildren();
     controls.lines.setAttribute("viewBox", "0 0 1000 1000");
     controls.lines.setAttribute("preserveAspectRatio", "none");
+    if (state.geoOutline.length) {
+      const lats = state.geoOutline.map((point) => point.latitude);
+      const lngs = state.geoOutline.map((point) => point.longitude);
+      const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+      const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+      const latRange = maxLat - minLat || 0.00001;
+      const lngRange = maxLng - minLng || 0.00001;
+      const points = state.geoOutline.map((point) => `${((point.longitude - minLng) / lngRange) * 940 + 30},${((maxLat - point.latitude) / latRange) * 940 + 30}`).join(" ");
+      const outline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      outline.setAttribute("points", state.geoRecording || state.geoOutline.length < 3 ? points : `${points} ${points.split(" ")[0]}`);
+      outline.setAttribute("class", "geo-outline");
+      controls.lines.append(outline);
+      state.geoOutline.forEach((point) => {
+        const [cx, cy] = points.split(" ")[state.geoOutline.indexOf(point)].split(",");
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("cx", cx); dot.setAttribute("cy", cy); dot.setAttribute("r", "4"); dot.setAttribute("class", "geo-point");
+        controls.lines.append(dot);
+      });
+    }
     for (const edge of state.edges) {
       const from = state.nodes.find((node) => node.id === edge.from);
       const to = state.nodes.find((node) => node.id === edge.to);
@@ -74,8 +95,11 @@
     });
     const place = state.selected?.type === "place" ? selectedItem() : null;
     controls.fields.hidden = !place;
+    controls.setPlaceLocation.hidden = !place;
+    controls.placeLocation.hidden = !place;
     if (place) {
       root.querySelectorAll("[data-field]").forEach((field) => { if (field.value !== esc(place[field.dataset.field])) field.value = esc(place[field.dataset.field]); });
+      controls.placeLocation.textContent = place.geolocation ? `GPS: ${place.geolocation.latitude.toFixed(6)}, ${place.geolocation.longitude.toFixed(6)} · ±${Math.round(place.geolocation.accuracy)} m` : "No GPS location saved for this destination.";
     }
   }
 
@@ -105,6 +129,68 @@
     state.nodes.push(node); state.selected = { type: "node", id: node.id }; setDirty(); render();
   }
 
+  function locationFix(position) {
+    const coords = position.coords;
+    return {
+      latitude: coords.latitude, longitude: coords.longitude, accuracy: coords.accuracy,
+      altitude: coords.altitude, altitude_accuracy: coords.altitudeAccuracy,
+      heading: coords.heading, speed: coords.speed, timestamp: new Date(position.timestamp).toISOString(),
+    };
+  }
+
+  function locationError(error) {
+    const messages = {
+      1: "Location permission was denied. Allow location access in your browser settings, then try again.",
+      2: "Your device could not determine a location. Check that location services are enabled.",
+      3: "Location lookup timed out. Try again in an open area.",
+    };
+    controls.gpsStatus.textContent = messages[error.code] || "Could not access your location.";
+    if (state.geoWatchId !== null) stopOutlineRecording();
+  }
+
+  function requestLocation(onSuccess) {
+    if (!window.isSecureContext || !navigator.geolocation) {
+      controls.gpsStatus.textContent = "GPS needs browser location support and a secure page (HTTPS or localhost).";
+      return;
+    }
+    controls.gpsStatus.textContent = "Requesting location permission and GPS fix…";
+    navigator.geolocation.getCurrentPosition((position) => {
+      const fix = locationFix(position); state.currentLocation = fix; onSuccess(fix);
+    }, locationError, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+  }
+
+  function stopOutlineRecording() {
+    if (state.geoWatchId !== null) navigator.geolocation.clearWatch(state.geoWatchId);
+    state.geoWatchId = null; state.geoRecording = false;
+    controls.startOutline.disabled = false; controls.stopOutline.hidden = true;
+    controls.gpsStatus.textContent = `Outline recording stopped · ${state.geoOutline.length} GPS samples saved in this draft.`;
+    if (state.geoOutline.length) setDirty();
+    render();
+  }
+
+  function startOutlineRecording() {
+    if (!window.isSecureContext || !navigator.geolocation) {
+      controls.gpsStatus.textContent = "GPS needs browser location support and a secure page (HTTPS or localhost).";
+      return;
+    }
+    controls.gpsStatus.textContent = "Waiting for GPS permission and first fix…";
+    state.geoRecording = true; controls.startOutline.disabled = true; controls.stopOutline.hidden = false;
+    state.geoWatchId = navigator.geolocation.watchPosition((position) => {
+      const fix = locationFix(position);
+      const previous = state.geoOutline[state.geoOutline.length - 1];
+      if (!previous || distanceMeters(previous, fix) >= 1.5) state.geoOutline.push(fix);
+      state.currentLocation = fix; controls.gpsStatus.textContent = `Recording venue outline · ${state.geoOutline.length} GPS samples · current fix ±${Math.round(fix.accuracy)} m`;
+      setDirty(); render();
+    }, locationError, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+  }
+
+  function distanceMeters(a, b) {
+    const radians = (degrees) => degrees * Math.PI / 180;
+    const dLat = radians(b.latitude - a.latitude), dLng = radians(b.longitude - a.longitude);
+    const value = Math.sin(dLat / 2) ** 2 + Math.cos(radians(a.latitude)) * Math.cos(radians(b.latitude)) * Math.sin(dLng / 2) ** 2;
+    return 6371000 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+  }
+
   async function loadVenue(id) {
     controls.saveState.textContent = "Loading…"; controls.errors.textContent = "";
     try {
@@ -116,6 +202,8 @@
       state.places = Array.isArray(draft.places) ? draft.places : [];
       state.nodes = Array.isArray(draft.nodes) ? draft.nodes : [];
       state.edges = Array.isArray(draft.edges) ? draft.edges : [];
+      state.geoOutline = Array.isArray(draft.geo_outline) ? draft.geo_outline : [];
+      state.currentLocation = state.geoOutline.at(-1) || null;
       state.selected = null; state.dirty = false; controls.saveState.textContent = "Saved"; render();
     } catch (error) { controls.errors.textContent = error.message; controls.saveState.textContent = "Load failed"; }
   }
@@ -146,6 +234,7 @@
     try {
       const calibration = { ...(state.venue.calibration || {}), organizer_draft: {
         format: 1, places: state.places, nodes: state.nodes, edges: state.edges, image_data: state.imageData,
+        geo_outline: state.geoOutline,
       } };
       const response = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/`, {
         method: "PATCH", headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -160,7 +249,26 @@
 
   venuePicker.addEventListener("change", () => {
     if (state.dirty && !window.confirm("Discard unsaved organizer changes?")) { venuePicker.value = state.venue.id; return; }
+    if (state.geoWatchId !== null) navigator.geolocation.clearWatch(state.geoWatchId);
+    state.geoWatchId = null; state.geoRecording = false;
     loadVenue(venuePicker.value);
+  });
+  $("[data-current-location]").addEventListener("click", () => requestLocation((fix) => {
+    controls.gpsStatus.textContent = `Current location: ${fix.latitude.toFixed(6)}, ${fix.longitude.toFixed(6)} · ±${Math.round(fix.accuracy)} m`;
+  }));
+  controls.setPlaceLocation.addEventListener("click", () => requestLocation((fix) => {
+    const place = selectedItem();
+    if (!place || state.selected.type !== "place") return;
+    place.geolocation = fix; setDirty(); render();
+    controls.gpsStatus.textContent = `Saved GPS fix for ${place.name || "this destination"}: ${fix.latitude.toFixed(6)}, ${fix.longitude.toFixed(6)} · ±${Math.round(fix.accuracy)} m`;
+  }));
+  controls.startOutline.addEventListener("click", startOutlineRecording);
+  controls.stopOutline.addEventListener("click", stopOutlineRecording);
+  $("[data-clear-outline]").addEventListener("click", () => {
+    if (state.geoWatchId !== null) navigator.geolocation.clearWatch(state.geoWatchId);
+    state.geoWatchId = null; state.geoRecording = false; state.geoOutline = [];
+    controls.startOutline.disabled = false; controls.stopOutline.hidden = true;
+    controls.gpsStatus.textContent = "Recorded outline cleared."; setDirty(); render();
   });
   function loadImageFile(file) {
     if (!file) return;
@@ -216,5 +324,6 @@
   ["pointerup", "pointercancel", "lostpointercapture"].forEach((name) => canvas.addEventListener(name, () => { state.drag = null; }));
   $("[data-add-place]").addEventListener("contextmenu", (event) => { event.preventDefault(); state.placeMode = true; });
   $("[data-add-node]").addEventListener("contextmenu", (event) => { event.preventDefault(); state.nodeMode = true; });
+  window.addEventListener("beforeunload", () => { if (state.geoWatchId !== null) navigator.geolocation.clearWatch(state.geoWatchId); });
   loadVenue(venuePicker.value);
 })();
