@@ -26,12 +26,12 @@ def organizer(request):
             body = json.loads(request.body)
             if body.get("action") != "analyze_floor_plan":
                 return JsonResponse({"detail": "Unknown organizer action."}, status=400)
-            destinations = extract_destinations(body.get("image_data"))
+            analysis = extract_destinations(body.get("image_data"))
         except (json.JSONDecodeError, AttributeError):
             return JsonResponse({"detail": "The floor-plan request is invalid."}, status=400)
         except FloorPlanAnalysisError as error:
             return JsonResponse({"detail": str(error)}, status=503 if "not configured" in str(error) else 400)
-        return JsonResponse({"destinations": destinations})
+        return JsonResponse(analysis)
     if request.method != "GET":
         return JsonResponse({"detail": "Method not allowed."}, status=405)
     return render(request, "venueflow/organizer.html", {"venues": list_venues()})

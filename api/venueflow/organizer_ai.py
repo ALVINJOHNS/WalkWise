@@ -56,9 +56,13 @@ def extract_destinations(data_url):
                         "description": {"type": "string"},
                         "plan_x": {"type": "number"},
                         "plan_y": {"type": "number"},
+                        "bounds_x": {"type": "number"},
+                        "bounds_y": {"type": "number"},
+                        "bounds_width": {"type": "number"},
+                        "bounds_height": {"type": "number"},
                         "confidence": {"type": "number"},
                     },
-                    "required": ["name", "category", "description", "plan_x", "plan_y", "confidence"],
+                    "required": ["name", "category", "description", "plan_x", "plan_y", "bounds_x", "bounds_y", "bounds_width", "bounds_height", "confidence"],
                     "additionalProperties": False,
                 },
             },
@@ -115,7 +119,12 @@ def extract_destinations(data_url):
                         "return empty path_points and path_edges. These are approximate proposals that need "
                         "organizer verification. "
                         "For each item, estimate the center as normalized coordinates across the full image: "
-                        "plan_x and plan_y from 0 to 1, origin at top left. Lower confidence when unsure. "
+                        "plan_x and plan_y from 0 to 1, origin at top left. Also estimate a tight bounding "
+                        "rectangle using bounds_x and bounds_y for its top-left and bounds_width and "
+                        "bounds_height for its size, all normalized from 0 to 1. Keep the rectangle within "
+                        "the image and include the entire visible component and its label when possible. "
+                        "These bounds are approximate selection overlays, not precise segmentation. Lower "
+                        "confidence when unsure. "
                         "Use a concise category and description. Return an empty list if nothing is identifiable."
                     ),
                 },
@@ -177,17 +186,29 @@ def extract_destinations(data_url):
         try:
             plan_x = float(item["plan_x"])
             plan_y = float(item["plan_y"])
+            bounds_x = float(item["bounds_x"])
+            bounds_y = float(item["bounds_y"])
+            bounds_width = float(item["bounds_width"])
+            bounds_height = float(item["bounds_height"])
             confidence = float(item["confidence"])
         except (KeyError, TypeError, ValueError, OverflowError):
             continue
-        if not all(map(math.isfinite, (plan_x, plan_y, confidence))):
+        if not all(map(math.isfinite, (plan_x, plan_y, bounds_x, bounds_y, bounds_width, bounds_height, confidence))):
             continue
+        bounds_x = min(0.99, max(0, bounds_x))
+        bounds_y = min(0.99, max(0, bounds_y))
+        bounds_width = min(1 - bounds_x, max(0.01, bounds_width))
+        bounds_height = min(1 - bounds_y, max(0.01, bounds_height))
         clean.append({
             "name": name,
             "category": str(item.get("category", "facility")).strip()[:60] or "facility",
             "description": str(item.get("description", "")).strip()[:1000],
             "plan_x": min(1, max(0, plan_x)),
             "plan_y": min(1, max(0, plan_y)),
+            "bounds_x": bounds_x,
+            "bounds_y": bounds_y,
+            "bounds_width": bounds_width,
+            "bounds_height": bounds_height,
             "confidence": min(1, max(0, confidence)),
         })
     path_points = []

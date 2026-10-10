@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:59:00+05:30 — Add animated AI component overlay workflow
+
+- Changed: Added estimated normalized component bounds to the structured image extraction, corrected the existing same-origin organizer POST response shape, displayed an accessible loading animation, and rendered detected components as selectable SVG bounds/labels that synchronize with the review checkboxes. Updated organizer guidance and documentation.
+- Why: Complete the requested flow from rough uploaded image to AI-detected, selectable layout components, then organizer-controlled exact GPS pinning.
+- Validation: `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started; organizer HTML and static JS returned HTTP 200 with the SVG overlay/loading UI present.
+- Limitations: Component bounds are visual estimates, not segmentation or GPS coordinates. No live OpenAI request was sent during this verification, and SVG selection still needs a browser interaction check.
+
 ## 2026-10-11T04:55:21+05:30 — Record named team-plan asset commit
 
 - Changed: Recorded `5de080a` in P1-ORG-5 and handoff for the Team 1–10 sample image and extraction prompt update.

@@ -126,6 +126,24 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Commit: `fa132e8` — `feat: add reviewable AI path proposals`.
 - Plan changes: 2026-10-11 — Organizer clarified that the goal includes AI mapping a route from the plan after destinations are found; added a review-first path proposal phase while retaining GPS verification and the existing navigation phase boundary.
 
+### P1-ORG-7 — Animated SVG component review and pin handoff
+
+- Status: `in progress` (implementation and served-page verification complete; image analysis and overlay interaction pending)
+- Goal: Turn an uploaded rough floor-plan image into a visible, reviewable component overlay that organizers can select before pinning exact real-world locations.
+- Scope: Add estimated normalized component bounds to the existing structured image-analysis result; show an animated in-progress state after the organizer starts analysis; draw safe client-created SVG shapes and labels over the source image; synchronize SVG selection with the review list; retain the existing explicit add-to-editor and on-site GPS pin flow. Correct the existing organizer POST response to return the structured analysis fields at the shape already consumed by the editor.
+- Acceptance criteria:
+  - [ ] Organizer starts analysis explicitly and sees an accessible loading animation until success/failure.
+  - [ ] Each detected component appears as a distinct, labeled SVG bounding box over the uploaded plan; labels/content are inserted as text, never model-supplied SVG markup.
+  - [ ] Clicking or keyboard-activating an SVG component selects it in the review list and toggles the matching review checkbox; list selection also updates the overlay.
+  - [ ] Component geometry is labeled as image-derived approximation; adding a destination and setting its exact GPS position remain separate organizer actions.
+  - [ ] Analysis returns destinations and proposed path data in the response shape consumed by the existing page; no new API URL or user-visible API path is introduced.
+- Checks: Python compilation, JavaScript syntax, Compose config, `git diff --check`, and local page/static/missing-key response checks when the runtime is available. Live AI inference requires a configured key.
+- Dependencies: P1-ORG-5, P1-ORG-6, selected-image upload and destination/GPS editor.
+- Out of scope: Treating image bounds as precise geometry or GPS, silently importing findings, creating public API URLs, or running analysis before user action.
+- Verification record: 2026-10-11 04:59 IST — `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started; `/organizer/` and the organizer JS returned HTTP 200 and included the new UI. No live model request was made, and SVG selection was not manually exercised in a browser.
+- Commit: pending.
+- Plan changes: 2026-10-11 — Organizer described the intended interaction as uploading a rough image, watching AI convert it into a component layout, selecting detections, and later pinning each exact real-world location. This phase makes that review step visible and selectable while keeping GPS capture separate.
+
 ## Cut first
 
 Calibration, zones, schedules/hours, undo/redo, mobile walk-and-plot, advanced drag handles, graph auto-layout. Do not spend time polishing editor appearance before save/export works.

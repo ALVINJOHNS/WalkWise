@@ -18,6 +18,7 @@
     mapViewTools: $("[data-map-view-tools]"), floorplanView: $("[data-map-view='floorplan']"), nodeFields: $("[data-node-fields]"),
     nodeLocation: $("[data-node-location]"), setNodeLocation: $("[data-set-node-location]"), nodeOnMap: $("[data-node-on-map]"),
     analyze: $("[data-analyze]"), aiReview: $("[data-ai-review]"), aiSuggestions: $("[data-ai-suggestions]"),
+    aiOverlay: $("[data-ai-overlay]"), aiLoading: $("[data-ai-loading]"),
     addSuggestions: $("[data-add-suggestions]"), aiPathSuggestions: $("[data-ai-path-suggestions]"),
     addPathSuggestions: $("[data-add-path-suggestions]"), aiStatus: $("[data-ai-status]"),
   };
@@ -56,6 +57,7 @@
     controls.lines.replaceChildren();
     controls.lines.setAttribute("viewBox", "0 0 1000 1000");
     controls.lines.setAttribute("preserveAspectRatio", "none");
+    renderAiOverlay();
     if (!window.L && state.geoOutline.length) {
       const gpsPoints = state.geoOutline;
       const lats = gpsPoints.map((point) => point.latitude);
@@ -293,11 +295,12 @@
   function renderSuggestions() {
     controls.aiReview.hidden = !state.aiSuggestions.length && !state.aiPathSuggestions.length && !controls.aiStatus.textContent;
     controls.aiSuggestions.replaceChildren();
-    state.aiSuggestions.forEach((suggestion) => {
+    state.aiSuggestions.forEach((suggestion, index) => {
       const li = document.createElement("li"); li.className = "item-row ai-suggestion";
       const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.checked = Boolean(suggestion.selected);
+      checkbox.dataset.aiIndex = String(index);
       checkbox.setAttribute("aria-label", `Add ${suggestion.name}`);
-      checkbox.addEventListener("change", () => { suggestion.selected = checkbox.checked; updateSuggestionButton(); });
+      checkbox.addEventListener("change", () => { suggestion.selected = checkbox.checked; updateSuggestionButton(); renderAiOverlay(); });
       const text = document.createElement("span");
       const title = document.createElement("strong"); title.textContent = suggestion.name;
       const details = document.createElement("small");
@@ -320,6 +323,50 @@
       text.append(title, details); li.append(checkbox, text); controls.aiPathSuggestions.append(li);
     });
     updateSuggestionButton();
+  }
+
+  function renderAiOverlay() {
+    if (!controls.aiOverlay) return;
+    const overlay = controls.aiOverlay;
+    const svg = "http://www.w3.org/2000/svg";
+    overlay.replaceChildren();
+    overlay.setAttribute("viewBox", "0 0 1000 1000");
+    overlay.setAttribute("preserveAspectRatio", "none");
+    const hasPlan = Boolean(state.imageData || state.venue?.plan_image_url);
+    overlay.hidden = !hasPlan || state.mapMode === "street" || !state.aiSuggestions.length;
+    state.aiSuggestions.forEach((suggestion, index) => {
+      const value = (key, fallback) => Number.isFinite(Number(suggestion[key])) ? Number(suggestion[key]) : fallback;
+      const x = Math.min(990, Math.max(0, value("bounds_x", suggestion.plan_x - 0.045) * 1000));
+      const y = Math.min(990, Math.max(0, value("bounds_y", suggestion.plan_y - 0.035) * 1000));
+      const width = Math.max(28, Math.min(1000 - x, value("bounds_width", 0.09) * 1000));
+      const height = Math.max(28, Math.min(1000 - y, value("bounds_height", 0.07) * 1000));
+      const group = document.createElementNS(svg, "g");
+      group.setAttribute("class", `ai-component${suggestion.selected ? " selected" : ""}`);
+      group.setAttribute("role", "button"); group.setAttribute("tabindex", "0");
+      group.setAttribute("aria-label", `${suggestion.name}, approximate detected component`);
+      group.setAttribute("aria-pressed", String(Boolean(suggestion.selected)));
+      const bounds = document.createElementNS(svg, "rect");
+      bounds.setAttribute("class", "component-bounds"); bounds.setAttribute("x", x); bounds.setAttribute("y", y);
+      bounds.setAttribute("width", width); bounds.setAttribute("height", height);
+      const labelWidth = Math.min(500, Math.max(90, suggestion.name.length * 10 + 22));
+      const labelY = Math.max(0, y - 30);
+      const labelBg = document.createElementNS(svg, "rect");
+      labelBg.setAttribute("class", "component-label-bg"); labelBg.setAttribute("x", x); labelBg.setAttribute("y", labelY);
+      labelBg.setAttribute("width", labelWidth); labelBg.setAttribute("height", 26);
+      const label = document.createElementNS(svg, "text");
+      label.setAttribute("x", x + 10); label.setAttribute("y", labelY + 19); label.textContent = suggestion.name;
+      group.append(bounds, labelBg, label);
+      const toggle = () => {
+        suggestion.selected = !suggestion.selected;
+        render();
+        controls.aiSuggestions.querySelector(`[data-ai-index="${index}"]`)?.focus();
+      };
+      group.addEventListener("click", toggle);
+      group.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle(); }
+      });
+      overlay.append(group);
+    });
   }
 
   function updateSuggestionButton() {
@@ -553,7 +600,10 @@
     if (!state.imageData) return;
     state.aiSuggestions = []; state.aiPathPoints = []; state.aiPathSuggestions = [];
     controls.analyze.disabled = true;
-    controls.aiStatus.textContent = "Sending this floor plan to OpenAI for analysis…";
+    controls.aiStatus.textContent = "AI is reading the floor plan and identifying its components…";
+    controls.aiLoading.hidden = false;
+    canvas.setAttribute("aria-busy", "true");
+    controls.analyze.textContent = "Reading plan…";
     controls.errors.textContent = "";
     render();
     try {
@@ -574,7 +624,12 @@
       controls.aiStatus.textContent = "";
       controls.errors.textContent = error.message;
       render();
-    } finally { controls.analyze.disabled = !state.imageData; }
+    } finally {
+      controls.aiLoading.hidden = true;
+      canvas.removeAttribute("aria-busy");
+      controls.analyze.textContent = "Find components with AI";
+      controls.analyze.disabled = !state.imageData;
+    }
   });
   controls.addSuggestions.addEventListener("click", () => {
     const selected = state.aiSuggestions.filter((item) => item.selected);
