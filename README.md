@@ -30,7 +30,7 @@ For a four-person, six-hour build, use the [team execution plan](docs/README.md)
 - **Project name:** Walkwise
 - **Short description:** Turn a venue plan into an editable event map with walkable paths and visitor destinations.
 - **Team:** TODO — participant names and GitHub handles; maximum 4 members.
-- **Working demo:** Local server at `http://localhost:8000`; the responsive overview summarizes venues/events and previews intended flows. Overview flow buttons are presentation-only and do not navigate yet.
+- **Working demo:** Local server at `http://localhost:8001` in this checkout; the responsive overview summarizes venues/events and previews intended flows. Overview flow buttons are presentation-only and do not navigate yet.
 - **Technology stack:** Django server-rendered templates, Django REST Framework, Django ORM/GeoDjango, PostgreSQL/PostGIS, Tailwind CSS, Redis, Celery, Docker Compose.
 
 ### What we are building
@@ -45,7 +45,7 @@ Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebui
 
 1. Copy `.env.example` to `.env` and adjust local ports/credentials if needed.
 2. Start the database, migration/seed jobs, Django SSR/API server, Redis, and worker: `docker compose up --build`.
-3. Open `http://localhost:8000`; organizer and visitor pages and the browsable API share this Django server. API health is at `http://localhost:8000/api/health`.
+3. Open `http://localhost:8000` (or the configured `API_PORT`; this checkout uses `http://localhost:8001` because port 8000 is occupied). Organizer and visitor pages and the browsable API share this Django server. API health is at `/api/health` on the same host/port.
 4. Stop services with `docker compose down`. Remove local database data with `docker compose down -v`.
 
 The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`.

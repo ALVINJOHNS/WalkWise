@@ -4,6 +4,8 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex brought the integrated Compose app up using ignored local port overrides because this machine already had services on ports 5432 and 8000. It verified overview, organizer, visitor, health, and CSS responses, then checked venue draft API save/load and restored the seed value. Human review: pending. Validation: all listed HTTP routes returned 200; Postgres and Redis were healthy. Browser visual interaction was not manually verified.
+
 On 11 October 2026, Codex fixed the organizer canvas placeholder leaking image alt text, added PNG/JPG drag-and-drop loading with visual feedback, and removed API browser links from organizer/shared navigation/overview while preserving internal draft persistence requests. Human review: pending. Validation: JavaScript syntax and `git diff --check` passed; Django/browser verification was unavailable because Docker socket access is denied.
 
 

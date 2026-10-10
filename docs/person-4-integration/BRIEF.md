@@ -22,7 +22,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 ### P4-INT-1 — Runnable full-stack foundation
 
-- Status: in progress
+- Status: complete
 - Scope: Establish the team foundation requested on 2026-10-11: Django SSR templates with compiled Tailwind and static JavaScript, Django REST Framework API using Django ORM, PostgreSQL/PostGIS, Redis/Celery worker, Compose services, shared domain contract, seed, and contributor/task-split docs. Use one Django service for pages and API. Add scaffold files only inside feature-owned folders; leave feature behavior to each owner.
 - Acceptance criteria:
   - [ ] `docker compose up --build` starts healthy database, Redis, Django web/API, and worker services.
@@ -35,9 +35,10 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Verification record: 2026-10-11T02:35+05:30 — `npm install` and `npm run build:css` passed; `docker compose config --quiet`, `python3 -m compileall -q api`, `git diff --check`, and a source scan for direct SQL calls passed. `python3 api/manage.py check` could not run because psycopg is not installed on the host; host GDAL is also absent. Docker runtime is unavailable because the local daemon is not running. Original Vite checks from `0805e41` are historical; Vite has been removed.
 - Verification record: 2026-10-11T03:06+05:30 — Overview page, server-side venue/event summary counts, venue search, and non-navigating flow feedback added. `npm run build:css`, `python3 -m compileall -q api`, and `git diff --check` passed. Rendered browser behavior remains unverified because Django dependencies and Docker runtime are unavailable on the host.
 - Verification record: 2026-10-11T03:13+05:30 — Fixed DRF router startup by adding explicit `venue` and `event` basenames because both viewsets expose dynamic `get_queryset()` methods. `docker compose up --build -d` then migrated and seeded successfully; API and worker started. In-container checks returned overview HTTP 200, CSS HTTP 200 (23,981 bytes; includes overview and Tailwind grid rules), and `/api/health` HTTP 200 with database healthy. `python3 -m compileall -q api` and `git diff --check` passed.
+- Verification record: 2026-10-11T03:49+05:30 — Started the current integrated app with `docker compose up --build -d`. Default host ports 5432 and 8000 were already in use by another local project, so an ignored `.env` selects 5433 (Postgres), 6380 (Redis), and 8001 (Django); the Compose container ports remain unchanged. Postgres and Redis reported healthy; Django overview, organizer, visitor `/v/kochi-expo/`, `/api/health`, and compiled CSS returned HTTP 200. A temporary organizer draft value saved through the venue PATCH endpoint and read back successfully, then the original calibration value was restored. The app is running locally; visual browser interaction remains unverified.
 - Commits: `5930b51` (`feat: build interactive venue overview`), `a6a8e92` (`fix: register explicit DRF router basenames`).
 - Plan changes: 2026-10-11 — expanded the original browser-only shell to the user's explicitly requested Docker/PostgreSQL, server, Celery, and Redis foundation. User specified Django REST Framework instead of direct SQL querying and then requested SSR with no separate frontend service. A supplied Django monolith architecture was used as a reference for layering and progressive enhancement; keep the prior DRF requirement, and omit its CareUI, auth, tenancy, and production infrastructure from this hackathon foundation. Use Django ORM migrations, templates, and compiled Tailwind static assets served by the same Django service.
-- Next: Verify Compose runtime and rendered overview/SSR/API routes, then P4-INT-2.
+- Next: Read and execute P4-INT-2 (venue API persistence) in this brief.
 
 ### P4-INT-2 — Venue API persistence
 

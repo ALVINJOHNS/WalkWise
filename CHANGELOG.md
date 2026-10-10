@@ -4,6 +4,14 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:49+05:30 — Bring up and verify the integrated demo
+
+- Changed: Started the Compose stack using ignored local port overrides (Postgres 5433, Redis 6380, Django 8001), recorded the P4-INT-1 completion evidence, updated the current handoff and local demo URL.
+- Why: The default host ports 5432 and 8000 were occupied by another running project; alternate ports made the demo available without disrupting it.
+- Affected files: `README.md`, `docs/person-4-integration/BRIEF.md`, `handoff.md`; ignored local `.env`.
+- Validation: Compose services started; Postgres and Redis healthy. Overview, organizer, visitor, health API, and compiled CSS returned HTTP 200. Temporary venue draft save/load round-trip passed; seeded calibration was restored.
+- Limitations: Browser interaction/visual rendering was not manually checked. Local port overrides are machine-specific and are excluded from Git.
+
 ## 2026-10-11T03:33:41+05:30 — Improve organizer canvas and hide API browser links
 
 - Changed: Replaced the blank canvas text with a centered floor-plan drop prompt, prevented hidden image alt text from displaying, added PNG/JPG drag-and-drop loading and hover feedback, and removed user-facing API browser links from organizer, shared navigation, and overview templates.
