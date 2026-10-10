@@ -4,6 +4,118 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:26:00+05:30 — Record ngrok tunnel configuration checkpoint
+
+- Changed: Recorded commit `374c853` in the handoff.
+- Why: Tie the verified tunnel configuration to the current continuation pointer.
+- Validation: `git diff --check` passed.
+- Limitations: Phone GPS access depends on browser location permission and the tunnel remaining active.
+
+## 2026-10-11T04:24:00+05:30 — Allow the provided ngrok tunnel host
+
+- Changed: Added environment-configurable Django allowed hosts and CSRF trusted origins, configured forwarded HTTPS detection, and included the provided ngrok host in Compose defaults and `.env.example`.
+- Why: Let Django accept tunneled requests to the organizer and accept same-origin HTTPS draft saves through ngrok.
+- Validation: `python3 -m py_compile api/config/settings.py`, `docker compose config`, and `git diff --check` passed; API container recreated; Django reported the expected allowed-host/CSRF/proxy settings; local and ngrok organizer routes returned HTTP 200.
+- Limitations: The hostname is specific to this tunnel; update the environment values when ngrok assigns a different one.
+
+## 2026-10-11T04:21:00+05:30 — Record direct map-add checkpoint
+
+- Changed: Recorded commit `fd68ec0` in the organizer phase and handoff.
+- Why: Keep the phase record tied to the directly placeable map items and GPS icon.
+- Validation: `git diff --check` passed.
+- Limitations: Manual map interaction remains pending.
+
+## 2026-10-11T04:20:00+05:30 — Add items directly on the street map
+
+- Changed: Add destination and Add path point now enter placement mode in street view; the next map click creates the record at that geographic coordinate. Added a pulsing, labeled live GPS map icon.
+- Why: Let organizers create geographic items on the OpenStreetMap canvas itself and spot their live position.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed; Compose rebuilt, organizer returned HTTP 200, and the served script contained the direct-add handler and live-location label.
+- Limitations: Browser interaction remains unverified.
+
+## 2026-10-11T04:15:00+05:30 — Record street-map placement fix checkpoint
+
+- Changed: Recorded commit `2627ad9` in the organizer phase and handoff.
+- Why: Tie the phase notes to the delivered map-placement behavior.
+- Validation: `git diff --check` passed.
+- Limitations: Manual browser interaction remains pending.
+
+## 2026-10-11T04:14:00+05:30 — Place organizer items on the street map
+
+- Changed: Added map-placement controls for selected destinations and path points, click-to-assign geographic coordinates, selectable/highlighted street-map markers, and text explaining why local-only points are absent from the geographic view. Updated organizer phase, README, and handoff.
+- Why: Floor-plan `x/y` positions are unrelated to latitude/longitude; organizers need to place or GPS-locate an item before it can appear at a truthful geographic position.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Compose rebuilt and started; organizer returned HTTP 200 and served JavaScript contained the map-placement behavior.
+- Limitations: Interactive browser verification is pending.
+
+## 2026-10-11T04:09:00+05:30 — Record OSM referrer fix checkpoint
+
+- Changed: Recorded fix commit `ce7e6f7` in the organizer phase and handoff.
+- Why: Keep the continuation notes tied to the exact OSM 403 fix.
+- Validation: `git diff --check` passed.
+- Limitations: Browser-visible tile loading remains to be confirmed.
+
+## 2026-10-11T04:08:00+05:30 — Fix OSM tile referrer policy
+
+- Changed: Set Leaflet tile image referrer policy to `strict-origin-when-cross-origin` and documented the OSM 403 cause/fix in the organizer brief.
+- Why: The browser was showing OSM “Access blocked” tiles because the cross-origin tile requests need a valid page referrer; this needs no OSM credentials.
+- Validation: JavaScript syntax and `git diff --check` passed; `docker compose up --build -d` completed; organizer returned HTTP 200 and served JavaScript contained the referrer policy.
+- Limitations: Browser-visible tile loading after the fix remains unverified.
+
+## 2026-10-11T04:03:00+05:30 — Record Leaflet implementation checkpoint
+
+- Changed: Marked P1-ORG-4 implementation complete, added commit `3fcdea5` to its phase record, and updated the handoff pointer.
+- Why: Tie phase status and next steps to the committed implementation.
+- Validation: `git diff --check` passed.
+- Limitations: Browser map/GPS and Django persistence verification remain pending.
+
+## 2026-10-11T04:02:00+05:30 — Add Leaflet street map and GPS path distance
+
+- Changed: Added Leaflet 1.9.4 with integrity-pinned CDN assets and attributed OpenStreetMap tiles; centered the street view on GPS, rendered the live position/accuracy and recorded track, added geolocated destination/path-point markers and per-edge straight-line distances, and retained a separate floor-plan view. Updated organizer phase, README, AI usage, and handoff documentation.
+- Why: Let organizers view GPS capture in geographic context and measure the recorded coordinate path.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, and source searches for map controls/attribution/distance passed.
+- Limitations: Requires internet for Leaflet CDN and map tiles. Distance follows captured GPS samples or straight-line endpoint geodesics; no road routing or snapping. Browser map/GPS and save/load round-trip were not runtime-tested.
+
+## 2026-10-11T04:54:00+05:30 — Record GPS stop/pointer checkpoint
+
+- Changed: Added the exact fix commit to the organizer phase evidence and handoff.
+- Why: Keep continuation records tied to the committed state.
+- Validation: `git diff --check` passed.
+- Limitations: Live browser/device verification is pending.
+
+
+## 2026-10-11T04:53:21+05:30 — Fix GPS stop and show live pointer
+
+- Changed: Fixed the stop click handler, invalidated callbacks from stopped watches, retained every device-reported position, and added a live pointer with an accuracy halo.
+- Why: Let organizers stop reliably and see the phone’s reported position move while recording the venue outline.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Limitations: Browser and phone GPS behavior could not be manually verified in this environment; high-accuracy mode is requested but device location conditions determine actual results.
+
+
+## 2026-10-11T04:53:04+05:30 — Fix GPS stop and add moving position marker
+
+- Changed: Stop control now calls its handler without passing the click event as a status string; stopped/old watches ignore queued callbacks. Added a moving current-location marker and accuracy halo; recorded every browser-reported fix without minimum-distance filtering.
+- Why: Ensure tracking can be stopped and make the phone’s reported position visible while it records the perimeter.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Limitations: Device-specific GPS accuracy and cadence, browser stop behavior, and API save/load were not manually verified because the local runtime is unavailable. High-accuracy mode is requested but cannot force device GPS availability.
+
+
+## 2026-10-11T03:46:00+05:30 — Record GPS implementation checkpoint
+
+- Changed: Recorded the GPS editor fix commit and validation evidence in the organizer phase brief and handoff.
+- Why: Keep the active phase and continuation pointer aligned with the committed implementation.
+- Validation: `git diff --check` passed.
+- Limitations: Browser geolocation and Django persistence are still pending runtime verification.
+
+
+## 2026-10-11T03:43:16+05:30 — Add GPS destination fixes and outline recording
+
+- Changed: Added user-triggered current-location capture, GPS metadata for selected destinations, live start/stop/clear perimeter tracking, visible GPS trace/status, and draft save/load of timestamped coordinates. Revised P1-ORG-3 to document the requested scope.
+- Why: Capture real geolocation coordinates and a walk-recorded venue outline, separate from local floor-plan coordinates.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Limitations: Browser permission, device GPS, and Django save/load were not runtime tested because Docker socket access is denied. Current API stores the outline under `Venue.calibration.organizer_draft`; the read-only boundary serializer prevents writing `Venue.boundary`. Browser geolocation requires permission and a secure context (HTTPS or localhost).
+
+
+## 2026-10-11T03:33:41+05:30 — Improve organizer canvas and hide API browser links
+
 ## 2026-10-11T03:49+05:30 — Bring up and verify the integrated demo
 
 - Changed: Started the Compose stack using ignored local port overrides (Postgres 5433, Redis 6380, Django 8001), recorded the P4-INT-1 completion evidence, updated the current handoff and local demo URL.

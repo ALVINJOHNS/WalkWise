@@ -4,6 +4,24 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex configured Django to accept the user's ngrok hostname, trust its HTTPS origin for unsafe requests, and honor the proxy's forwarded HTTPS scheme. Human review: pending. Validation: Python syntax and Compose config passed; Django loaded the intended values, and local plus ngrok organizer requests returned HTTP 200.
+
+On 11 October 2026, following the user's clarification, Codex made Add destination and Add path point arm a one-click creation directly on the street map and replaced the subtle GPS dot with a prominent pulsing “Live GPS location” map icon. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; Compose rebuilt, organizer returned HTTP 200, and the served script included the direct-add handler and live-location label. Manual click interaction remains unverified.
+
+On 11 October 2026, after the user reported that destinations and path points disappeared in street-map view, Codex added selection-aware Leaflet markers and a click-to-place action for selected items that do not yet have geographic coordinates. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; browser interaction remains unverified.
+
+On 11 October 2026, after the user shared the OpenStreetMap 403 tile, Codex configured Leaflet tile images to send a valid cross-origin `Referer` under OSM’s policy. Human review: pending. Validation: rebuild completed, organizer returned HTTP 200, served JavaScript contained the policy, and JavaScript syntax/diff whitespace checks passed; browser-visible tile loading still needs confirmation.
+
+On 11 October 2026, Codex added a Leaflet 1.9.4 street-map layer using attributed OpenStreetMap tiles, GPS-centered pan/zoom, live recorded trace and position/accuracy overlays, GPS destination/path-point markers, and measured recorded-track and geolocated edge distances. Street-map and floor-plan views remain separate; the editor does not claim road snapping or directions. Human review: pending. Validation: JavaScript syntax, diff whitespace, and source checks passed; browser map/GPS verification was unavailable.
+
+On 11 October 2026, Codex fixed the GPS stop click handler and late callback handling, retained each browser-reported position, and added a moving current-location pointer with an accuracy halo during perimeter recording. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; a phone GPS session was not available for manual verification.
+
+
+On 11 October 2026, Codex fixed the GPS stop control and late callback handling, added a moving current-position pointer and accuracy halo, and retained each geolocation fix reported during an outline recording. `enableHighAccuracy` is requested; actual accuracy and update cadence depend on the device and environment. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; live phone GPS was not available for manual verification.
+
+
+On 11 October 2026, Codex added explicit browser geolocation actions for current destination fixes and live venue-outline recording. Captured latitude/longitude and available accuracy, altitude, heading, speed, and timestamp values are stored separately from plan coordinates in the venue draft; the outline is rendered as a GPS trace. The browser requires user permission and a secure context. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; browser permission, physical GPS, and Django persistence could not be exercised because Docker access is denied.
+
 On 11 October 2026, Codex brought the integrated Compose app up using ignored local port overrides because this machine already had services on ports 5432 and 8000. It verified overview, organizer, visitor, health, and CSS responses, then checked venue draft API save/load and restored the seed value. Human review: pending. Validation: all listed HTTP routes returned 200; Postgres and Redis were healthy. Browser visual interaction was not manually verified.
 
 On 11 October 2026, Codex fixed the organizer canvas placeholder leaking image alt text, added PNG/JPG drag-and-drop loading with visual feedback, and removed API browser links from organizer/shared navigation/overview while preserving internal draft persistence requests. Human review: pending. Validation: JavaScript syntax and `git diff --check` passed; Django/browser verification was unavailable because Docker socket access is denied.
