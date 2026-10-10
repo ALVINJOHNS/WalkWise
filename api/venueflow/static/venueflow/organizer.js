@@ -7,7 +7,7 @@
   const venuePicker = $ ("[data-venue]");
   if (!canvas || !venuePicker) return;
 
-  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
+  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], aiPathPoints: [], aiPathSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
@@ -18,7 +18,8 @@
     mapViewTools: $("[data-map-view-tools]"), floorplanView: $("[data-map-view='floorplan']"), nodeFields: $("[data-node-fields]"),
     nodeLocation: $("[data-node-location]"), setNodeLocation: $("[data-set-node-location]"), nodeOnMap: $("[data-node-on-map]"),
     analyze: $("[data-analyze]"), aiReview: $("[data-ai-review]"), aiSuggestions: $("[data-ai-suggestions]"),
-    addSuggestions: $("[data-add-suggestions]"), aiStatus: $("[data-ai-status]"),
+    addSuggestions: $("[data-add-suggestions]"), aiPathSuggestions: $("[data-ai-path-suggestions]"),
+    addPathSuggestions: $("[data-add-path-suggestions]"), aiStatus: $("[data-ai-status]"),
   };
   const makeId = (prefix) => `${prefix}-${crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10)}`;
   const setDirty = () => { state.dirty = true; controls.saveState.textContent = "Unsaved changes"; };
@@ -101,6 +102,7 @@
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       line.setAttribute("x1", from.x * 1000); line.setAttribute("y1", from.y * 1000);
       line.setAttribute("x2", to.x * 1000); line.setAttribute("y2", to.y * 1000); line.setAttribute("class", "path-line");
+      if (edge.proposal) line.setAttribute("stroke-dasharray", "7 6");
       controls.lines.append(line);
     }
     [...state.places.map((item) => ({ ...item, type: "place" })), ...state.nodes.map((item) => ({ ...item, type: "node" }))].forEach((item) => {
@@ -125,7 +127,7 @@
       const b = state.nodes.find((node) => node.id === edge.to);
       const li = document.createElement("li"); li.className = "item-row";
       const distance = a?.geolocation && b?.geolocation ? ` · ${formatDistance(distanceMeters(a.geolocation, b.geolocation))}` : "";
-      li.textContent = `${a?.name || edge.from} ↔ ${b?.name || edge.to}${distance}`;
+      li.textContent = `${a?.name || edge.from} ↔ ${b?.name || edge.to}${distance}${edge.proposal ? " · AI proposal — verify on-site" : ""}`;
       controls.edgeList.append(li);
     });
     const place = state.selected?.type === "place" ? selectedItem() : null;
@@ -283,14 +285,15 @@
       });
       li.append(button);
       if (type === "place") { const status = document.createElement("small"); status.textContent = item.status || "open"; li.append(status); }
+      else if (item.proposal) { const proposed = document.createElement("small"); proposed.textContent = "AI proposal · verify"; li.append(proposed); }
       list.append(li);
     });
   }
 
   function renderSuggestions() {
-    controls.aiReview.hidden = !state.aiSuggestions.length;
+    controls.aiReview.hidden = !state.aiSuggestions.length && !state.aiPathSuggestions.length && !controls.aiStatus.textContent;
     controls.aiSuggestions.replaceChildren();
-    state.aiSuggestions.forEach((suggestion, index) => {
+    state.aiSuggestions.forEach((suggestion) => {
       const li = document.createElement("li"); li.className = "item-row ai-suggestion";
       const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.checked = Boolean(suggestion.selected);
       checkbox.setAttribute("aria-label", `Add ${suggestion.name}`);
@@ -302,6 +305,20 @@
       text.append(title, details);
       li.append(checkbox, text); controls.aiSuggestions.append(li);
     });
+    controls.aiPathSuggestions.replaceChildren();
+    state.aiPathSuggestions.forEach((edge) => {
+      const from = state.aiPathPoints.find((point) => point.index === edge.from_index);
+      const to = state.aiPathPoints.find((point) => point.index === edge.to_index);
+      const li = document.createElement("li"); li.className = "item-row ai-suggestion";
+      const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.checked = Boolean(edge.selected);
+      checkbox.setAttribute("aria-label", `Add connection from ${from?.name || "path point"} to ${to?.name || "path point"}`);
+      checkbox.addEventListener("change", () => { edge.selected = checkbox.checked; updateSuggestionButton(); });
+      const text = document.createElement("span");
+      const title = document.createElement("strong"); title.textContent = `${from?.name || "Path point"} ↔ ${to?.name || "Path point"}`;
+      const details = document.createElement("small");
+      details.textContent = `${edge.rationale} · ${Math.round(edge.confidence * 100)}% confidence · approximate plan route`;
+      text.append(title, details); li.append(checkbox, text); controls.aiPathSuggestions.append(li);
+    });
     updateSuggestionButton();
   }
 
@@ -309,6 +326,9 @@
     const selectedCount = state.aiSuggestions.filter((item) => item.selected).length;
     controls.addSuggestions.disabled = selectedCount === 0;
     controls.addSuggestions.textContent = selectedCount ? `Add ${selectedCount} selected destination${selectedCount === 1 ? "" : "s"}` : "Add selected destinations";
+    const selectedEdges = state.aiPathSuggestions.filter((item) => item.selected).length;
+    controls.addPathSuggestions.disabled = selectedEdges === 0;
+    controls.addPathSuggestions.textContent = selectedEdges ? `Add ${selectedEdges} selected path connection${selectedEdges === 1 ? "" : "s"}` : "Add selected path connections";
   }
 
   function coordinates(event) {
@@ -393,6 +413,8 @@
       const draft = state.venue.calibration?.organizer_draft || {};
       state.imageData = draft.image_data || "";
       state.aiSuggestions = [];
+      state.aiPathPoints = [];
+      state.aiPathSuggestions = [];
       controls.analyze.disabled = !state.imageData;
       controls.aiStatus.textContent = "";
       state.places = Array.isArray(draft.places) ? draft.places : [];
@@ -499,7 +521,7 @@
     if (!file) return;
     if (!/^image\/(png|jpeg)$/.test(file.type)) { controls.errors.textContent = "Choose a PNG or JPG image."; return; }
     const reader = new FileReader();
-    reader.onload = () => { state.mapMode = "floorplan"; state.imageData = String(reader.result); controls.analyze.disabled = false; state.aiSuggestions = []; controls.aiStatus.textContent = ""; controls.errors.textContent = ""; setDirty(); render(); };
+    reader.onload = () => { state.mapMode = "floorplan"; state.imageData = String(reader.result); controls.analyze.disabled = false; state.aiSuggestions = []; state.aiPathPoints = []; state.aiPathSuggestions = []; controls.aiStatus.textContent = ""; controls.errors.textContent = ""; setDirty(); render(); };
     reader.onerror = () => { controls.errors.textContent = "The selected image could not be read."; };
     reader.readAsDataURL(file);
   }
@@ -529,9 +551,11 @@
   $("[data-add-node]").addEventListener("click", () => beginMapAddition("node"));
   controls.analyze.addEventListener("click", async () => {
     if (!state.imageData) return;
+    state.aiSuggestions = []; state.aiPathPoints = []; state.aiPathSuggestions = [];
     controls.analyze.disabled = true;
     controls.aiStatus.textContent = "Sending this floor plan to OpenAI for analysis…";
     controls.errors.textContent = "";
+    render();
     try {
       const csrfToken = root.querySelector("input[name=csrfmiddlewaretoken]")?.value || "";
       const response = await fetch(window.location.pathname, {
@@ -542,14 +566,14 @@
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.detail || `Analysis failed (${response.status}).`);
       state.aiSuggestions = (Array.isArray(data.destinations) ? data.destinations : []).map((item) => ({ ...item, selected: false }));
-      controls.aiStatus.textContent = state.aiSuggestions.length
-        ? `Found ${state.aiSuggestions.length} suggestion${state.aiSuggestions.length === 1 ? "" : "s"}. Review before adding; AI positions are approximate.`
-        : "No clear destinations were found. You can still add them manually.";
-      if (state.aiSuggestions.length) render();
-      else { controls.aiReview.hidden = false; controls.aiSuggestions.replaceChildren(); controls.addSuggestions.disabled = true; }
+      state.aiPathPoints = Array.isArray(data.path_points) ? data.path_points : [];
+      state.aiPathSuggestions = (Array.isArray(data.path_edges) ? data.path_edges : []).map((item) => ({ ...item, selected: false }));
+      controls.aiStatus.textContent = `Found ${state.aiSuggestions.length} destination${state.aiSuggestions.length === 1 ? "" : "s"} and ${state.aiPathSuggestions.length} proposed path connection${state.aiPathSuggestions.length === 1 ? "" : "s"}. Review and verify before using.`;
+      render();
     } catch (error) {
       controls.aiStatus.textContent = "";
       controls.errors.textContent = error.message;
+      render();
     } finally { controls.analyze.disabled = !state.imageData; }
   });
   controls.addSuggestions.addEventListener("click", () => {
@@ -565,7 +589,29 @@
       setDirty(); render();
     }
   });
-  $("[data-dismiss-suggestions]").addEventListener("click", () => { state.aiSuggestions = []; controls.aiStatus.textContent = ""; render(); });
+  controls.addPathSuggestions.addEventListener("click", () => {
+    const selected = state.aiPathSuggestions.filter((item) => item.selected);
+    const pointsByIndex = new Map();
+    selected.forEach((edge) => [edge.from_index, edge.to_index].forEach((index) => {
+      if (pointsByIndex.has(index)) return;
+      const suggestion = state.aiPathPoints.find((point) => point.index === index);
+      if (!suggestion) return;
+      const node = { id: makeId("node"), name: suggestion.name, x: suggestion.plan_x, y: suggestion.plan_y, proposal: true };
+      state.nodes.push(node); pointsByIndex.set(index, node);
+    }));
+    selected.forEach((edge) => {
+      const from = pointsByIndex.get(edge.from_index), to = pointsByIndex.get(edge.to_index);
+      if (from && to) state.edges.push({ id: makeId("edge"), from: from.id, to: to.id, proposal: true });
+    });
+    state.aiPathSuggestions = state.aiPathSuggestions.filter((item) => !item.selected);
+    if (selected.length) {
+      const lastNode = state.nodes.at(-1);
+      if (lastNode) state.selected = { type: "node", id: lastNode.id };
+      controls.aiStatus.textContent = `Added ${selected.length} proposed path connection${selected.length === 1 ? "" : "s"}. Verify the route and set path-point GPS locations on-site before navigation.`;
+      setDirty(); render();
+    }
+  });
+  $("[data-dismiss-suggestions]").addEventListener("click", () => { state.aiSuggestions = []; state.aiPathPoints = []; state.aiPathSuggestions = []; controls.aiStatus.textContent = ""; render(); });
   $("[data-connect]").addEventListener("click", () => {
     if (state.selected?.type === "node") {
       const first = state.nodes.find((node) => node.id === state.selected.id);

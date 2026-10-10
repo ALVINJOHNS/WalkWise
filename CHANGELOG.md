@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:43:00+05:30 — Add AI walk-connection proposals
+
+- Changed: Extended the structured floor-plan analysis to propose candidate path nodes and connections, added per-connection review/import in the organizer, and marked imported nodes/edges as AI proposals requiring on-site verification. Added P1-ORG-6 and updated README/AI usage records.
+- Why: Continue the requested floor-plan workflow from destination discovery into a draft walkable graph while preserving organizer control and separate GPS verification.
+- Validation: Python compilation, JavaScript syntax, Compose configuration, and `git diff --check` passed. Docker Compose rebuilt and started; local organizer GET returned HTTP 200 with path proposal controls, static organizer JS returned HTTP 200 with the path import handler, and the CSRF-protected missing-key response matched the setup message.
+- Limitations: No OpenAI key is available for live image inference; checkbox/import interaction has not been manually exercised. A proposed walk connection is an estimate, not a confirmed route.
+
 ## 2026-10-11T04:41:20+05:30 — Verify organizer AI endpoint setup behavior
 
 - Changed: Updated P1-ORG-5, AI usage, and handoff records with the successful Docker rebuild and local page/CSRF response check.

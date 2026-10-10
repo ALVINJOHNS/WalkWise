@@ -3,6 +3,7 @@
 import base64
 import binascii
 import json
+import math
 import os
 import urllib.error
 import urllib.request
@@ -60,9 +61,38 @@ def extract_destinations(data_url):
                     "required": ["name", "category", "description", "plan_x", "plan_y", "confidence"],
                     "additionalProperties": False,
                 },
-            }
+            },
+            "path_points": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "index": {"type": "integer"},
+                        "name": {"type": "string"},
+                        "plan_x": {"type": "number"},
+                        "plan_y": {"type": "number"},
+                        "confidence": {"type": "number"},
+                    },
+                    "required": ["index", "name", "plan_x", "plan_y", "confidence"],
+                    "additionalProperties": False,
+                },
+            },
+            "path_edges": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "from_index": {"type": "integer"},
+                        "to_index": {"type": "integer"},
+                        "rationale": {"type": "string"},
+                        "confidence": {"type": "number"},
+                    },
+                    "required": ["from_index", "to_index", "rationale", "confidence"],
+                    "additionalProperties": False,
+                },
+            },
         },
-        "required": ["destinations"],
+        "required": ["destinations", "path_points", "path_edges"],
         "additionalProperties": False,
     }
     payload = {
@@ -75,7 +105,12 @@ def extract_destinations(data_url):
                     "text": (
                         "Inspect this venue floor plan and list only destinations or named/useful components "
                         "that are visibly labeled or clearly identifiable (for example entrances, stages, "
-                        "food, restrooms, registration, or rooms). Do not invent labels or infer paths. "
+                        "food, restrooms, registration, or rooms). Also propose a small walkable network "
+                        "only along corridors or passages clearly visible in the image; do not draw through "
+                        "walls or infer hidden links. Label path points in order with integer indexes starting "
+                        "at zero, and have each edge refer to those indexes. If no walkable route is clear, "
+                        "return empty path_points and path_edges. These are approximate proposals that need "
+                        "organizer verification. "
                         "For each item, estimate the center as normalized coordinates across the full image: "
                         "plan_x and plan_y from 0 to 1, origin at top left. Lower confidence when unsure. "
                         "Use a concise category and description. Return an empty list if nothing is identifiable."
@@ -121,11 +156,14 @@ def extract_destinations(data_url):
         if item.get("type") == "output_text"
     )
     try:
-        destinations = json.loads(output_text)["destinations"]
+        analysis = json.loads(output_text)
+        destinations = analysis["destinations"]
+        raw_path_points = analysis["path_points"]
+        raw_path_edges = analysis["path_edges"]
     except (json.JSONDecodeError, KeyError, TypeError):
-        raise FloorPlanAnalysisError("OpenAI did not return a usable destination list. Please try again.") from None
-    if not isinstance(destinations, list):
-        raise FloorPlanAnalysisError("OpenAI did not return a usable destination list. Please try again.")
+        raise FloorPlanAnalysisError("OpenAI did not return a usable plan analysis. Please try again.") from None
+    if not all(isinstance(items, list) for items in (destinations, raw_path_points, raw_path_edges)):
+        raise FloorPlanAnalysisError("OpenAI did not return a usable plan analysis. Please try again.")
     clean = []
     for item in destinations[:100]:
         if not isinstance(item, dict):
@@ -139,6 +177,8 @@ def extract_destinations(data_url):
             confidence = float(item["confidence"])
         except (KeyError, TypeError, ValueError, OverflowError):
             continue
+        if not all(map(math.isfinite, (plan_x, plan_y, confidence))):
+            continue
         clean.append({
             "name": name,
             "category": str(item.get("category", "facility")).strip()[:60] or "facility",
@@ -147,4 +187,46 @@ def extract_destinations(data_url):
             "plan_y": min(1, max(0, plan_y)),
             "confidence": min(1, max(0, confidence)),
         })
-    return clean
+    path_points = []
+    point_indexes = set()
+    for item in raw_path_points[:100]:
+        if not isinstance(item, dict):
+            continue
+        try:
+            index = int(item["index"])
+            plan_x, plan_y = float(item["plan_x"]), float(item["plan_y"])
+            confidence = float(item["confidence"])
+        except (KeyError, TypeError, ValueError, OverflowError):
+            continue
+        if index < 0 or index > 99 or index in point_indexes or not all(map(math.isfinite, (plan_x, plan_y, confidence))):
+            continue
+        point_indexes.add(index)
+        path_points.append({
+            "index": index,
+            "name": str(item.get("name", "Path point")).strip()[:100] or "Path point",
+            "plan_x": min(1, max(0, plan_x)),
+            "plan_y": min(1, max(0, plan_y)),
+            "confidence": min(1, max(0, confidence)),
+        })
+    path_edges = []
+    seen_edges = set()
+    for item in raw_path_edges[:300]:
+        if not isinstance(item, dict):
+            continue
+        try:
+            from_index, to_index = int(item["from_index"]), int(item["to_index"])
+            confidence = float(item["confidence"])
+        except (KeyError, TypeError, ValueError, OverflowError):
+            continue
+        key = tuple(sorted((from_index, to_index)))
+        if (from_index == to_index or from_index not in point_indexes or to_index not in point_indexes
+                or key in seen_edges or not math.isfinite(confidence)):
+            continue
+        seen_edges.add(key)
+        path_edges.append({
+            "from_index": from_index,
+            "to_index": to_index,
+            "rationale": str(item.get("rationale", "Visible connection"))[:300],
+            "confidence": min(1, max(0, confidence)),
+        })
+    return {"destinations": clean, "path_points": path_points, "path_edges": path_edges}

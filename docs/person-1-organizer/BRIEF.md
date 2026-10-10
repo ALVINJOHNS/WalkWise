@@ -109,6 +109,23 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Commit: `a13568a` — `feat: add AI floor plan suggestions`.
 - Plan changes: 2026-10-11 — Organizer requested an AI-assisted flow after repeated map overlay/pinning issues. Added explicit-review extraction as a bridge from the plan image to editable destinations, while keeping real GPS capture an organizer action.
 
+### P1-ORG-6 — AI walkable path proposals
+
+- Status: implementation complete; runtime verification pending
+- Goal: Let the organizer review AI-proposed path points and connections extracted from the same floor-plan image, then add selected connections to the existing path graph for on-site GPS verification.
+- Scope: Extend the existing structured floor-plan analysis response with candidate path points and candidate edges; render each candidate connection for review; allow importing selected connections and their referenced points into the organizer graph. Retain normalized plan coordinates, keep all candidates out of the saved draft until explicitly added, and label imported graph elements as requiring on-site verification.
+- Acceptance criteria:
+  - [ ] Analysis returns bounded path-point and connection proposals with normalized plan coordinates and confidence; references are validated before display/import.
+  - [ ] Organizer can review/select proposed connections and import those connections and their referenced nodes into the current graph.
+  - [ ] Imported path elements remain editable, can receive GPS positions via existing organizer actions, and are not represented as verified directions.
+  - [ ] No new API URL or user-visible API path is added.
+- Checks: Python compilation, JavaScript syntax, `docker compose config`, `git diff --check`, and local page/CSRF response checks when Docker is available. No live OpenAI call unless a configured key is provided by the organizer.
+- Dependencies: P1-ORG-5, existing path-node/edge editor; navigation remains dependent on P3-NAV-1.
+- Out of scope: Claiming floor-plan inference as a safe/accessible path, automatic GPS assignment, automatic publication, or route calculation.
+- Verification record: 2026-10-11 04:44 IST — `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started; local organizer GET returned HTTP 200 with destination/path proposal controls, updated JS returned HTTP 200 with the import handler, and a CSRF-protected POST returned the expected missing-key message. No live model call or interactive browser selection was possible without an API key/browser session.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — Organizer clarified that the goal includes AI mapping a route from the plan after destinations are found; added a review-first path proposal phase while retaining GPS verification and the existing navigation phase boundary.
+
 ## Cut first
 
 Calibration, zones, schedules/hours, undo/redo, mobile walk-and-plot, advanced drag handles, graph auto-layout. Do not spend time polishing editor appearance before save/export works.
