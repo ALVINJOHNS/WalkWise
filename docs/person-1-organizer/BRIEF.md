@@ -61,8 +61,8 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Checks: JavaScript syntax, diff whitespace, and browser geolocation/save round-trip when runtime is available.
 - Dependencies: Existing `Venue.calibration.organizer_draft` save/load path.
 - Out of scope: Background tracking after leaving the page, map tile integration, geospatial automatic snapping or conversion from GPS to floor-plan coordinates.
-- Verification record: Pending.
-- Commit: Pending.
+- Verification record: 2026-10-11 03:43 IST — `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Browser permission, device GPS, and Django save/load remain unverified because Docker socket access is denied.
+- Commit: `9035fa8` — `fix: preserve GPS errors and outline state` (builds on GPS UI in `97d8598`).
 - Plan changes: 2026-10-11 — User requested explicit GPS location capture and live perimeter recording; revised earlier no-calibration cut to support real coordinates while keeping local plan coordinates separate.
 
 ## Cut first
