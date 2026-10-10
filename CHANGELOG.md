@@ -4,6 +4,14 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:54:00+05:30 — Record GPS stop/pointer checkpoint
+
+- Changed: Added the exact fix commit to the organizer phase evidence and handoff.
+- Why: Keep continuation records tied to the committed state.
+- Validation: `git diff --check` passed.
+- Limitations: Live browser/device verification is pending.
+
+
 ## 2026-10-11T04:53:21+05:30 — Fix GPS stop and show live pointer
 
 - Changed: Fixed the stop click handler, invalidated callbacks from stopped watches, retained every device-reported position, and added a live pointer with an accuracy halo.
