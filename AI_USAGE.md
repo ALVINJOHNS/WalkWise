@@ -4,6 +4,9 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex fixed the organizer canvas placeholder leaking image alt text, added PNG/JPG drag-and-drop loading with visual feedback, and removed API browser links from organizer/shared navigation/overview while preserving internal draft persistence requests. Human review: pending. Validation: JavaScript syntax and `git diff --check` passed; Django/browser verification was unavailable because Docker socket access is denied.
+
+
 On 11 October 2026, Codex implemented the organizer map editor in the owned organizer template and JavaScript: PNG/JPG backdrop preview, destination fields and statuses, movable markers, path nodes/connections, validation, and venue-draft saving. Because the current API has no related map-feature/path endpoints, drafts are stored in the existing venue calibration JSON field. Human review: pending. Validation: JavaScript syntax check and `git diff --check` passed; Docker socket permission denied prevented Django/API runtime verification. Integration limitations are recorded in the organizer brief.
 
 

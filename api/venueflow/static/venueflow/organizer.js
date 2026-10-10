@@ -162,13 +162,25 @@
     if (state.dirty && !window.confirm("Discard unsaved organizer changes?")) { venuePicker.value = state.venue.id; return; }
     loadVenue(venuePicker.value);
   });
-  $("[data-image]").addEventListener("change", (event) => {
-    const file = event.target.files?.[0]; if (!file) return;
+  function loadImageFile(file) {
+    if (!file) return;
     if (!/^image\/(png|jpeg)$/.test(file.type)) { controls.errors.textContent = "Choose a PNG or JPG image."; return; }
     const reader = new FileReader();
-    reader.onload = () => { state.imageData = String(reader.result); setDirty(); render(); };
+    reader.onload = () => { state.imageData = String(reader.result); controls.errors.textContent = ""; setDirty(); render(); };
     reader.onerror = () => { controls.errors.textContent = "The selected image could not be read."; };
     reader.readAsDataURL(file);
+  }
+  $("[data-image]").addEventListener("change", (event) => loadImageFile(event.target.files?.[0]));
+  ["dragenter", "dragover"].forEach((name) => canvas.addEventListener(name, (event) => {
+    event.preventDefault(); canvas.classList.add("is-dragover");
+  }));
+  ["dragleave", "drop"].forEach((name) => canvas.addEventListener(name, (event) => {
+    event.preventDefault(); canvas.classList.remove("is-dragover");
+  }));
+  canvas.addEventListener("drop", (event) => {
+    const file = [...(event.dataTransfer?.files || [])].find((item) => /^image\/(png|jpeg)$/.test(item.type));
+    if (!file) { controls.errors.textContent = "Drop a PNG or JPG floor plan."; return; }
+    loadImageFile(file);
   });
   $("[data-add-place]").addEventListener("click", () => addPlace());
   $("[data-add-node]").addEventListener("click", () => addNode());

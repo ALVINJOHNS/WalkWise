@@ -1,9 +1,9 @@
 # Development handoff
 
-Updated: 2026-10-11 03:27 IST
+Updated: 2026-10-11 03:33 IST
 
-- Completed: Organizer editor implementation in `api/venueflow/templates/venueflow/organizer.html` and `api/venueflow/static/venueflow/organizer.js`; commit `66a59b3` (`feat: build organizer venue editor`); JavaScript syntax and diff whitespace checks passed.
-- Current: P1-ORG-1 and P1-ORG-2 implementation is present, but runtime verification is pending. The editor saves a draft envelope to `Venue.calibration.organizer_draft` because the API currently exposes no related MapFeature/PathNode/PathEdge endpoints.
-- Next: In `docs/person-1-organizer/BRIEF.md`, close P1-ORG-1/P1-ORG-2 with Django rendered-page and API save/load verification when Docker/Django runtime is available; coordinate native related-resource persistence with integration.
-- Checks: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
-- Limitation: `docker compose ps` failed to access `unix:///Users/nandkishorr/.docker/run/docker.sock` (permission denied); page rendering and save round-trip were not verified. Selected plan images are stored as data URLs in calibration metadata and may be too large for practical persistence.
+- Completed: Organizer canvas now has a clear floor-plan drop placeholder, PNG/JPG drag-and-drop loading, and no visible API browser links in the home/organizer navigation. Latest editor implementation checkpoint: `66a59b3`; this UI follow-up is pending commit.
+- Current: Internal same-origin venue API calls remain in use for organizer draft load/save. Backend API routes were not removed.
+- Next: Verify organizer rendering and drag/drop in the Django browser when Docker is available; check the save/load round-trip.
+- Checks: `node --check api/venueflow/static/venueflow/organizer.js`, template search for API browser links, and `git diff --check` passed.
+- Limitation: Docker socket access is denied, so browser/runtime behavior is not yet verified.

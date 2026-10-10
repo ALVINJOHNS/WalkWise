@@ -4,6 +4,14 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:33:41+05:30 — Improve organizer canvas and hide API browser links
+
+- Changed: Replaced the blank canvas text with a centered floor-plan drop prompt, prevented hidden image alt text from displaying, added PNG/JPG drag-and-drop loading and hover feedback, and removed user-facing API browser links from organizer, shared navigation, and overview templates.
+- Why: Match the requested organizer UI, support dropping a plan directly onto the editor, and keep API routes out of the product navigation.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js`, API-link search in templates, and `git diff --check` passed.
+- Limitations: Django/browser rendering could not be checked because Docker socket access is denied. Internal same-origin API calls remain necessary for draft load/save; backend API routes remain available.
+
+
 ## 2026-10-11T03:28:00+05:30 — Record organizer editor checkpoint
 
 - Changed: Added commit SHA and message to the organizer phase record and handoff.
