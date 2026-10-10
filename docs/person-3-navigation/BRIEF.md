@@ -6,21 +6,21 @@ Deliver the local navigation logic that makes the visitor map useful: a graph ro
 
 ## Owned files
 
-- `src/features/navigation/**`
-- Do not edit `src/app/**`, `src/shared/**`, package files, or another feature folder. Tell the integration owner the export names and data needs rather than changing shared files.
+- `api/venueflow/routing.py`
+- Do not edit Django models, shared page templates, API URLs, or another feature's page/JS. Tell integration the function contract and data needs before wiring.
 
 ## Build now
 
-1. Implement a pure shortest-path function over `Venue.nodes` and `Venue.edges`, filtering `blocked` edges.
+1. Implement a pure shortest-path function over path node/edge records or plain dictionaries, filtering closed edges.
 2. Return ordered node IDs, edge IDs, distance in meters, and approximate seconds; use a documented conservative default walking speed.
 3. Return a clear no-route result for missing node IDs, disconnected destinations, or an all-blocked path. Do not silently fall back to straight-line routing.
 4. Implement a simple next-place ranker: open places only, shortest route time first, and optional organizer wait penalty if `waitMinutes` exists. Return a short reason string.
-5. Expose typed pure functions and, if needed, a tiny standalone demo component showing route selection with the seed venue. Keep the route geometry derivable from edge IDs/points for the visitor overlay.
+5. Expose pure Python functions with documented input/output dictionaries. Keep route geometry derivable from edge IDs/points for the visitor overlay.
 6. Optional only after above: map-tap start point to nearest node with an explicit approximate label. Do not implement continuous GPS snapping.
 
 ## Independent development
 
-Use a local fixture and no UI imports for core logic. Keep the algorithm small (Dijkstra is enough). Tell integration the function signatures early so person 2 can wire the route overlay independently.
+Use a small Python fixture and no Django view imports for the core algorithm. Keep the algorithm small (Dijkstra is enough). Tell integration the function signatures early so visitor pages can wire the route overlay independently.
 
 ## Done when
 
@@ -28,7 +28,7 @@ Use a local fixture and no UI imports for core logic. Keep the algorithm small (
 - A disconnected route returns an explicit error/result.
 - Distance and ETA are finite and plausible for the fixture.
 - “What next?” never recommends closed destinations and includes a plain reason.
-- The feature compiles and is ready for integration by elapsed hour 2.
+- The routing module works independently and is ready for integration by elapsed hour 2.
 
 ## Phases
 
@@ -54,4 +54,4 @@ GPS snapping, A*, accessibility profiles, turn instructions, deviation detection
 
 ## Short Codex prompt
 
-“Implement only `src/features/navigation` for `docs/person-3-navigation/BRIEF.md`. Follow `docs/SHARED_CONTRACT.md`; prioritize pure Dijkstra and recommendation functions with a local fixture, and do not edit other owners' files. Return function signatures, changed files, and the check you ran.”
+“Implement only `api/venueflow/routing.py` for `docs/person-3-navigation/BRIEF.md`. Follow `docs/SHARED_CONTRACT.md`; prioritize pure Dijkstra and recommendation functions with a local fixture, and do not edit other owners' page files. Return function signatures, changed files, and the check you ran.”

@@ -1,0 +1,104 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-venueflow}
+      POSTGRES_USER: ${POSTGRES_USER:-venueflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-venueflow_local}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-venueflow} -d ${POSTGRES_DB:-venueflow}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  migrate:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command: python manage.py migrate --noinput
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-local-only-venueflow-key}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
+      POSTGRES_DB: ${POSTGRES_DB:-venueflow}
+      POSTGRES_USER: ${POSTGRES_USER:-venueflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-venueflow_local}
+      POSTGRES_HOST: db
+      POSTGRES_PORT_INTERNAL: 5432
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+    depends_on:
+      db: { condition: service_healthy }
+    restart: "no"
+  seed:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command: python manage.py seed_demo
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-local-only-venueflow-key}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
+      POSTGRES_DB: ${POSTGRES_DB:-venueflow}
+      POSTGRES_USER: ${POSTGRES_USER:-venueflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-venueflow_local}
+      POSTGRES_HOST: db
+      POSTGRES_PORT_INTERNAL: 5432
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: "no"
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command: sh -c "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-local-only-venueflow-key}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
+      POSTGRES_DB: ${POSTGRES_DB:-venueflow}
+      POSTGRES_USER: ${POSTGRES_USER:-venueflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-venueflow_local}
+      POSTGRES_HOST: db
+      POSTGRES_PORT_INTERNAL: 5432
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./api:/app
+    depends_on:
+      seed: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+  worker:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command: celery -A config worker --loglevel=INFO
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-local-only-venueflow-key}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
+      POSTGRES_DB: ${POSTGRES_DB:-venueflow}
+      POSTGRES_USER: ${POSTGRES_USER:-venueflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-venueflow_local}
+      POSTGRES_HOST: db
+      POSTGRES_PORT_INTERNAL: 5432
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+    volumes:
+      - ./api:/app
+    depends_on:
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+volumes:
+  postgres_data:

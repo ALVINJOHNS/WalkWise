@@ -1,9 +1,9 @@
 # Development handoff
 
-Updated: 2026-10-11 02:19 IST
+Updated: 2026-10-11 02:55 IST
 
-- Completed: Phase workflow, phase template, stable phase IDs/exit checks, and the initial WalkWise project overview in `README.md`. No application phase has started.
-- Current state: The README now describes the planned QR-accessible, organizer-maintained temporary-venue map without claiming unimplemented behavior. This documentation checkpoint is committed as `bf6ef67` (`docs: describe WalkWise project`); the prior workflow docs are `d215f66` (`docs: define phased development handoffs`).
-- Next: Read [AGENTS.md](AGENTS.md), then start **P4-INT-1 — Runnable shell and seed** in [the integration brief](docs/person-4-integration/BRIEF.md). It owns the app shell, shared contract, seed and package files.
-- Checks: Product wording was checked against `docs/Walkwise_Development_Plan.md`, `docs/SHARED_CONTRACT.md`, and `docs/person-4-integration/BRIEF.md`; referenced Markdown target checks and `git diff --check` passed.
-- Blockers/limitations: No application code or runtime behavior was changed or verified. P4-INT-1 remains the exact next implementation phase.
+- Completed: Integrated the default `main` branch, retaining its project overview and stack guidance alongside the Django SSR foundation.
+- Current: **P4-INT-1 — Runnable full-stack foundation** uses one Django SSR/DRF service, Tailwind static assets, ORM/PostGIS, and Celery/Redis. Foundation code is in `ee8ac94` (`feat: switch to Django SSR monolith`); `main` at integration was `f3e573b`.
+- Next: Install `api/requirements.txt` and required GDAL/GEOS host libraries, run Django checks, and, if Docker is available, verify Compose startup and SSR/API routes; then continue to P4-INT-2.
+- Checks: This merge is a two-parent commit; staged whitespace check, local Markdown target check, and conflict-marker scan passed. Prior Tailwind build, Compose config parsing, Python syntax compilation, and direct-SQL scan passed. Django system check stopped because host psycopg is missing. The Vite app from `0805e41` has been removed.
+- Limitation: Docker daemon is unavailable and host GDAL is absent, so Django/PostGIS/Redis/Celery startup and rendered routes remain unverified.

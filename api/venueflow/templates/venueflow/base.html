@@ -1,0 +1,27 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f8fa">
+    <title>{% block title %}VenueFlow{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'venueflow/css/app.css' %}">
+    <script defer src="{% static 'venueflow/js/app.js' %}"></script>
+  </head>
+  <body class="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <header class="border-b border-slate-200 bg-white">
+      <nav class="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+        <a href="/" class="text-lg font-bold tracking-tight text-teal-800">VenueFlow</a>
+        <button class="rounded-lg border px-3 py-2 text-sm md:hidden" data-menu-toggle aria-expanded="false">Menu</button>
+        <div class="hidden items-center gap-5 text-sm md:flex" data-menu>
+          <a href="/organizer/" class="hover:text-teal-700">Organizer Studio</a>
+          <a href="/api/" class="hover:text-teal-700">API</a>
+        </div>
+      </nav>
+      <div class="hidden border-t px-5 py-3 md:hidden" data-mobile-menu><a href="/organizer/">Organizer Studio</a></div>
+    </header>
+    {% block content %}{% endblock %}
+    <footer class="mx-auto max-w-6xl px-5 py-10 text-sm text-slate-500">VenueFlow · venue maps for organizers and visitors</footer>
+  </body>
+</html>

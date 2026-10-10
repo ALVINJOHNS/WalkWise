@@ -1,6 +1,6 @@
-# DevDay Exchange Community Hackathon: Kochi
+# WalkWise — DevDay Exchange Community Hackathon: Kochi
 
-A repository template for participants at the 10–11 October 2026 hackathon. It contains event rules and documentation scaffolding; build your project from scratch at the event.
+WalkWise is a hackathon project for turning venue plans into reusable event maps and visitor navigation.
 
 **[Event and registration on Luma](https://luma.com/z10nz8gp)** · **[Event rules](RULES.md)** · **[Agent instructions](AGENTS.md)**
 
@@ -21,23 +21,17 @@ Keep your approved Luma QR code ready for entry, and bring your laptop and charg
 
 ## Use this template
 
-1. Select **Use this template → Create a new repository** on GitHub. Create your own project repository and clone it.
-2. Read [RULES.md](RULES.md) and [AGENTS.md](AGENTS.md) before building. Begin project implementation at the event.
-3. Fill in the project overview below as you build. Use any suitable language or framework, keeping the implementation simple.
-4. Record meaningful changes in [CHANGELOG.md](CHANGELOG.md) and your Codex usage in [AI_USAGE.md](AI_USAGE.md). Commit after completed milestones; aim for a meaningful checkpoint about every 30 minutes.
-5. Complete [SUBMISSION.md](SUBMISSION.md) with your code repository, short project description, and working demo. Follow submission instructions announced by the organizers.
+Project and workflow context lives in [the team execution plan](docs/README.md), [the shared contract](docs/SHARED_CONTRACT.md), and the four role briefs. Follow [RULES.md](RULES.md) and [AGENTS.md](AGENTS.md) for event and contribution guidance.
 
-This template has no application code or required technology stack. The documentation and commit cadence are repository workflow guidance; the event participation rules are in [RULES.md](RULES.md).
-
-## Project overview — complete during the event
+## Project overview
 
 For a four-person, six-hour build, use the [team execution plan](docs/README.md), its [shared contract](docs/SHARED_CONTRACT.md), and the four role briefs. The full product plan remains in [docs/Walkwise_Development_Plan.md](docs/Walkwise_Development_Plan.md).
 
 - **Project name:** WalkWise
 - **Short description:** WalkWise is a QR-accessible, organizer-maintained map for temporary venues. It is designed to help visitors find destinations along organizer-defined walking paths, see current place status, and keep a saved venue snapshot useful when connectivity is limited.
 - **Team:** TODO — participant names and GitHub handles; maximum 4 members.
-- **Working demo:** TODO — link or local demo instructions.
-- **Technology stack:** TODO
+- **Working demo:** Local server at `http://localhost:8000`; feature behavior is still under development.
+- **Technology stack:** Django server-rendered templates, Django REST Framework, Django ORM/GeoDjango, PostgreSQL/PostGIS, Tailwind CSS, Redis, Celery, Docker Compose.
 
 ### What we are building
 
@@ -45,18 +39,27 @@ Temporary events such as college fests, fairs, and pop-up venues often rely on s
 
 ### Run the project
 
-Replace these placeholders with commands that actually work for your project:
+Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebuilding Tailwind CSS assets.
 
-1. Prerequisites and versions: TODO
-2. Dependency installation: TODO
-3. Environment setup: TODO — list required variable names and provide a sanitized `.env.example` if needed.
-4. Start the project: TODO
-5. Run checks or tests: TODO
+### Docker Compose (recommended)
 
-### Current status
+1. Copy `.env.example` to `.env` and adjust local ports/credentials if needed.
+2. Start the database, migration/seed jobs, Django SSR/API server, Redis, and worker: `docker compose up --build`.
+3. Open `http://localhost:8000`; organizer and visitor pages and the browsable API share this Django server. API health is at `http://localhost:8000/api/health`.
+4. Stop services with `docker compose down`. Remove local database data with `docker compose down -v`.
 
-- Working features: TODO
-- Known limitations: TODO
-- Libraries, APIs, and public datasets used: TODO — include source links and applicable attribution.
+The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`.
+
+### Rebuild Tailwind assets
+
+Templates and the API are served by the same Django process. When changing Tailwind classes, run `npm install` and `npm run build:css` (or rebuild the Docker image). To run Django on the host, install system GDAL/GEOS libraries and Python requirements with `python -m pip install -r api/requirements.txt`, set `POSTGRES_HOST=localhost`, start the Compose database and Redis, run `python api/manage.py migrate` and `python api/manage.py seed_demo`, then `python api/manage.py runserver`.
+
+### Project status
+
+- Implemented: Django SSR landing, organizer and visitor pages; Tailwind static styles and JS; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Backend runtime remains unverified while Docker is unavailable.
+- Not implemented: Map editing, route calculation (returns 501), publishing, QR, auth, and production deployment.
+- OpenStreetMap and Leaflet have not yet been added; add OSM attribution when the map view is introduced.
+
+For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). Runtime packages are public libraries; there are no external map tiles or datasets configured yet.
 
 See [AI_USAGE.md](AI_USAGE.md) for AI assistance and [CHANGELOG.md](CHANGELOG.md) for the development record.

@@ -1,0 +1,13 @@
+{
+  "name": "venueflow-assets",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build:css": "tailwindcss -i api/venueflow/static_src/input.css -o api/venueflow/static/venueflow/css/app.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "latest",
+    "tailwindcss": "latest"
+  }
+}

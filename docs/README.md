@@ -8,11 +8,11 @@ Use these four briefs as the execution plan derived from [Walkwise_Development_P
 
 ## Shared decisions before anyone starts coding
 
-- Build one responsive React + TypeScript + Vite app. Freeze the stack and install dependencies during the first 15 minutes.
-- Keep one app shell and shared data contract. Each owner works only inside their feature folder; the integration owner owns app routing, shared types, package scripts, and final merge.
+- Build one Django application serving server-rendered pages and a Django REST Framework modular API using Django ORM, PostgreSQL/PostGIS, and a Celery worker using Redis. Tailwind is compiled to Django static files; no separate frontend server is needed.
+- Keep one Django app and shared data contract. Each owner works in their assigned template/static Python module; the integration owner owns shared routing, ORM models/migrations, package scripts, and final merge.
 - Use the contract in [SHARED_CONTRACT.md](SHARED_CONTRACT.md). Treat it as frozen after the first 15 minutes; discuss any necessary change in chat before editing it.
-- Each feature must render with the included seed venue and work against a local adapter/mock. Do not wait for another person's API or UI.
-- MVP persistence is browser local storage plus an exportable/publishable venue JSON package. Do not introduce accounts, a database, or realtime setup unless the app is already wired to one and the core demo is green.
+- Each feature must render with the included seeded venue. Do not wait for another person's API or template.
+- MVP persistence uses the Django ORM/PostGIS database. Do not add accounts or realtime sync.
 - Keep edits in owned paths, use small commits, and merge each feature as soon as it builds. Integration lead resolves conflicts and maintains the working demo.
 - Use one realistic venue, one connected three-edge route, three destinations, and one status change. Complete the core QR-to-map-to-route flow before stretch work.
 
@@ -20,12 +20,12 @@ Use these four briefs as the execution plan derived from [Walkwise_Development_P
 
 | Person | Folder | Owns | First merge checkpoint |
 | --- | --- | --- | --- |
-| 1 — Organizer | [person-1-organizer](person-1-organizer/BRIEF.md) | Venue editor, image backdrop, path and place authoring | Hour 2 |
-| 2 — Visitor | [person-2-visitor](person-2-visitor/BRIEF.md) | QR landing, visitor map/list/details, offline saved state | Hour 2 |
-| 3 — Navigation | [person-3-navigation](person-3-navigation/BRIEF.md) | Graph routing, ETA, location fallback, next-place suggestion | Hour 2 |
+| 1 — Organizer | [person-1-organizer](person-1-organizer/BRIEF.md) | Django organizer template, image backdrop, path and place authoring | Hour 2 |
+| 2 — Visitor | [person-2-visitor](person-2-visitor/BRIEF.md) | SSR visitor map/list/details and search | Hour 2 |
+| 3 — Navigation | [person-3-navigation](person-3-navigation/BRIEF.md) | Pure Python graph routing, ETA, location fallback, next-place suggestion | Hour 2 |
 | 4 — Integration | [person-4-integration](person-4-integration/BRIEF.md) | App shell, shared contract, local package persistence, publish/QR, seed/deploy/demo | Continuous |
 
-The integration owner starts the shell and contract first, then works independently on publishing and demo setup. The other three can build immediately against the frozen contract and seed fixture.
+The integration owner starts the Django shell and data contract first, then works independently on publishing and demo setup. The other three can build immediately against the ORM contract and seeded venue.
 
 ## Six-hour schedule
 

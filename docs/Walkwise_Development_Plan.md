@@ -4,6 +4,8 @@
 
 A complete build guide for an organizer-controlled, offline-first map for temporary event venues.
 
+**Hackathon implementation choice:** this repository uses a single Django server-rendered application with Django REST Framework, Django ORM/PostGIS, Tailwind static assets, Redis, and Celery. There is no SPA or separate frontend service. This is a scope-specific architecture choice; the offline PWA and realtime ideas below remain product direction, not implemented claims.
+
 Hackathon target: deliver a working visitor journey and organizer workflow in 8 hours, then use up to 3 hours for stretch improvements.
 
 | Decision | Build direction |
