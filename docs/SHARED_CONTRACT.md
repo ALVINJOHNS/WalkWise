@@ -26,7 +26,7 @@ Keep plan coordinates (`plan_x`, `plan_y`) separate from latitude/longitude geom
 
 ## Feature boundaries
 
-- Organizer page: `templates/venueflow/organizer.html`, `static/venueflow/organizer.js`. Load and save through `/api/venues/` and related DRF endpoints; integration owns shared model/API changes.
+- Organizer page: `templates/venueflow/organizer.html`, `static/venueflow/organizer.js`. Load and save through `/api/venues/` and related DRF endpoints; integration owns shared model/API changes. Optional AI floor-plan analysis uses the existing `/organizer/` page via a same-origin POST and `venueflow/organizer_ai.py`; it adds no API URL or browser-visible API link.
 - Visitor page: `templates/venueflow/visitor.html`, `static/venueflow/visitor.js`. Read a venue or published version; do not alter snapshots from visitor actions.
 - Routing: pure functions in `api/venueflow/routing.py`; consume node/edge records or plain dictionaries and return ordered node/edge IDs, distance, ETA, or a no-route result. The API wrapper is `POST /api/route`.
 - Venue/event persistence: `api/venueflow/models.py`, `serializers.py`, `views.py`, `migrations/**`.

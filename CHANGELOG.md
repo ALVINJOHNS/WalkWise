@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:38:00+05:30 — Add AI floor-plan destination suggestions
+
+- Changed: Added a server-side OpenAI Responses API request for the selected PNG/JPG plan; structured results include destination names, categories, descriptions, approximate normalized floor-plan positions, and confidence. Added a review/select/add panel in the organizer and exposed optional `OPENAI_API_KEY` / `OPENAI_MODEL` settings only to the Django container. The request uses the existing organizer page POST handler; no API URL or UI API link was added. Updated the organizer phase, shared contract, README, and AI usage record.
+- Why: Let the organizer extract and stage destination candidates from a plan image, then verify exact positions on-site with GPS before constructing confirmed path connections.
+- Validation: `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. `docker compose up --build -d` was blocked because Docker socket access was denied.
+- Limitations: No OpenAI API key is configured in this checkout, so no live request was made. Browser/page/CSRF interaction is unverified. Image-derived positions are estimates; the model cannot determine real-world GPS coordinates or trustworthy walkable paths from a floor plan.
+
 ## 2026-10-11T04:26:00+05:30 — Record ngrok tunnel configuration checkpoint
 
 - Changed: Recorded commit `374c853` in the handoff.

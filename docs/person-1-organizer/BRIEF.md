@@ -7,7 +7,8 @@ Build the organizer's usable venue editor as a self-contained feature. A user sh
 ## Owned files
 
 - `api/venueflow/templates/venueflow/organizer.html`, `api/venueflow/static/venueflow/organizer.js`
-- Do not edit the shared base template, Django models/API, Tailwind input, or another feature's template/JS. Coordinate shared contract changes with integration.
+- P1-ORG-5 also owns `api/venueflow/organizer_ai.py`; coordinate the existing organizer page POST handler in `api/venueflow/pages.py` and optional OpenAI environment wiring in `docker-compose.yml` with integration. No new API URL or user-facing API link is added.
+- Do not edit the shared base template, Django models, API URL wiring, Tailwind input, or another feature's template/JS. Coordinate shared contract changes with integration.
 
 ## Build now
 
@@ -89,6 +90,24 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Plan changes: 2026-10-11 — User requested Leaflet and OpenStreetMap as the location background with path distance; added this phase after GPS capture.
 - Follow-up: Per OSM’s current tile policy, set Leaflet’s `referrerPolicy` to `strict-origin-when-cross-origin` so tile requests identify this web origin even when Django applies a restrictive page default. Recorded in the fix checkpoint below.
 - Follow-up commit: `ce7e6f7` — `fix: send referrer with OSM tile requests`.
+
+### P1-ORG-5 — AI floor-plan destination suggestions
+
+- Status: implementation complete; runtime verification pending
+- Goal: Let an organizer ask OpenAI to identify likely destinations/components in the chosen floor-plan image, review the suggestions, and add selected ones to the existing editor.
+- Scope: Use a server-side OpenAI Responses API call from the existing `/organizer/` page POST handler (no new API URL); take the configured `OPENAI_API_KEY` from the server environment; constrain the result to structured destination data with normalized floor-plan coordinates; show suggestions for explicit review before adding them; preserve manual editing and on-site GPS pinning as separate steps. Add optional OpenAI environment settings to the API service only.
+- Acceptance criteria:
+  - [ ] Analyze is only enabled for a selected PNG/JPG and invokes no model call until clicked.
+  - [ ] API key stays server-side and missing configuration or OpenAI errors produce a useful organizer message.
+  - [ ] The result is a reviewable list with name, category, description, approximate normalized plan coordinates, and confidence; no suggestion is silently saved or added.
+  - [ ] Organizer can choose suggestions and add them to the existing editor, then edit/save them and later set their GPS location using the existing controls.
+  - [ ] The organizer UI exposes no API route/path links and this feature introduces no new API route.
+- Checks: Python compile, JavaScript syntax, `git diff --check`, focused service/view tests if existing test infrastructure permits without adding a new framework.
+- Dependencies: P1-ORG-1, P1-ORG-3, existing image selection and `organizer_draft` persistence; optional OpenAI key/model configuration.
+- Out of scope: AI assigning real GPS coordinates, automatically saving suggestions, inferring/approving walkable edges, or claiming an AI route is accurate. Routing must use organizer-confirmed path points and edges; the existing route API remains integration/navigation scope.
+- Verification record: 2026-10-11 04:39 IST — `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. No `.env`/OpenAI key is configured, so no live model call was made. `docker compose up --build -d` could not run because access to the local Docker socket was denied; browser/page/CSRF interaction remains unverified.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — Organizer requested an AI-assisted flow after repeated map overlay/pinning issues. Added explicit-review extraction as a bridge from the plan image to editable destinations, while keeping real GPS capture an organizer action.
 
 ## Cut first
 

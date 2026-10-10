@@ -7,7 +7,7 @@
   const venuePicker = $ ("[data-venue]");
   if (!canvas || !venuePicker) return;
 
-  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
+  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
@@ -17,6 +17,8 @@
     leafletMap: $("[data-leaflet-map]"), mapStatus: $("[data-map-status]"), gpsDistance: $("[data-gps-distance]"),
     mapViewTools: $("[data-map-view-tools]"), floorplanView: $("[data-map-view='floorplan']"), nodeFields: $("[data-node-fields]"),
     nodeLocation: $("[data-node-location]"), setNodeLocation: $("[data-set-node-location]"), nodeOnMap: $("[data-node-on-map]"),
+    analyze: $("[data-analyze]"), aiReview: $("[data-ai-review]"), aiSuggestions: $("[data-ai-suggestions]"),
+    addSuggestions: $("[data-add-suggestions]"), aiStatus: $("[data-ai-status]"),
   };
   const makeId = (prefix) => `${prefix}-${crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10)}`;
   const setDirty = () => { state.dirty = true; controls.saveState.textContent = "Unsaved changes"; };
@@ -116,6 +118,7 @@
     });
     renderList(controls.placeList, state.places, "place");
     renderList(controls.nodeList, state.nodes, "node");
+    renderSuggestions();
     controls.edgeList.replaceChildren();
     state.edges.forEach((edge) => {
       const a = state.nodes.find((node) => node.id === edge.from);
@@ -284,6 +287,30 @@
     });
   }
 
+  function renderSuggestions() {
+    controls.aiReview.hidden = !state.aiSuggestions.length;
+    controls.aiSuggestions.replaceChildren();
+    state.aiSuggestions.forEach((suggestion, index) => {
+      const li = document.createElement("li"); li.className = "item-row ai-suggestion";
+      const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.checked = Boolean(suggestion.selected);
+      checkbox.setAttribute("aria-label", `Add ${suggestion.name}`);
+      checkbox.addEventListener("change", () => { suggestion.selected = checkbox.checked; updateSuggestionButton(); });
+      const text = document.createElement("span");
+      const title = document.createElement("strong"); title.textContent = suggestion.name;
+      const details = document.createElement("small");
+      details.textContent = `${suggestion.category} · approximate plan position ${Math.round(suggestion.plan_x * 100)}%, ${Math.round(suggestion.plan_y * 100)}% · ${Math.round(suggestion.confidence * 100)}% confidence`;
+      text.append(title, details);
+      li.append(checkbox, text); controls.aiSuggestions.append(li);
+    });
+    updateSuggestionButton();
+  }
+
+  function updateSuggestionButton() {
+    const selectedCount = state.aiSuggestions.filter((item) => item.selected).length;
+    controls.addSuggestions.disabled = selectedCount === 0;
+    controls.addSuggestions.textContent = selectedCount ? `Add ${selectedCount} selected destination${selectedCount === 1 ? "" : "s"}` : "Add selected destinations";
+  }
+
   function coordinates(event) {
     const bounds = canvas.getBoundingClientRect();
     return { x: Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width)), y: Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height)) };
@@ -365,6 +392,9 @@
       state.venue = await response.json();
       const draft = state.venue.calibration?.organizer_draft || {};
       state.imageData = draft.image_data || "";
+      state.aiSuggestions = [];
+      controls.analyze.disabled = !state.imageData;
+      controls.aiStatus.textContent = "";
       state.places = Array.isArray(draft.places) ? draft.places : [];
       state.nodes = Array.isArray(draft.nodes) ? draft.nodes : [];
       state.edges = Array.isArray(draft.edges) ? draft.edges : [];
@@ -469,7 +499,7 @@
     if (!file) return;
     if (!/^image\/(png|jpeg)$/.test(file.type)) { controls.errors.textContent = "Choose a PNG or JPG image."; return; }
     const reader = new FileReader();
-    reader.onload = () => { state.mapMode = "floorplan"; state.imageData = String(reader.result); controls.errors.textContent = ""; setDirty(); render(); };
+    reader.onload = () => { state.mapMode = "floorplan"; state.imageData = String(reader.result); controls.analyze.disabled = false; state.aiSuggestions = []; controls.aiStatus.textContent = ""; controls.errors.textContent = ""; setDirty(); render(); };
     reader.onerror = () => { controls.errors.textContent = "The selected image could not be read."; };
     reader.readAsDataURL(file);
   }
@@ -497,6 +527,45 @@
   }
   $("[data-add-place]").addEventListener("click", () => beginMapAddition("place"));
   $("[data-add-node]").addEventListener("click", () => beginMapAddition("node"));
+  controls.analyze.addEventListener("click", async () => {
+    if (!state.imageData) return;
+    controls.analyze.disabled = true;
+    controls.aiStatus.textContent = "Sending this floor plan to OpenAI for analysis…";
+    controls.errors.textContent = "";
+    try {
+      const csrfToken = root.querySelector("input[name=csrfmiddlewaretoken]")?.value || "";
+      const response = await fetch(window.location.pathname, {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({ action: "analyze_floor_plan", image_data: state.imageData }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || `Analysis failed (${response.status}).`);
+      state.aiSuggestions = (Array.isArray(data.destinations) ? data.destinations : []).map((item) => ({ ...item, selected: false }));
+      controls.aiStatus.textContent = state.aiSuggestions.length
+        ? `Found ${state.aiSuggestions.length} suggestion${state.aiSuggestions.length === 1 ? "" : "s"}. Review before adding; AI positions are approximate.`
+        : "No clear destinations were found. You can still add them manually.";
+      if (state.aiSuggestions.length) render();
+      else { controls.aiReview.hidden = false; controls.aiSuggestions.replaceChildren(); controls.addSuggestions.disabled = true; }
+    } catch (error) {
+      controls.aiStatus.textContent = "";
+      controls.errors.textContent = error.message;
+    } finally { controls.analyze.disabled = !state.imageData; }
+  });
+  controls.addSuggestions.addEventListener("click", () => {
+    const selected = state.aiSuggestions.filter((item) => item.selected);
+    selected.forEach((item) => state.places.push({
+      id: makeId("place"), name: item.name, category: item.category, description: item.description,
+      status: "open", x: item.plan_x, y: item.plan_y,
+    }));
+    state.aiSuggestions = state.aiSuggestions.filter((item) => !item.selected);
+    if (selected.length) {
+      state.selected = { type: "place", id: state.places.at(-selected.length).id };
+      controls.aiStatus.textContent = `Added ${selected.length} destination${selected.length === 1 ? "" : "s"}. Review names and descriptions, then pin their exact locations on-site.`;
+      setDirty(); render();
+    }
+  });
+  $("[data-dismiss-suggestions]").addEventListener("click", () => { state.aiSuggestions = []; controls.aiStatus.textContent = ""; render(); });
   $("[data-connect]").addEventListener("click", () => {
     if (state.selected?.type === "node") {
       const first = state.nodes.find((node) => node.id === state.selected.id);
