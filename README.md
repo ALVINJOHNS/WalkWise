@@ -30,7 +30,7 @@ For a four-person, six-hour build, use the [team execution plan](docs/README.md)
 - **Project name:** VenueFlow
 - **Short description:** Turn a venue plan into an editable event map with walkable paths and visitor destinations.
 - **Team:** TODO — participant names and GitHub handles; maximum 4 members.
-- **Working demo:** Local server at `http://localhost:8000`; feature behavior is still under development.
+- **Working demo:** Local server at `http://localhost:8000`; the responsive overview summarizes venues/events and previews intended flows. Overview flow buttons are presentation-only and do not navigate yet.
 - **Technology stack:** Django server-rendered templates, Django REST Framework, Django ORM/GeoDjango, PostgreSQL/PostGIS, Tailwind CSS, Redis, Celery, Docker Compose.
 
 ### Run the project
@@ -52,7 +52,7 @@ Templates and the API are served by the same Django process. When changing Tailw
 
 ### Project status
 
-- Implemented: Django SSR landing, organizer and visitor pages; Tailwind static styles and JS; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Backend runtime remains unverified while Docker is unavailable.
+- Implemented: Responsive Django SSR overview, organizer and visitor pages; Tailwind static styles and JS; overview venue search and non-navigating flow feedback; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Backend runtime remains unverified while Docker is unavailable.
 - Not implemented: Map editing, route calculation (returns 501), publishing, QR, auth, and production deployment.
 - OpenStreetMap and Leaflet have not yet been added; add OSM attribution when the map view is introduced.
 

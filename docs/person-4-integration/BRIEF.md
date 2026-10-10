@@ -26,15 +26,17 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Scope: Establish the team foundation requested on 2026-10-11: Django SSR templates with compiled Tailwind and static JavaScript, Django REST Framework API using Django ORM, PostgreSQL/PostGIS, Redis/Celery worker, Compose services, shared domain contract, seed, and contributor/task-split docs. Use one Django service for pages and API. Add scaffold files only inside feature-owned folders; leave feature behavior to each owner.
 - Acceptance criteria:
   - [ ] `docker compose up --build` starts healthy database, Redis, Django web/API, and worker services.
-  - [ ] Django renders organizer and visitor routes; Tailwind is served as a static asset.
+  - [ ] Django renders the responsive overview, organizer, and visitor routes; Tailwind is served as a static asset.
+  - [ ] Overview summarizes persisted venue/event counts, supports venue search, and shows organizer, visitor, and API flows without navigating from overview actions.
   - [ ] API health and domain stub endpoints return explicit responses.
   - [ ] Teammates have clear owned paths and interface guidance.
 - Dependencies: None.
 - Out of scope: Authentication, production deployment, full map editor, routing implementation, GPS calibration, and realtime sync.
 - Verification record: 2026-10-11T02:35+05:30 — `npm install` and `npm run build:css` passed; `docker compose config --quiet`, `python3 -m compileall -q api`, `git diff --check`, and a source scan for direct SQL calls passed. `python3 api/manage.py check` could not run because psycopg is not installed on the host; host GDAL is also absent. Docker runtime is unavailable because the local daemon is not running. Original Vite checks from `0805e41` are historical; Vite has been removed.
+- Verification record: 2026-10-11T03:06+05:30 — Overview page, server-side venue/event summary counts, venue search, and non-navigating flow feedback added. `npm run build:css`, `python3 -m compileall -q api`, and `git diff --check` passed. Rendered browser behavior remains unverified because Django dependencies and Docker runtime are unavailable on the host.
 - Commit: `ee8ac94` (`feat: switch to Django SSR monolith`; Docker runtime verification pending).
 - Plan changes: 2026-10-11 — expanded the original browser-only shell to the user's explicitly requested Docker/PostgreSQL, server, Celery, and Redis foundation. User specified Django REST Framework instead of direct SQL querying and then requested SSR with no separate frontend service. A supplied Django monolith architecture was used as a reference for layering and progressive enhancement; keep the prior DRF requirement, and omit its CareUI, auth, tenancy, and production infrastructure from this hackathon foundation. Use Django ORM migrations, templates, and compiled Tailwind static assets served by the same Django service.
-- Next: Verify Compose runtime and SSR/API routes, then P4-INT-2.
+- Next: Verify Compose runtime and rendered overview/SSR/API routes, then P4-INT-2.
 
 ### P4-INT-2 — Venue API persistence
 
