@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:26:00+05:30 — Record ngrok tunnel configuration checkpoint
+
+- Changed: Recorded commit `374c853` in the handoff.
+- Why: Tie the verified tunnel configuration to the current continuation pointer.
+- Validation: `git diff --check` passed.
+- Limitations: Phone GPS access depends on browser location permission and the tunnel remaining active.
+
 ## 2026-10-11T04:24:00+05:30 — Allow the provided ngrok tunnel host
 
 - Changed: Added environment-configurable Django allowed hosts and CSRF trusted origins, configured forwarded HTTPS detection, and included the provided ngrok host in Compose defaults and `.env.example`.
