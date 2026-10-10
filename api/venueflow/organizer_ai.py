@@ -105,7 +105,10 @@ def extract_destinations(data_url):
                     "text": (
                         "Inspect this venue floor plan and list only destinations or named/useful components "
                         "that are visibly labeled or clearly identifiable (for example entrances, stages, "
-                        "food, restrooms, registration, or rooms). Also propose a small walkable network "
+                        "food, restrooms, registration, or rooms). Treat every separate table with a visible "
+                        "team label (such as Team 1, Team 2) as its own destination. Preserve the team label "
+                        "exactly, set category to 'team table', and describe it as that team's developer "
+                        "workspace. Never merge adjacent team tables. Also propose a small walkable network "
                         "only along corridors or passages clearly visible in the image; do not draw through "
                         "walls or infer hidden links. Label path points in order with integer indexes starting "
                         "at zero, and have each edge refer to those indexes. If no walkable route is clear, "

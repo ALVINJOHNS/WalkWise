@@ -106,8 +106,8 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: P1-ORG-1, P1-ORG-3, existing image selection and `organizer_draft` persistence; optional OpenAI key/model configuration.
 - Out of scope: AI assigning real GPS coordinates, automatically saving suggestions, inferring/approving walkable edges, or claiming an AI route is accurate. Routing must use organizer-confirmed path points and edges; the existing route API remains integration/navigation scope.
 - Verification record: 2026-10-11 04:41 IST — `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. `docker compose up --build -d` succeeded; local organizer GET returned HTTP 200 with the AI button, and a CSRF-protected POST returned the expected HTTP 503 setup hint because no `.env`/OpenAI key is configured. No live model call or browser interaction was performed.
-- Commit: `a13568a` — `feat: add AI floor plan suggestions`.
-- Plan changes: 2026-10-11 — Organizer requested an AI-assisted flow after repeated map overlay/pinning issues. Added explicit-review extraction as a bridge from the plan image to editable destinations, while keeping real GPS capture an organizer action.
+- Commit: `a13568a` — `feat: add AI floor plan suggestions`; Team 1–10 label-preservation follow-up pending.
+- Plan changes: 2026-10-11 — Organizer requested an AI-assisted flow after repeated map overlay/pinning issues. Added explicit-review extraction as a bridge from the plan image to editable destinations, while keeping real GPS capture an organizer action. 2026-10-11 follow-up: each visibly labeled Team N table in the sample room plan must be extracted as its own team-table destination with the exact label preserved.
 
 ### P1-ORG-6 — AI walkable path proposals
 

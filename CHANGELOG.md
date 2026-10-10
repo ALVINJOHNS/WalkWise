@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:55:00+05:30 — Label team tables for AI extraction
+
+- Changed: Added the sample rectangular room PNG with exactly ten named developer tables, Team 1 through Team 10; updated the AI prompt to preserve each label as its own `team table` destination; documented the sample asset.
+- Why: Let organizers see the intended component labels in the plan and have AI return a distinct, pin-ready destination for each team.
+- Validation: Python compilation, JavaScript syntax, Compose configuration, and `git diff --check` passed. The running local app returned HTTP 200 for `/organizer/` and for the sample PNG static asset.
+- Limitations: No OpenAI key is configured, so model recognition of the image labels has not been live-verified. AI positions remain approximate until pinned on-site.
+
 ## 2026-10-11T04:44:00+05:30 — Record AI path-proposal phase commit
 
 - Changed: Recorded P1-ORG-6 implementation commit `fa132e8` in the organizer phase brief and handoff.
