@@ -145,3 +145,9 @@ Replace this sentence with entries as you build:
 - Why: The organizer currently stores draft entities in venue calibration JSON, while the shared contract has separate feature/node/edge tables; the organizer brief assigns API support to integration and explicitly excludes publishing from Person 1.
 - Validation: Compared ownership, ORM schema, current serializers/views, organizer mapping, and phase template; `git diff --check` passed.
 - Limitations: Planning only. Related-resource persistence, immutable publishing, visitor snapshot resolution, and QR behavior remain unimplemented.
+
+## 2026-10-11T04:00:11+05:30 — Detail Person 4 venue/event persistence phase
+- Changed: Added `docs/person-4-integration/phases/P4-INT-2.md`, linked it from the Person 4 brief, and updated `handoff.md` to identify P4-INT-2 as the next phase.
+- Why: The handoff identified P4-INT-2 as next, but the brief only had a broad scope and the existing ORM/API code had no recorded phase verification.
+- Validation: Compared plan scope against current models, serializers, selectors, viewsets, API routes, migrations, and shared contract; `git diff --check` passed.
+- Limitations: Planning only. Database migration, API round trips, and persistence across process restart were not run in this planning update.

@@ -38,13 +38,13 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Verification record: 2026-10-11T03:49+05:30 — Started the current integrated app with `docker compose up --build -d`. Default host ports 5432 and 8000 were already in use by another local project, so an ignored `.env` selects 5433 (Postgres), 6380 (Redis), and 8001 (Django); the Compose container ports remain unchanged. Postgres and Redis reported healthy; Django overview, organizer, visitor `/v/kochi-expo/`, `/api/health`, and compiled CSS returned HTTP 200. A temporary organizer draft value saved through the venue PATCH endpoint and read back successfully, then the original calibration value was restored. The app is running locally; visual browser interaction remains unverified.
 - Commits: `5930b51` (`feat: build interactive venue overview`), `a6a8e92` (`fix: register explicit DRF router basenames`).
 - Plan changes: 2026-10-11 — expanded the original browser-only shell to the user's explicitly requested Docker/PostgreSQL, server, Celery, and Redis foundation. User specified Django REST Framework instead of direct SQL querying and then requested SSR with no separate frontend service. A supplied Django monolith architecture was used as a reference for layering and progressive enhancement; keep the prior DRF requirement, and omit its CareUI, auth, tenancy, and production infrastructure from this hackathon foundation. Use Django ORM migrations, templates, and compiled Tailwind static assets served by the same Django service.
-- Next: Read and execute P4-INT-2 (venue API persistence) in this brief.
+- Next: Read and execute P4-INT-2 (venue and event API persistence) in [phases/P4-INT-2.md](phases/P4-INT-2.md).
 
-### P4-INT-2 — Venue API persistence
+### P4-INT-2 — Venue and event API persistence
 
 - Status: not started
-- Scope: Add database schema/migration and venue/event persistence endpoints used by SSR organizer/visitor pages.
-- Exit checks: Venue/event changes persist across server reload; focused ORM/API check passes.
+- Scope and acceptance criteria: [phases/P4-INT-2.md](phases/P4-INT-2.md).
+- Dependencies: P4-INT-1.
 - Next: P4-INT-3.
 
 ### P4-INT-3 — Persist organizer map resources
