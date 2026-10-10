@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:33:43+05:30 — Record P3-NAV-3 commit and handoff
+
+- Changed: Recorded implementation commit `16b5b89` in the P3-NAV-3 phase document and updated `handoff.md` to point to the optional next phase and its integration dependency.
+- Why: Keep the phase ledger and next-agent handoff aligned with the committed implementation.
+- Validation: `git diff --check` passed; no code changed.
+- Limitations: P3-NAV-4 remains optional until integration confirms the visitor start-point input shape.
+
 ## 2026-10-11T03:33:09+05:30 — Add next-place suggestion ranking
 
 - Changed: Added pure-Python `suggest_next_place` in `api/venueflow/routing.py` to skip closed/malformed/unreachable candidates, apply finite optional `waitMinutes` penalties in ranking seconds, preserve deterministic input-order ties, and return the selected place, verified route, timing fields, and concise reason. Updated P3-NAV-3 verification and handoff.
