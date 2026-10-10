@@ -1,9 +1,9 @@
 # Development handoff
 
-Updated: 2026-10-11 03:07 IST
+Updated: 2026-10-11 03:13 IST
 
 - Completed: Workflow documentation phase; commit `d215f66` (`docs: define phased development handoffs`).
-- Current: **P4-INT-1 — Runnable full-stack foundation** includes a responsive overview dashboard, server-rendered workspace counts, venue search, and non-navigating flow controls. Overview milestone is committed as `5930b51` (`feat: build interactive venue overview`); runtime verification remains pending. The supplied OHC example informed the monolith layering; no CareUI code/assets were used.
-- Next: Finish runtime verification for **P4-INT-1** in `docs/person-4-integration/BRIEF.md` (install host requirements plus GDAL/GEOS, or use Docker when available); then proceed to **P4-INT-2 — Venue API persistence**.
-- Checks: Latest `npm run build:css`, `python3 -m compileall -q api`, and `git diff --check` passed. Earlier Compose config parsing and direct-SQL source scan passed. Django system check stopped because host psycopg is missing. The Vite app from `0805e41` has been removed.
-- Limitation: Docker daemon is unavailable and host GDAL is absent, so Django/PostGIS/Redis/Celery startup and rendered routes remain unverified.
+- Current: **P4-INT-1 — Runnable full-stack foundation** includes the responsive overview and now starts under Compose after adding explicit DRF router basenames in commit pending. Migration and seed jobs complete, and the API/worker run. Overview HTML, Tailwind CSS, and health endpoint returned HTTP 200 from inside the container.
+- Next: Complete any remaining integration checks for **P4-INT-1** in `docs/person-4-integration/BRIEF.md`, then proceed to **P4-INT-2 — Venue API persistence**.
+- Checks: `docker compose up --build -d`, migration/seed, in-container overview/CSS/API health requests, `python3 -m compileall -q api`, and `git diff --check` passed. Earlier Compose config parsing and direct-SQL source scan passed. The Vite app from `0805e41` has been removed.
+- Limitation: Host sandbox cannot access Docker socket/localhost directly; equivalent route checks passed inside API container. Host GDAL is absent, so host-run Django checks are unavailable.

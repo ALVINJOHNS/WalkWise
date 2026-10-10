@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:13:55+05:30 — Fix API router startup
+
+- Changed: Registered the venue and event DRF viewsets with explicit router basenames in `api/venueflow/urls.py`; updated phase evidence, README, handoff, and AI usage notes.
+- Why: Compose migration exited before applying migrations because DRF could not infer a basename from viewsets that define `get_queryset()` dynamically; the API never started, so the browser had no rendered page or Tailwind asset to load.
+- Validation: `docker compose up --build -d` completed migrations and seed. In-container requests returned overview HTTP 200, compiled Tailwind stylesheet HTTP 200 with expected overview/grid rules, and `/api/health` HTTP 200 with database healthy. `python3 -m compileall -q api` and `git diff --check` passed.
+- Limitations: The host sandbox cannot access the Docker socket or localhost port directly; equivalent HTTP checks passed from inside the API container. No browser visual QA was performed.
+
 ## 2026-10-11T03:06:43+05:30 — Build interactive overview dashboard
 
 - Changed: Replaced the placeholder home screen with a responsive Tailwind overview, server-rendered venue/event/published counts and venue cards, venue search, and non-navigating organizer/visitor/API flow buttons with feedback. Updated the integration acceptance criteria, README, and AI usage record.
