@@ -60,10 +60,28 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
   - [ ] Start/stop records a live track, draws the outline, and persists the captured samples with the venue draft.
 - Checks: JavaScript syntax, diff whitespace, and browser geolocation/save round-trip when runtime is available.
 - Dependencies: Existing `Venue.calibration.organizer_draft` save/load path.
-- Out of scope: Background tracking after leaving the page, map tile integration, geospatial automatic snapping or conversion from GPS to floor-plan coordinates.
+- Out of scope: Background tracking after leaving the page, automatic snapping or conversion from GPS to floor-plan coordinates.
 - Verification record: 2026-10-11 03:43 IST — `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Browser permission, device GPS, and Django save/load remain unverified because Docker socket access is denied.
 - Commit: `9035fa8` — `fix: preserve GPS errors and outline state` (builds on GPS UI in `97d8598`).
 - Plan changes: 2026-10-11 — User requested explicit GPS location capture and live perimeter recording; revised earlier no-calibration cut to support real coordinates while keeping local plan coordinates separate.
+
+### P1-ORG-4 — Leaflet basemap and GPS path distance
+
+- Status: in progress
+- Goal: Display GPS captures over an interactive OpenStreetMap basemap and show their measured path length.
+- Scope: Leaflet map initialized from the current/saved GPS fix; OSM standard raster tiles with visible attribution; selectable street-map/floor-plan view; live GPS pointer, accuracy circle, recorded track, destination pins with GPS locations, and cumulative GPS track distance.
+- Acceptance criteria:
+  - [ ] Current/saved GPS coordinates center a pannable and zoomable Leaflet map with OSM attribution.
+  - [ ] Current GPS pointer and recorded track render at their latitude/longitude on the basemap.
+- [ ] Destination pins and path points with GPS coordinates appear on the basemap; connecting geolocated path points shows their measured straight-line geographic distance. Switching to floor-plan view keeps the existing local-coordinate editor usable.
+  - [ ] Recorded path distance updates as fixes arrive and is computed from geographic coordinates.
+- [ ] Map/library/tile failures display useful feedback without crashing GPS capture or organizer editing.
+- Checks: JavaScript syntax, diff whitespace, template attribution/search check, and browser map/GPS interaction when runtime is available.
+- Dependencies: P1-ORG-3, CDN availability, and internet access for OSM tiles.
+- Out of scope: Offline tiles, routing instructions or road/path network snapping, and conversion between geographic and floor-plan coordinates.
+- Verification record: 2026-10-11 04:02 IST — `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, and a source check for the Leaflet/OSM integration passed. Browser/phone interaction and runtime save/load remain unverified because Docker access is denied.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — User requested Leaflet and OpenStreetMap as the location background with path distance; added this phase after GPS capture.
 
 ## Cut first
 

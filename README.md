@@ -56,10 +56,10 @@ Templates and the API are served by the same Django process. When changing Tailw
 
 ### Project status
 
-- Implemented: Responsive Django SSR overview, organizer map editor (image preview and drag-and-drop, destination details/status/GPS fixes, live GPS outline recording with a moving position pointer and accuracy halo, path points/connections, validation, and venue draft save; API browser links are not exposed in the UI), and visitor page; Tailwind static styles and JS; overview venue search and non-navigating flow feedback; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Docker Compose migrations, seed, overview, stylesheet, and health route have been verified locally.
+- Implemented: Responsive Django SSR overview, organizer map editor (image preview and drag-and-drop, destination details/status/GPS fixes, live GPS outline recording with a moving pointer and accuracy halo, Leaflet/OpenStreetMap street view, recorded GPS track distance, GPS path-point connections, validation, and venue draft save; API browser links are not exposed in the UI), and visitor page; Tailwind static styles and JS; overview venue search and non-navigating flow feedback; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. OSM tiles and Leaflet require internet access. Distance is measured from recorded coordinates; it does not snap to roads or calculate walking directions.
 - Not implemented: Related `MapFeature`/`PathNode`/`PathEdge` API persistence and loading in the organizer editor (including GPS outline samples, which currently remain in venue calibration metadata rather than `Venue.boundary`), route calculation (returns 501), publishing, QR, auth, and production deployment.
-- OpenStreetMap and Leaflet have not yet been added; add OSM attribution when the map view is introduced.
+- OpenStreetMap tiles include visible attribution. The public tile service has usage limits and is not an offline tile source; see the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
 
-For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). Runtime packages are public libraries; there are no external map tiles or datasets configured yet.
+For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). The organizer uses public Leaflet assets and OpenStreetMap tiles.
 
-See [AI_USAGE.md](AI_USAGE.md) for AI assistance and [CHANGELOG.md](CHANGELOG.md) for the development record.
+See [AI_USAGE.md](AI_USAGE.md) for AI assistance and [CHANGELOG.md](CHANGELOG.md) for the development record. Leaflet 1.9.4 is loaded from its pinned CDN release with integrity metadata.

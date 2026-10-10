@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:02:00+05:30 — Add Leaflet street map and GPS path distance
+
+- Changed: Added Leaflet 1.9.4 with integrity-pinned CDN assets and attributed OpenStreetMap tiles; centered the street view on GPS, rendered the live position/accuracy and recorded track, added geolocated destination/path-point markers and per-edge straight-line distances, and retained a separate floor-plan view. Updated organizer phase, README, AI usage, and handoff documentation.
+- Why: Let organizers view GPS capture in geographic context and measure the recorded coordinate path.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, and source searches for map controls/attribution/distance passed.
+- Limitations: Requires internet for Leaflet CDN and map tiles. Distance follows captured GPS samples or straight-line endpoint geodesics; no road routing or snapping. Browser map/GPS and save/load round-trip were not runtime-tested.
+
 ## 2026-10-11T04:54:00+05:30 — Record GPS stop/pointer checkpoint
 
 - Changed: Added the exact fix commit to the organizer phase evidence and handoff.
