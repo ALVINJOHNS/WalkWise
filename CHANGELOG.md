@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:35:31+05:30 — Detail the optional P3-NAV-4 plan
+
+- Changed: Expanded `docs/person-3-navigation/phases/P3-NAV-4.md` with an integration decision gate, proposed pure helper/result contract, coordinate and distance semantics, validation and deterministic selection rules, focused regression fixtures, and phase closeout steps; updated `handoff.md` with the explicit dependency.
+- Why: Make the next optional phase implementable without guessing the visitor's coordinate representation or a safe maximum distance.
+- Validation: Compared the plan with the navigation brief, shared contract, and P3-NAV-3 scope; `git diff --check` passed. No application code or runtime checks were needed.
+- Limitations: Planning only. Implementation must wait for integration confirmation of input shape and maximum-distance policy.
+
 ## 2026-10-11T03:33:43+05:30 — Record P3-NAV-3 commit and handoff
 
 - Changed: Recorded implementation commit `16b5b89` in the P3-NAV-3 phase document and updated `handoff.md` to point to the optional next phase and its integration dependency.
