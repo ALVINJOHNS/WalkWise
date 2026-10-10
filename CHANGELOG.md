@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:18:00+05:30 — Persist organizer drafts per event
+
+- Changed: Added an event picker scoped to the selected venue. The organizer now saves its complete authored draft (plan image, destinations and GPS metadata, path points/connections, current location, and outline track) in `Venue.calibration.organizer_drafts[event_id]`; legacy venue drafts still load and can be migrated by saving to an event. Updated the organizer phase record and demo instructions.
+- Why: Organizer data was stored as one venue-level draft, so event maps could overwrite one another and users could not select an event-specific saved draft after refresh.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed; reviewed event/venue serializers and the event-keyed save/load path.
+- Limitations: Browser interaction and live database save/reload were not exercised to avoid overwriting existing organizer/GPS data; concurrent edits still use the existing venue JSON update path.
+
 ## 2026-10-11T05:14:03+05:30 — Record independent destination pin commit
 
 - Changed: Recorded P1-ORG-8 commit `6783821` in the phase brief and handoff.

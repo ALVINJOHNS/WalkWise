@@ -5,9 +5,11 @@
   const $ = (selector) => root.querySelector(selector);
   const canvas = $("[data-canvas]");
   const venuePicker = $ ("[data-venue]");
+  const eventPicker = $("[data-event]");
+  const eventPickerWrap = $("[data-event-picker-wrap]");
   if (!canvas || !venuePicker) return;
 
-  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], aiPathPoints: [], aiPathSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
+  const state = { venue: null, events: [], eventId: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], aiPathPoints: [], aiPathSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
@@ -470,28 +472,53 @@
     }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
   }
 
+  function selectedEvent() { return state.events.find((event) => event.id === state.eventId) || null; }
+
+  function loadDraft(draft = {}) {
+    state.imageData = draft.image_data || "";
+    state.aiSuggestions = [];
+    state.aiPathPoints = [];
+    state.aiPathSuggestions = [];
+    controls.analyze.disabled = !state.imageData;
+    controls.aiStatus.textContent = "";
+    state.places = Array.isArray(draft.places) ? draft.places : [];
+    state.places.forEach((place, index) => { place.pin_number = Number(place.pin_number) || index + 1; });
+    state.nodes = Array.isArray(draft.nodes) ? draft.nodes : [];
+    state.edges = Array.isArray(draft.edges) ? draft.edges : [];
+    state.geoOutline = Array.isArray(draft.geo_outline) ? draft.geo_outline : [];
+    state.currentLocation = draft.current_location || state.geoOutline.at(-1) || state.places.find((place) => place.geolocation)?.geolocation || state.nodes.find((node) => node.geolocation)?.geolocation || null;
+    state.mapMode = draft.map_mode || (state.currentLocation ? "street" : "floorplan");
+    controls.gpsStatus.textContent = state.geoOutline.length ? `Saved outline loaded · ${state.geoOutline.length} GPS samples.` : "GPS is off. Choose a GPS action to request location access.";
+    state.selected = null; state.dirty = false; controls.saveState.textContent = "Saved"; render();
+  }
+
+  function loadSelectedEventDraft() {
+    const calibration = state.venue?.calibration || {};
+    const drafts = calibration.organizer_drafts || {};
+    const hasEventDraft = state.eventId && Object.prototype.hasOwnProperty.call(drafts, state.eventId);
+    const draft = hasEventDraft ? drafts[state.eventId] : (Object.keys(drafts).length ? {} : (calibration.organizer_draft || {}));
+    loadDraft(draft);
+  }
+
   async function loadVenue(id) {
     controls.saveState.textContent = "Loading…"; controls.errors.textContent = "";
     try {
       const response = await fetch(`/api/venues/${encodeURIComponent(id)}/`, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error(`Could not load venue (${response.status}).`);
       state.venue = await response.json();
-      const draft = state.venue.calibration?.organizer_draft || {};
-      state.imageData = draft.image_data || "";
-      state.aiSuggestions = [];
-      state.aiPathPoints = [];
-      state.aiPathSuggestions = [];
-      controls.analyze.disabled = !state.imageData;
-      controls.aiStatus.textContent = "";
-      state.places = Array.isArray(draft.places) ? draft.places : [];
-      state.places.forEach((place, index) => { place.pin_number = Number(place.pin_number) || index + 1; });
-      state.nodes = Array.isArray(draft.nodes) ? draft.nodes : [];
-      state.edges = Array.isArray(draft.edges) ? draft.edges : [];
-      state.geoOutline = Array.isArray(draft.geo_outline) ? draft.geo_outline : [];
-      state.currentLocation = state.geoOutline.at(-1) || state.places.find((place) => place.geolocation)?.geolocation || state.nodes.find((node) => node.geolocation)?.geolocation || null;
-      state.mapMode = draft.map_mode || (state.currentLocation ? "street" : "floorplan");
-      controls.gpsStatus.textContent = state.geoOutline.length ? `Saved outline loaded · ${state.geoOutline.length} GPS samples.` : "GPS is off. Choose a GPS action to request location access.";
-      state.selected = null; state.dirty = false; controls.saveState.textContent = "Saved"; render();
+      const eventsResponse = await fetch("/api/events/", { headers: { Accept: "application/json" } });
+      if (!eventsResponse.ok) throw new Error(`Could not load events (${eventsResponse.status}).`);
+      const eventPayload = await eventsResponse.json();
+      const events = Array.isArray(eventPayload) ? eventPayload : (Array.isArray(eventPayload.results) ? eventPayload.results : []);
+      state.events = events.filter((event) => String(event.venue) === String(state.venue.id));
+      eventPicker.replaceChildren();
+      state.events.forEach((event) => {
+        const option = document.createElement("option"); option.value = event.id; option.textContent = event.title; eventPicker.append(option);
+      });
+      eventPickerWrap.hidden = !state.events.length;
+      state.eventId = state.events[0]?.id || null;
+      if (state.eventId) eventPicker.value = state.eventId;
+      loadSelectedEventDraft();
     } catch (error) { controls.errors.textContent = error.message; controls.saveState.textContent = "Load failed"; }
   }
 
@@ -519,10 +546,19 @@
     if (errors.length) { controls.saveState.textContent = "Fix validation issues"; return; }
     controls.saveState.textContent = "Saving…";
     try {
-      const calibration = { ...(state.venue.calibration || {}), organizer_draft: {
-        format: 1, places: state.places, nodes: state.nodes, edges: state.edges, image_data: state.imageData,
-        geo_outline: state.geoOutline, map_mode: state.mapMode,
-      } };
+      const latestResponse = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/`, { headers: { Accept: "application/json" } });
+      if (!latestResponse.ok) throw new Error(`Could not refresh venue data before saving (${latestResponse.status}).`);
+      const latestVenue = await latestResponse.json();
+      const draft = {
+        format: 2, places: state.places, nodes: state.nodes, edges: state.edges, image_data: state.imageData,
+        geo_outline: state.geoOutline, current_location: state.currentLocation, map_mode: state.mapMode,
+      };
+      const calibration = { ...(latestVenue.calibration || {}) };
+      if (state.eventId) {
+        calibration.organizer_drafts = { ...(calibration.organizer_drafts || {}), [state.eventId]: draft };
+      } else {
+        calibration.organizer_draft = draft;
+      }
       const response = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/`, {
         method: "PATCH", headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ calibration }),
@@ -530,7 +566,7 @@
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.detail || JSON.stringify(data) || `Save failed (${response.status}).`);
       state.venue = data; state.dirty = false; controls.saveState.textContent = "Saved";
-      controls.errors.textContent = "Draft saved to this venue.";
+      controls.errors.textContent = state.eventId ? `Draft saved for ${selectedEvent()?.title || "this event"}.` : "Draft saved to this venue.";
     } catch (error) { controls.saveState.textContent = "Save failed"; controls.errors.textContent = error.message; }
   }
 
@@ -541,8 +577,15 @@
     controls.startOutline.disabled = false; controls.stopOutline.hidden = true;
     loadVenue(venuePicker.value);
   });
+  eventPicker.addEventListener("change", () => {
+    if (state.dirty && !window.confirm("Discard unsaved organizer changes?")) { eventPicker.value = state.eventId; return; }
+    state.eventId = eventPicker.value;
+    controls.errors.textContent = "";
+    loadSelectedEventDraft();
+  });
   $("[data-current-location]").addEventListener("click", () => requestLocation((fix) => {
     state.mapMode = "street";
+    state.currentLocation = fix; setDirty();
     controls.gpsStatus.textContent = `Current location: ${fix.latitude.toFixed(6)}, ${fix.longitude.toFixed(6)} · ±${Math.round(fix.accuracy)} m`;
     render();
     window.setTimeout(() => { state.leafletMap?.invalidateSize(); state.leafletMap?.panTo([fix.latitude, fix.longitude]); }, 0);

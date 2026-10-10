@@ -4,6 +4,8 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex added venue-scoped event selection and per-event persistence for the organizer draft, including the plan image, places, paths, GPS metadata, current location, and recorded outline. Existing legacy venue-level drafts remain readable. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; a live save/reload was not attempted to protect existing organizer data.
+
 On 11 October 2026, Codex made destination positions visibly independent by assigning persistent pin numbers, rendering numbered floor-plan and Leaflet pins, and making each street-map pin draggable so only its destination geolocation changes. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; after API restart, the user's ngrok organizer page and script returned HTTP 200 and included the new marker behavior. Drag interaction and draft round-trip remain unverified.
 
 On 11 October 2026, Codex fixed a tunnel analysis failure by raising Django's request-body limit above the organizer's existing limit for base64 image JSON. The root cause was Django rejecting requests at its 2.5 MiB default before the organizer handler ran. Human review: pending. Validation: Django loaded the 16 MiB setting; a 3 MB CSRF-protected probe reached the page handler; and one end-to-end request through the user's ngrok tunnel sent the repository-generated, non-sensitive Team 1–10 PNG to the configured OpenAI model and returned HTTP 200 with ten named destinations plus path proposals. No credential was included in the request code/output. Interactive SVG selection remains unverified.

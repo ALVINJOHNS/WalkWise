@@ -163,6 +163,24 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Commit: `6783821` — `fix: keep destination map pins independent`.
 - Plan changes: 2026-10-11 — Organizer reported that placing one destination pin appeared to move the same point when selecting another destination. Added explicit per-destination identity and individual street-map movement to make the existing per-place coordinate model clear and editable.
 
+### P1-ORG-9 — Event-scoped organizer persistence
+
+- Status: `in progress` (implementation complete; interactive save/reload not manually verified)
+- Goal: Save and restore the complete organizer draft independently for each event, including its image, destinations and their map/GPS data, path points/edges, and recorded GPS outline.
+- Scope: Add an event selector scoped to the selected venue; load that event's saved draft; store drafts under stable event IDs in the venue's existing calibration JSON; preserve legacy venue-level draft loading for existing data; warn before switching away from unsaved changes.
+- Acceptance criteria:
+  - [x] Organizer can choose an event belonging to the selected venue.
+  - [x] Save persists all current organizer draft fields under the selected event ID.
+  - [x] Reloading the page loads the selected event draft; switching events reads/writes independent event IDs in the calibration envelope.
+  - [x] Existing legacy venue-level drafts remain loadable and can be saved into the selected event.
+  - [x] Organizer does not add user-facing API links; same-origin persistence calls remain internal implementation details.
+- Checks: JavaScript syntax, `git diff --check`, and inspect the organizer event-load/save flow and existing event/venue serializers. Use a non-destructive manual browser check if runtime is available.
+- Dependencies: P1-ORG-1 through P1-ORG-8; existing event and venue list/detail endpoints.
+- Out of scope: Model/migration changes or new public API routes; event creation/editing; publishing snapshots.
+- Verification record: 2026-10-11 05:18 IST — `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, and source review of event filtering, event-keyed payload, legacy fallback, and current-location restoration passed. No browser interaction or live save/reload was performed, to avoid overwriting the existing venue's real organizer/GPS data.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — User requested all organizer data to persist per event across refresh. Existing persistence saved one venue-level draft, so this phase scopes drafts by event using existing JSON persistence and event list data.
+
 ## Cut first
 
 Calibration, zones, schedules/hours, undo/redo, mobile walk-and-plot, advanced drag handles, graph auto-layout. Do not spend time polishing editor appearance before save/export works.
