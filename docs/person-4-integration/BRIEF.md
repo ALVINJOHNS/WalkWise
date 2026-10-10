@@ -47,25 +47,31 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Exit checks: Venue/event changes persist across server reload; focused ORM/API check passes.
 - Next: P4-INT-3.
 
-### P4-INT-3 — Feature wiring and publish entry
+### P4-INT-3 — Persist organizer map resources
 
 - Status: not started
-- Scope: Wire merged screens, connect organizer save to persistence, publish revision and visitor URL/QR; freshness labels remain truthful.
-- Exit checks: Status change appears on visitor route after save; URL/QR opens selected venue; integrated demo sequence succeeds.
-- Next: P4-INT-4 only after core demo is green.
+- Scope and acceptance criteria: [phases/P4-INT-3.md](phases/P4-INT-3.md).
+- Dependencies: P4-INT-2 and Person 1 organizer fields.
+- Next: P4-INT-4.
 
-### P4-INT-4 — Offline shell (stretch gate)
+### P4-INT-4 — Publish visitor snapshot and QR entry
+
+- Status: not started
+- Scope and acceptance criteria: [phases/P4-INT-4.md](phases/P4-INT-4.md).
+- Dependencies: P4-INT-3 and Person 2 visitor page.
+- Next: P4-INT-5 only after core demo is green.
+
+### P4-INT-5 — Offline shell (stretch gate)
 
 - Status: not started; optional
-- Scope: Service worker/app-shell offline support only if time remains and core demo is stable.
-- Exit checks: Cold reload in airplane mode succeeds before claiming offline readiness; otherwise record as incomplete and disclose limitation.
+- Scope and acceptance criteria: [phases/P4-INT-5.md](phases/P4-INT-5.md).
+- Dependencies: P4-INT-4.
 - Next: submission and demo rehearsal.
-
 ## Then build
 
 1. Integrate organizer and visitor templates/JS from the feature-owned paths in `docs/architecture.md`; avoid editing feature files.
-2. Connect organizer forms to DRF persistence; make the visitor view read the selected published snapshot.
-3. Add publish action that increments revision/updatedAt, validates essential fields, and produces `/v/<slug>` visitor link.
+2. Complete P4-INT-3 related-resource persistence before connecting publishing.
+3. Complete P4-INT-4 publishing, visitor snapshot, URL, and QR flow.
 4. Generate and display a QR code for that URL using a small established dependency. If HTTPS deployment is unavailable, show the short URL and use local QR only for a localhost demo.
 5. Show honest snapshot/freshness state. A local database is not cross-device sync; do not claim realtime status updates.
 6. Try a service worker/offline app shell only after the end-to-end demo is green and time remains. Verify cold reload in airplane mode before claiming it.

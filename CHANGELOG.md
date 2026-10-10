@@ -139,3 +139,9 @@ Replace this sentence with entries as you build:
 - Why: Deliver a testable graph route primitive for visitor navigation without coupling graph logic to Django or page code.
 - Validation: `python -m compileall -q api/venueflow/routing.py`; plain-Python fixtures for connected minimum-hop route, input-order tie break, closed edges, both directions, same-node route, malformed IDs/graph records, unknown endpoints, and disconnected nodes; `git diff --check` — passed.
 - Limitations: Routes minimize edge count; distance and duration remain `None` for P3-NAV-2. No repository test suite was present for this module.
+
+## 2026-10-11T03:57:36+05:30 — Plan Person 4 persistence and publishing follow-up
+- Changed: Added focused P4-INT-3 related-resource persistence, P4-INT-4 publish/visitor QR, and P4-INT-5 offline stretch briefs; updated the Person 4 phase index and handoff.
+- Why: The organizer currently stores draft entities in venue calibration JSON, while the shared contract has separate feature/node/edge tables; the organizer brief assigns API support to integration and explicitly excludes publishing from Person 1.
+- Validation: Compared ownership, ORM schema, current serializers/views, organizer mapping, and phase template; `git diff --check` passed.
+- Limitations: Planning only. Related-resource persistence, immutable publishing, visitor snapshot resolution, and QR behavior remain unimplemented.
