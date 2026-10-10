@@ -63,3 +63,4 @@ The organizer page now provides venue selection, a PNG/JPG backdrop preview, des
 
 - Checks run: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
 - Runtime limitation: Docker Compose cannot reach the local Docker socket (`permission denied`); Django page/API rendering and save round-trip were not verified in this environment.
+- Commit: `66a59b3` — `feat: build organizer venue editor` (implementation checkpoint; runtime verification pending).

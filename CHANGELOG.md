@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:28:00+05:30 — Record organizer editor checkpoint
+
+- Changed: Added commit SHA and message to the organizer phase record and handoff.
+- Why: Keep the phase evidence and next-agent pointer tied to the committed implementation checkpoint.
+- Validation: `git diff --check` passed.
+- Limitations: Runtime verification remains pending because Docker socket access is denied.
+
 ## 2026-10-11T03:27:00+05:30 — Build organizer venue editor
 
 - Changed: Added a server-rendered organizer map editor with PNG/JPG preview, destination details and statuses, movable pins, path points/edges, validation, and venue draft save; updated organizer phase evidence and project status.
