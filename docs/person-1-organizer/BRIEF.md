@@ -123,7 +123,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: P1-ORG-5, existing path-node/edge editor; navigation remains dependent on P3-NAV-1.
 - Out of scope: Claiming floor-plan inference as a safe/accessible path, automatic GPS assignment, automatic publication, or route calculation.
 - Verification record: 2026-10-11 04:44 IST — `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started; local organizer GET returned HTTP 200 with destination/path proposal controls, updated JS returned HTTP 200 with the import handler, and a CSRF-protected POST returned the expected missing-key message. No live model call or interactive browser selection was possible without an API key/browser session.
-- Commit: Pending.
+- Commit: `fa132e8` — `feat: add reviewable AI path proposals`.
 - Plan changes: 2026-10-11 — Organizer clarified that the goal includes AI mapping a route from the plan after destinations are found; added a review-first path proposal phase while retaining GPS verification and the existing navigation phase boundary.
 
 ## Cut first
