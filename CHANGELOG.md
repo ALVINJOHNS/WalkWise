@@ -4,6 +4,20 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:11:00+05:30 — Verify organizer map-resource persistence
+
+- Changed: Added `PathNode.properties` with a migration; added venue-scoped `GET`/full-snapshot `PUT /api/venues/{id}/map-draft/`; validate finite normalized coordinates, duplicate IDs, edge endpoints and supported route direction; replace features/nodes/edges atomically and remove legacy collection arrays from calibration. Updated the organizer to load/save through this API, merge legacy drafts by stable ID for migration, retain image/GPS metadata, and expose removal controls for path points/connections. Documented the API contract and behavior.
+- Why: Complete P4-INT-3 so organizer authored map data persists in its declared ORM tables and deletes do not return from stale JSON.
+- Validation: Django system check, migration check, and `makemigrations --check --dry-run venueflow` passed. An isolated API round trip verified create, reload, update, deletion, invalid cross-venue edge rejection without partial writes, and preservation of unrelated calibration/image/GPS metadata; disposable fixtures were removed. The running organizer loaded, saved, and reloaded the seeded map. JavaScript syntax, Python compilation, and `git diff --check` passed.
+- Limitations: Person 1/3 have not confirmed the API boundary in this chat. No runtime limitations remain for this phase.
+
+## 2026-10-11T05:03:00+05:30 — Plan Person 4 map-resource persistence
+
+- Changed: Expanded P4-INT-3 into an execution sequence covering the venue-scoped snapshot API, editor-to-ORM mapping, atomic replacement, validation, metadata compatibility, and verification. Identified the need for a small `PathNode.properties` migration to preserve the organizer's node names.
+- Why: Person 4 is starting integration after the Person 1/2 merges; the existing editor stores the map collections in calibration JSON while their ORM models lack API wiring.
+- Validation: Reviewed the plan against the current organizer editor payload, Django models/serializers/views/URLs, shared contract, and P4-INT-3 criteria; `git diff --check` passed.
+- Limitations: Endpoint shape is proposed for confirmation with Person 1 and Person 3 before implementation. No application code or runtime checks were run.
+
 ## 2026-10-11T04:37:00+05:30 — Start and verify the visitor map
 
 - Changed: Added explicit DRF router basenames for the venue and event viewsets so Django's URL checks and migration command can run. Completed P2-VIS-1 runtime evidence and clarified how to find the Compose host port in `README.md`.

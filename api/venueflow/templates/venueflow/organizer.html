@@ -51,11 +51,12 @@
         <button type="button" class="button secondary" data-set-node-location>Set point to current GPS</button>
         <button type="button" class="button secondary" data-node-on-map hidden>Place path point on street map</button>
         <p data-node-location class="muted">No GPS coordinate saved for this path point.</p>
+        <button type="button" class="text-button" data-delete-node>Remove path point and its connections</button>
       </div>
       <h3 class="section-title">Walkable path points</h3><ul data-node-list class="item-list"></ul>
       <h3 class="section-title">Connections</h3><ul data-edge-list class="item-list"></ul>
       <div class="save-row"><button type="button" class="button primary" data-save>Save venue draft</button></div>
-      <p class="fine-print">Draft layout, including statuses and path points, is saved in the venue calibration metadata. No map is published.</p>
+      <p class="fine-print">Places and walkable paths save to this venue's map resources. The floor-plan image and GPS outline remain in calibration data. No map is published.</p>
     </aside>
   </div>
   {% else %}<section class="empty-state"><h2>No venues yet</h2><p>A venue needs to be created before you can build its map.</p></section>{% endif %}

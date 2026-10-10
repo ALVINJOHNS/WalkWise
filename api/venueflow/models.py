@@ -43,6 +43,7 @@ class PathNode(models.Model):
     plan_x = models.FloatField()
     plan_y = models.FloatField()
     location = models.PointField(srid=4326, null=True, blank=True)
+    properties = models.JSONField(default=dict, blank=True)
 
 
 class PathEdge(models.Model):

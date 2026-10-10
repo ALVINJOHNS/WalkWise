@@ -36,6 +36,7 @@ Keep plan coordinates (`plan_x`, `plan_y`) separate from latitude/longitude geom
 
 - Health: `GET /api/health` verifies database connectivity.
 - Venues/events: DRF routers provide list, detail, create, update, and delete endpoints under `/api/venues/` and `/api/events/`.
+- Organizer map draft: `GET` and full-snapshot `PUT /api/venues/{venue_id}/map-draft/` return `{features, nodes, edges}`. A `PUT` replaces all three venue-scoped collections atomically; omitted rows are deleted. Edge endpoints must refer to nodes in that snapshot. Editor `x`/`y` map to normalized `plan_x`/`plan_y`; feature category/description/status are represented by `kind`/`properties`, node names by `PathNode.properties.name`, and edge endpoint IDs by their foreign keys. The API retains auxiliary image/GPS calibration data while removing legacy feature/node/edge arrays from `calibration.organizer_draft` during a successful replacement.
 - Route: `POST /api/route`; returns 501 with a clear JSON error until routing is implemented.
 - Use serializers for input validation. Keep the page and API same-origin; do not add CORS without a deliberate external client requirement.
 

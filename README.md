@@ -50,6 +50,8 @@ Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebui
 
 Open the visitor map at `http://localhost:8001/v/kochi-expo/` in this checkout (or use your configured host port). The route was verified against the seeded venue. Do not open `api/venueflow/templates/venueflow/visitor.html` directly; Django must render its template tags.
 
+The organizer loads places and walk paths from the venue-scoped `/api/venues/{id}/map-draft/` endpoint and saves them as ORM rows with full-snapshot replacement semantics. Removing an item and saving deletes its row. Existing legacy organizer drafts are shown for migration and moved into the ORM on the next save. The selected floor-plan image and GPS outline remain in calibration metadata until image hosting and boundary geometry work are implemented.
+
 The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`. When using the provided ngrok tunnel, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` include its hostname; update these values when the tunnel hostname changes.
 
 ### Rebuild Tailwind assets

@@ -122,7 +122,11 @@
       const b = state.nodes.find((node) => node.id === edge.to);
       const li = document.createElement("li"); li.className = "item-row";
       const distance = a?.geolocation && b?.geolocation ? ` · ${formatDistance(distanceMeters(a.geolocation, b.geolocation))}` : "";
-      li.textContent = `${a?.name || edge.from} ↔ ${b?.name || edge.to}${distance}`;
+      const label = document.createElement("span"); label.textContent = `${a?.name || edge.from} ↔ ${b?.name || edge.to}${distance}`;
+      const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Remove";
+      remove.setAttribute("aria-label", `Remove connection ${a?.name || edge.from} to ${b?.name || edge.to}`);
+      remove.addEventListener("click", () => { state.edges = state.edges.filter((item) => item.id !== edge.id); setDirty(); render(); });
+      li.append(label, remove);
       controls.edgeList.append(li);
     });
     const place = state.selected?.type === "place" ? selectedItem() : null;
@@ -365,10 +369,20 @@
       state.venue = await response.json();
       const draft = state.venue.calibration?.organizer_draft || {};
       state.imageData = draft.image_data || "";
-      state.places = Array.isArray(draft.places) ? draft.places : [];
-      state.nodes = Array.isArray(draft.nodes) ? draft.nodes : [];
-      state.edges = Array.isArray(draft.edges) ? draft.edges : [];
       state.geoOutline = Array.isArray(draft.geo_outline) ? draft.geo_outline : [];
+      const mapResponse = await fetch(`/api/venues/${encodeURIComponent(id)}/map-draft/`, { headers: { Accept: "application/json" } });
+      if (!mapResponse.ok) throw new Error(`Could not load saved map data (${mapResponse.status}).`);
+      const mapDraft = await mapResponse.json();
+      const mergeById = (persisted, legacy) => {
+        const records = new Map((Array.isArray(persisted) ? persisted : []).map((item) => [item.id, item]));
+        (Array.isArray(legacy) ? legacy : []).forEach((item) => records.set(item.id, item));
+        return [...records.values()];
+      };
+      // Existing drafts may contain newer edits than seeded ORM rows. Merge
+      // once by stable ID; the next successful save removes the legacy copies.
+      state.places = mergeById(mapDraft.features, draft.places);
+      state.nodes = mergeById(mapDraft.nodes, draft.nodes);
+      state.edges = mergeById(mapDraft.edges, draft.edges);
       state.currentLocation = state.geoOutline.at(-1) || state.places.find((place) => place.geolocation)?.geolocation || state.nodes.find((node) => node.geolocation)?.geolocation || null;
       state.mapMode = draft.map_mode || (state.currentLocation ? "street" : "floorplan");
       controls.gpsStatus.textContent = state.geoOutline.length ? `Saved outline loaded · ${state.geoOutline.length} GPS samples.` : "GPS is off. Choose a GPS action to request location access.";
@@ -400,17 +414,25 @@
     if (errors.length) { controls.saveState.textContent = "Fix validation issues"; return; }
     controls.saveState.textContent = "Saving…";
     try {
-      const calibration = { ...(state.venue.calibration || {}), organizer_draft: {
-        format: 1, places: state.places, nodes: state.nodes, edges: state.edges, image_data: state.imageData,
-        geo_outline: state.geoOutline, map_mode: state.mapMode,
-      } };
-      const response = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/`, {
+      const mapResponse = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/map-draft/`, {
+        method: "PUT", headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ features: state.places, nodes: state.nodes, edges: state.edges }),
+      });
+      const mapData = await mapResponse.json().catch(() => ({}));
+      if (!mapResponse.ok) throw new Error(JSON.stringify(mapData) || `Map save failed (${mapResponse.status}).`);
+      const calibration = { ...(state.venue.calibration || {}) };
+      const oldDraft = { ...(calibration.organizer_draft || {}) };
+      delete oldDraft.places; delete oldDraft.nodes; delete oldDraft.edges;
+      calibration.organizer_draft = { ...oldDraft, format: 1, image_data: state.imageData, geo_outline: state.geoOutline, map_mode: state.mapMode };
+      const venueResponse = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/`, {
         method: "PATCH", headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ calibration }),
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.detail || JSON.stringify(data) || `Save failed (${response.status}).`);
-      state.venue = data; state.dirty = false; controls.saveState.textContent = "Saved";
+      const venueData = await venueResponse.json().catch(() => ({}));
+      if (!venueResponse.ok) throw new Error(venueData.detail || JSON.stringify(venueData) || `Calibration save failed (${venueResponse.status}).`);
+      state.venue = venueData;
+      state.places = mapData.features || []; state.nodes = mapData.nodes || []; state.edges = mapData.edges || [];
+      state.dirty = false; controls.saveState.textContent = "Saved";
       controls.errors.textContent = "Draft saved to this venue.";
     } catch (error) { controls.saveState.textContent = "Save failed"; controls.errors.textContent = error.message; }
   }
@@ -508,6 +530,13 @@
   $("[data-save]").addEventListener("click", save);
   $("[data-delete-place]").addEventListener("click", () => {
     state.places = state.places.filter((place) => place.id !== state.selected?.id); state.selected = null; setDirty(); render();
+  });
+  $("[data-delete-node]").addEventListener("click", () => {
+    const nodeId = state.selected?.type === "node" ? state.selected.id : null;
+    if (!nodeId) return;
+    state.nodes = state.nodes.filter((node) => node.id !== nodeId);
+    state.edges = state.edges.filter((edge) => edge.from !== nodeId && edge.to !== nodeId);
+    state.selected = null; setDirty(); render();
   });
   root.querySelectorAll("[data-field]").forEach((field) => field.addEventListener("input", () => {
     const place = selectedItem(); if (!place || state.selected.type !== "place") return;
