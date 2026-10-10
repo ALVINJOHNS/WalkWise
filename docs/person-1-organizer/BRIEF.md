@@ -84,6 +84,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Commit: `3fcdea5` — `feat: add OSM map and GPS distances`.
 - Plan changes: 2026-10-11 — User requested Leaflet and OpenStreetMap as the location background with path distance; added this phase after GPS capture.
 - Follow-up: Per OSM’s current tile policy, set Leaflet’s `referrerPolicy` to `strict-origin-when-cross-origin` so tile requests identify this web origin even when Django applies a restrictive page default. Recorded in the fix checkpoint below.
+- Follow-up commit: `ce7e6f7` — `fix: send referrer with OSM tile requests`.
 
 ## Cut first
 

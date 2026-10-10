@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:09:00+05:30 — Record OSM referrer fix checkpoint
+
+- Changed: Recorded fix commit `ce7e6f7` in the organizer phase and handoff.
+- Why: Keep the continuation notes tied to the exact OSM 403 fix.
+- Validation: `git diff --check` passed.
+- Limitations: Browser-visible tile loading remains to be confirmed.
+
 ## 2026-10-11T04:08:00+05:30 — Fix OSM tile referrer policy
 
 - Changed: Set Leaflet tile image referrer policy to `strict-origin-when-cross-origin` and documented the OSM 403 cause/fix in the organizer brief.
