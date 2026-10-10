@@ -38,34 +38,42 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Verification record: 2026-10-11T03:49+05:30 — Started the current integrated app with `docker compose up --build -d`. Default host ports 5432 and 8000 were already in use by another local project, so an ignored `.env` selects 5433 (Postgres), 6380 (Redis), and 8001 (Django); the Compose container ports remain unchanged. Postgres and Redis reported healthy; Django overview, organizer, visitor `/v/kochi-expo/`, `/api/health`, and compiled CSS returned HTTP 200. A temporary organizer draft value saved through the venue PATCH endpoint and read back successfully, then the original calibration value was restored. The app is running locally; visual browser interaction remains unverified.
 - Commits: `5930b51` (`feat: build interactive venue overview`), `a6a8e92` (`fix: register explicit DRF router basenames`).
 - Plan changes: 2026-10-11 — expanded the original browser-only shell to the user's explicitly requested Docker/PostgreSQL, server, Celery, and Redis foundation. User specified Django REST Framework instead of direct SQL querying and then requested SSR with no separate frontend service. A supplied Django monolith architecture was used as a reference for layering and progressive enhancement; keep the prior DRF requirement, and omit its CareUI, auth, tenancy, and production infrastructure from this hackathon foundation. Use Django ORM migrations, templates, and compiled Tailwind static assets served by the same Django service.
-- Next: Read and execute P4-INT-2 (venue API persistence) in this brief.
+- Next: Read and execute P4-INT-2 (venue and event API persistence) in [phases/P4-INT-2.md](phases/P4-INT-2.md).
 
-### P4-INT-2 — Venue API persistence
+- Follow-up verification: 2026-10-11T04:37+05:30 — Explicit DRF router basenames fixed URL checks and enabled Compose startup, migrations, and demo seeding. Database, Redis, and API reported healthy; worker was running. The seeded visitor route returned HTTP 200 with expected venue, place, and path overlay content. Host port is 8001.
+- Integration commit: `ee8ac94` (`feat: switch to Django SSR monolith`).
+### P4-INT-2 — Venue and event API persistence
 
-- Status: not started
-- Scope: Add database schema/migration and venue/event persistence endpoints used by SSR organizer/visitor pages.
-- Exit checks: Venue/event changes persist across server reload; focused ORM/API check passes.
+- Status: complete
+- Scope and acceptance criteria: [phases/P4-INT-2.md](phases/P4-INT-2.md).
+- Dependencies: P4-INT-1.
 - Next: P4-INT-3.
 
-### P4-INT-3 — Feature wiring and publish entry
+### P4-INT-3 — Persist organizer map resources
 
 - Status: not started
-- Scope: Wire merged screens, connect organizer save to persistence, publish revision and visitor URL/QR; freshness labels remain truthful.
-- Exit checks: Status change appears on visitor route after save; URL/QR opens selected venue; integrated demo sequence succeeds.
-- Next: P4-INT-4 only after core demo is green.
+- Scope and acceptance criteria: [phases/P4-INT-3.md](phases/P4-INT-3.md).
+- Dependencies: P4-INT-2 and Person 1 organizer fields.
+- Next: P4-INT-4.
 
-### P4-INT-4 — Offline shell (stretch gate)
+### P4-INT-4 — Publish visitor snapshot and QR entry
+
+- Status: not started
+- Scope and acceptance criteria: [phases/P4-INT-4.md](phases/P4-INT-4.md).
+- Dependencies: P4-INT-3 and Person 2 visitor page.
+- Next: P4-INT-5 only after core demo is green.
+
+### P4-INT-5 — Offline shell (stretch gate)
 
 - Status: not started; optional
-- Scope: Service worker/app-shell offline support only if time remains and core demo is stable.
-- Exit checks: Cold reload in airplane mode succeeds before claiming offline readiness; otherwise record as incomplete and disclose limitation.
+- Scope and acceptance criteria: [phases/P4-INT-5.md](phases/P4-INT-5.md).
+- Dependencies: P4-INT-4.
 - Next: submission and demo rehearsal.
-
 ## Then build
 
 1. Integrate organizer and visitor templates/JS from the feature-owned paths in `docs/architecture.md`; avoid editing feature files.
-2. Connect organizer forms to DRF persistence; make the visitor view read the selected published snapshot.
-3. Add publish action that increments revision/updatedAt, validates essential fields, and produces `/v/<slug>` visitor link.
+2. Complete P4-INT-3 related-resource persistence before connecting publishing.
+3. Complete P4-INT-4 publishing, visitor snapshot, URL, and QR flow.
 4. Generate and display a QR code for that URL using a small established dependency. If HTTPS deployment is unavailable, show the short URL and use local QR only for a localhost demo.
 5. Show honest snapshot/freshness state. A local database is not cross-device sync; do not claim realtime status updates.
 6. Try a service worker/offline app shell only after the end-to-end demo is green and time remains. Verify cold reload in airplane mode before claiming it.

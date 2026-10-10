@@ -48,7 +48,9 @@ Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebui
 3. Open `http://localhost:8000` (or the configured `API_PORT`; this checkout uses `http://localhost:8001` because port 8000 is occupied). Organizer and visitor pages and the browsable API share this Django server. API health is at `/api/health` on the same host/port.
 4. Stop services with `docker compose down`. Remove local database data with `docker compose down -v`.
 
-The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`.
+Open the visitor map at `http://localhost:8001/v/kochi-expo/` in this checkout (or use your configured host port). The route was verified against the seeded venue. Do not open `api/venueflow/templates/venueflow/visitor.html` directly; Django must render its template tags.
+
+The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`. When using the provided ngrok tunnel, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` include its hostname; update these values when the tunnel hostname changes.
 
 ### Rebuild Tailwind assets
 
@@ -56,10 +58,10 @@ Templates and the API are served by the same Django process. When changing Tailw
 
 ### Project status
 
-- Implemented: Responsive Django SSR overview, organizer map editor (image preview and drag-and-drop, destination status and details, path points/connections, validation, and venue draft save; API browser links are not exposed in the UI), and visitor page; Tailwind static styles and JS; overview venue search and non-navigating flow feedback; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Docker Compose migrations, seed, overview, stylesheet, and health route have been verified locally.
-- Not implemented: Related `MapFeature`/`PathNode`/`PathEdge` API persistence and loading in the organizer editor (the current draft is stored under venue calibration metadata), route calculation (returns 501), publishing, QR, auth, and production deployment.
-- OpenStreetMap and Leaflet have not yet been added; add OSM attribution when the map view is introduced.
+- Implemented: Responsive Django SSR overview, organizer map editor (image preview and drag-and-drop, destination details/status/GPS fixes, live GPS outline recording with a moving location icon and accuracy halo, Leaflet/OpenStreetMap street view, add destinations and path points directly by clicking the street map, recorded GPS track distance, GPS path-point connections, validation, and venue draft save; API browser links are not exposed in the UI), and visitor snapshot map rendering for venue plan images or a coordinate fallback, saved path edges, destination pins, and supplied open/closed/delayed status; Tailwind static styles and JS; overview venue search and non-navigating flow feedback; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. OSM tiles and Leaflet require internet access. Distance is measured from recorded coordinates; it does not snap to roads or calculate walking directions. Local floor-plan coordinates need GPS or map placement before those items appear in street view.
+- Not implemented: Related `MapFeature`/`PathNode`/`PathEdge` API persistence and loading in the organizer editor (including GPS outline samples, which currently remain in venue calibration metadata rather than `Venue.boundary`), route calculation (returns 501), publishing, QR, auth, and production deployment.
+- OpenStreetMap tiles include visible attribution. The public tile service has usage limits and is not an offline tile source; see the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
 
-For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). Runtime packages are public libraries; there are no external map tiles or datasets configured yet.
+For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). The organizer uses public Leaflet assets and OpenStreetMap tiles.
 
-See [AI_USAGE.md](AI_USAGE.md) for AI assistance and [CHANGELOG.md](CHANGELOG.md) for the development record.
+See [AI_USAGE.md](AI_USAGE.md) for AI assistance and [CHANGELOG.md](CHANGELOG.md) for the development record. Leaflet 1.9.4 is loaded from its pinned CDN release with integrity metadata.

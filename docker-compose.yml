@@ -64,6 +64,8 @@ services:
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-local-only-venueflow-key}
       DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,api,roving-whiny-underpay.ngrok-free.dev}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-https://roving-whiny-underpay.ngrok-free.dev}
       POSTGRES_DB: ${POSTGRES_DB:-venueflow}
       POSTGRES_USER: ${POSTGRES_USER:-venueflow}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-venueflow_local}
