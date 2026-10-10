@@ -1,9 +1,9 @@
 # Development handoff
 
-Updated: 2026-10-11 03:05 IST
+Updated: 2026-10-11 03:18 IST
 
-- Completed: Person 3's broad routing brief is now split into four small, dependency-ordered phase documents: graph routing, route metrics/output, recommendation, and optional approximate manual start.
-- Current: **P3-NAV-1 — Graph route core** is ready to implement in the existing Django SSR/DRF architecture. The core remains pure Python in `api/venueflow/routing.py`; no application code has been changed by this planning update.
-- Next: Read `docs/person-3-navigation/phases/P3-NAV-1.md`, then implement and verify only that phase. P3-NAV-2 and P3-NAV-3 depend on it; skip optional P3-NAV-4 unless the core is verified and integration confirms the start-point input shape.
-- Checks: Reviewed the architecture, shared contract, ORM models, demo seed graph, API stub, participant briefs, and project plan. Local Markdown target checks and `git diff --check` passed.
-- Limitation: No routing code or runtime behavior has been implemented or verified yet. Existing integration runtime limitations are recorded in the integration phase brief.
+- Completed: **P3-NAV-1 — Graph route core** is implemented and verified in `api/venueflow/routing.py`.
+- Current: `find_route(nodes, edges, start_node_id, destination_node_id)` returns ordered node/edge IDs using deterministic minimum-hop BFS, excludes closed edges, honors `both`/`forward`, and reports explicit failures. Metrics remain `None`.
+- Next: Read `docs/person-3-navigation/phases/P3-NAV-2.md` and implement route metrics/output only. Coordinate its output contract with integration before API wiring.
+- Checks: Python compile check, focused inline Python fixtures for successful and failure cases, and `git diff --check` passed. No repository test runner/test files were present for routing.
+- Limitation: BFS minimizes edge count because seeded `length_m` values are null; distance/ETA and length validation are deferred to P3-NAV-2. Commit pending.

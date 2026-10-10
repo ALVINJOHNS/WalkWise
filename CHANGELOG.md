@@ -76,3 +76,15 @@ Replace this sentence with entries as you build:
 - Why: Give participants a consistent starting point for event rules, basic coding patterns, documented changes, and regular commits.
 - Validation: Checked local Markdown links, event detail consistency, required documents, and diff whitespace before publishing.
 - Limitations: Documentation scaffolding only; no participant project, application, or working demo is included. GitHub publication and template status are verified separately after creation.
+## 2026-10-11T03:16:12+05:30 — Detail the Person 3 Phase 1 routing plan
+
+- Changed: Expanded `docs/person-3-navigation/phases/P3-NAV-1.md` with the pure-Python function contract, graph validation and failure semantics, deterministic BFS behavior, implementation sequence, acceptance cases, and checks.
+- Why: Make the first routing increment directly implementable and reviewable against the actual Django graph model and demo seed.
+- Validation: Reviewed `PathNode`/`PathEdge`, seed graph, shared contract, phase template, and routing brief; checked the local Markdown target and `git diff --check`.
+- Limitations: Planning only; no routing code or runtime behavior has been implemented or verified.
+## 2026-10-11T03:18:12+05:30 — Implement Person 3 graph route core
+
+- Changed: Added the framework-independent `api/venueflow/routing.py` module with input validation, directed/bidirectional adjacency, closed-edge filtering, deterministic BFS, ordered route IDs, and explicit failure results. Marked P3-NAV-1 verified and recorded the function contract and checks.
+- Why: Deliver a testable graph route primitive for visitor navigation without coupling graph logic to Django or page code.
+- Validation: `python -m compileall -q api/venueflow/routing.py`; plain-Python fixtures for connected minimum-hop route, input-order tie break, closed edges, both directions, same-node route, malformed IDs/graph records, unknown endpoints, and disconnected nodes; `git diff --check` — passed.
+- Limitations: Routes minimize edge count; distance and duration remain `None` for P3-NAV-2. No repository test suite was present for this module.
