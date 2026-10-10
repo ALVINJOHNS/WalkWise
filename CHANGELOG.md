@@ -96,6 +96,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 Replace this sentence with entries as you build:
 
+## 2026-10-11T05:10:00+05:30 — Verify visitor phases in isolated Compose app
+
+- Changed: Added follow-up verification notes to the Person 2 visitor phase brief and updated the current handoff.
+- Why: Record runtime evidence after the visitor implementation checkpoint and identify the remaining manual browser checks.
+- Validation: `docker compose -p walkwise-verify up --build -d` built the images; after Postgres became healthy, migrations and seed exited 0, the API reported healthy, and `/v/kochi-expo/` returned HTTP 200 with no unresolved Django tags. Browser automation could not initialize; interaction/GPS/mobile checks remain pending.
+- Limitations: The default Compose project is blocked by an existing `walkwise-redis-1` container name. An isolated `walkwise-verify` stack remains running on port 8000 for review.
+
 ```text
 ## <actual timestamp> — <short change title>
 

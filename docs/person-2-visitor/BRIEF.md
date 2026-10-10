@@ -65,6 +65,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: P2-VIS-1; visitor view data must expose the fields needed to search and display place details.
 - Out of scope: Route calculation and publishing/model/API changes.
 - Verification record: 2026-10-11 IST — `node --check api/venueflow/static/venueflow/visitor.js` passed. Django template rendering with representative names, statuses, and descriptions passed; rendered HTML contains the search/status controls, place data, and detail panel with no unrendered Django tags. `git diff --check` passed. Live click/filter interaction remains unverified in the app browser.
+- Follow-up verification: 2026-10-11 IST — Isolated Compose app built successfully; migrations and seed exited 0, API became healthy, and `/v/kochi-expo/` returned HTTP 200 with visitor controls and seeded places in rendered HTML and no unresolved `{%` tags. Browser interaction remains unverified because the CUA browser runtime could not initialize.
 - Commit: `535489d` — `feat: add visitor discovery and orientation` (implementation; live interaction verification pending).
 - Plan changes: 2026-10-11 — Isolated discovery and selected-place details from the base map outcome for focused review.
 
@@ -83,6 +84,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: P2-VIS-1 and P2-VIS-2; visitor page view supplies explicit publication state and last-saved timestamp. Route placeholder is an integration point only.
 - Out of scope: GPS snapping, route computation, spoken directions, QR generation, cache/offline implementation, and external map tiles.
 - Verification record: 2026-10-11 IST — `python -m py_compile api/venueflow/pages.py` and `node --check api/venueflow/static/venueflow/visitor.js` passed. Django template rendering for `saved`, `current`, and `paused` props passed with expected labels and no unrendered tags. Code inspection confirms `getCurrentPosition` is registered on the explicit button click only; manual map click and keyboard start markers are wired. `git diff --check` passed. Actual GPS permission/fallback and narrow-screen browser behavior remain unverified.
+- Follow-up verification: 2026-10-11 IST — The isolated Compose app built; migration and seed exited 0; Django health check passed; `/v/kochi-expo/` returned HTTP 200 and rendered the Locate me control without unresolved Django tags. Browser automation failed to initialize, so GPS permission/fallback and narrow-screen behavior remain unverified.
 - Commit: `535489d` — `feat: add visitor discovery and orientation` (implementation; GPS/mobile verification pending).
 - Plan changes: 2026-10-11 — Made freshness/location/mobile behavior a separate final visitor phase, keeping navigation integration and QR/cache ownership explicit. Added a narrow visitor-view context exception because the existing Django view supplies no freshness props required by this phase.
 
