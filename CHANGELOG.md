@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:40:00+05:30 — Record AI suggestion phase commit
+
+- Changed: Recorded organizer phase commit `a13568a` in the handoff and P1-ORG-5 evidence.
+- Why: Keep the continuation pointer and phase brief tied to the committed implementation.
+- Validation: `git diff --check` passed.
+- Limitations: Docker rebuild and OpenAI runtime validation remain unavailable for the reasons recorded in the preceding entry.
+
 ## 2026-10-11T04:38:00+05:30 — Add AI floor-plan destination suggestions
 
 - Changed: Added a server-side OpenAI Responses API request for the selected PNG/JPG plan; structured results include destination names, categories, descriptions, approximate normalized floor-plan positions, and confidence. Added a review/select/add panel in the organizer and exposed optional `OPENAI_API_KEY` / `OPENAI_MODEL` settings only to the Django container. The request uses the existing organizer page POST handler; no API URL or UI API link was added. Updated the organizer phase, shared contract, README, and AI usage record.
