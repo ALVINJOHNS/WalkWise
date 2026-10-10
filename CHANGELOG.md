@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:06:00+05:30 — Fix ngrok AI analysis request size limit
+
+- Changed: Set Django's `DATA_UPLOAD_MAX_MEMORY_SIZE` to 16 MiB, just above the organizer's existing 15 MiB JSON body guard. Updated P1-ORG-7 evidence and AI usage record.
+- Why: Django's default 2.5 MiB limit raised `RequestDataTooBig` before the organizer handler could accept a base64-encoded plan; the ngrok page loaded but analysis returned HTTP 400.
+- Validation: Python compilation and `git diff --check` passed; the running API loaded the 16 MiB setting. A 3 MB CSRF-protected JSON probe reached the organizer view and received its expected JSON 400 for an unknown action, confirming it passed Django's former size threshold. A separate CSRF-protected request through the provided tunnel with the generated Team 1–10 PNG returned HTTP 200 with 10 destinations, 12 path points, and 10 path connections.
+- Limitations: The interactive SVG click/checkbox selection has not been manually exercised in the browser. Image bounds/path proposals remain AI estimates.
+
 ## 2026-10-11T05:00:00+05:30 — Record selectable AI component overlay commit
 
 - Changed: Recorded P1-ORG-7 commit `23db024` in its phase evidence and handoff.

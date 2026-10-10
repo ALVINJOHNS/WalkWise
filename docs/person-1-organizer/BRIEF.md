@@ -128,9 +128,9 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 ### P1-ORG-7 — Animated SVG component review and pin handoff
 
-- Status: `in progress` (implementation and served-page verification complete; image analysis and overlay interaction pending)
+- Status: `in progress` (ngrok image-analysis request verified; interactive SVG selection still needs a browser check)
 - Goal: Turn an uploaded rough floor-plan image into a visible, reviewable component overlay that organizers can select before pinning exact real-world locations.
-- Scope: Add estimated normalized component bounds to the existing structured image-analysis result; show an animated in-progress state after the organizer starts analysis; draw safe client-created SVG shapes and labels over the source image; synchronize SVG selection with the review list; retain the existing explicit add-to-editor and on-site GPS pin flow. Correct the existing organizer POST response to return the structured analysis fields at the shape already consumed by the editor.
+- Scope: Add estimated normalized component bounds to the existing structured image-analysis result; show an animated in-progress state after the organizer starts analysis; draw safe client-created SVG shapes and labels over the source image; synchronize SVG selection with the review list; retain the existing explicit add-to-editor and on-site GPS pin flow. Correct the existing organizer POST response shape and permit the bounded base64 JSON image request through Django's request-size guard.
 - Acceptance criteria:
   - [ ] Organizer starts analysis explicitly and sees an accessible loading animation until success/failure.
   - [ ] Each detected component appears as a distinct, labeled SVG bounding box over the uploaded plan; labels/content are inserted as text, never model-supplied SVG markup.
@@ -140,9 +140,10 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Checks: Python compilation, JavaScript syntax, Compose config, `git diff --check`, and local page/static/missing-key response checks when the runtime is available. Live AI inference requires a configured key.
 - Dependencies: P1-ORG-5, P1-ORG-6, selected-image upload and destination/GPS editor.
 - Out of scope: Treating image bounds as precise geometry or GPS, silently importing findings, creating public API URLs, or running analysis before user action.
-- Verification record: 2026-10-11 04:59 IST — `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started; `/organizer/` and the organizer JS returned HTTP 200 and included the new UI. No live model request was made, and SVG selection was not manually exercised in a browser.
+- Verification record: 2026-10-11 04:59 IST — `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started; `/organizer/` and the organizer JS returned HTTP 200 and included the new UI. SVG selection was not manually exercised in a browser.
+- Verification record: 2026-10-11 05:06 IST — Identified Django's default 2.5 MiB request-body limit rejecting base64 plan JSON before the organizer's 15 MiB guard. Set `DATA_UPLOAD_MAX_MEMORY_SIZE` to 16 MiB, restarted the API, and confirmed the loaded setting. A 3 MB CSRF-protected body probe reached the organizer view (expected JSON 400 `Unknown organizer action`, not Django's request-size rejection). A separate request through ngrok analyzed the repository-generated Team 1–10 image and returned HTTP 200 with 10 named destinations, 12 path points, and 10 path edges. The model call used the server-configured key without exposing it.
 - Commit: `23db024` — `feat: add selectable AI floor plan overlays`.
-- Plan changes: 2026-10-11 — Organizer described the intended interaction as uploading a rough image, watching AI convert it into a component layout, selecting detections, and later pinning each exact real-world location. This phase makes that review step visible and selectable while keeping GPS capture separate.
+- Plan changes: 2026-10-11 — Organizer described the intended interaction as uploading a rough image, watching AI convert it into a component layout, selecting detections, and later pinning each exact real-world location. This phase makes that review step visible and selectable while keeping GPS capture separate. Follow-up: tunnel logs showed Django's 2.5 MiB request guard rejected base64 image bodies before the view's existing 15 MiB limit; increased the Django guard to 16 MiB and verified an end-to-end tunneled analysis.
 
 ## Cut first
 

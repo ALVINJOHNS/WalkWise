@@ -44,7 +44,7 @@ Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebui
 ### Docker Compose (recommended)
 
 1. Copy `.env.example` to `.env` and adjust local ports/credentials if needed.
-   To enable organizer floor-plan analysis, set `OPENAI_API_KEY` in `.env` (and optionally `OPENAI_MODEL`). The key is passed only to Django. The selected plan image is sent to OpenAI only after the organizer clicks **Find components with AI**. The organizer sees an analysis animation and approximate, selectable SVG component boxes over the source plan. Review and add detections, then pin exact GPS positions and confirm walkable connections on-site.
+   To enable organizer floor-plan analysis, set `OPENAI_API_KEY` in `.env` (and optionally `OPENAI_MODEL`). The key is passed only to Django. The selected PNG/JPG must be smaller than 10 MB and is sent to OpenAI only after the organizer clicks **Find components with AI**. The organizer sees an analysis animation and approximate, selectable SVG component boxes over the source plan. Review and add detections, then pin exact GPS positions and confirm walkable connections on-site.
 2. Start the database, migration/seed jobs, Django SSR/API server, Redis, and worker: `docker compose up --build`.
 3. Open `http://localhost:8000` and use the Organizer Studio. Venue data requests stay same-origin; API endpoints are not linked from the organizer interface.
 4. Stop services with `docker compose down`. Remove local database data with `docker compose down -v`.
