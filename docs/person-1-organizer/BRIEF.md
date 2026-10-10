@@ -141,7 +141,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: P1-ORG-5, P1-ORG-6, selected-image upload and destination/GPS editor.
 - Out of scope: Treating image bounds as precise geometry or GPS, silently importing findings, creating public API URLs, or running analysis before user action.
 - Verification record: 2026-10-11 04:59 IST — `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started; `/organizer/` and the organizer JS returned HTTP 200 and included the new UI. No live model request was made, and SVG selection was not manually exercised in a browser.
-- Commit: pending.
+- Commit: `23db024` — `feat: add selectable AI floor plan overlays`.
 - Plan changes: 2026-10-11 — Organizer described the intended interaction as uploading a rough image, watching AI convert it into a component layout, selecting detections, and later pinning each exact real-world location. This phase makes that review step visible and selectable while keeping GPS capture separate.
 
 ## Cut first

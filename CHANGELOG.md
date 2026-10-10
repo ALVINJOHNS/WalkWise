@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:00:00+05:30 — Record selectable AI component overlay commit
+
+- Changed: Recorded P1-ORG-7 commit `23db024` in its phase evidence and handoff.
+- Why: Keep the phase record and continuation pointer aligned with the committed implementation.
+- Validation: `git diff --check` passed.
+- Limitations: The commit includes implementation and served-page verification; live AI output and SVG selection interaction remain unverified.
+
 ## 2026-10-11T04:59:00+05:30 — Add animated AI component overlay workflow
 
 - Changed: Added estimated normalized component bounds to the structured image extraction, corrected the existing same-origin organizer POST response shape, displayed an accessible loading animation, and rendered detected components as selectable SVG bounds/labels that synchronize with the review checkboxes. Updated organizer guidance and documentation.
