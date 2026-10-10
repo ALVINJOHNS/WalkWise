@@ -69,7 +69,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 - Status: in progress
 - Goal: Display GPS captures over an interactive OpenStreetMap basemap and show their measured path length.
-- Scope: Leaflet map initialized from the current/saved GPS fix; OSM standard raster tiles with visible attribution; selectable street-map/floor-plan view; live GPS pointer, accuracy circle, recorded track, destination pins with GPS locations, and cumulative GPS track distance.
+- Scope: Leaflet map initialized from the current/saved GPS fix; OSM standard raster tiles with visible attribution and a cross-origin referrer policy accepted by OSM; selectable street-map/floor-plan view; live GPS pointer, accuracy circle, recorded track, destination pins with GPS locations, and cumulative GPS track distance.
 - Acceptance criteria:
   - [ ] Current/saved GPS coordinates center a pannable and zoomable Leaflet map with OSM attribution.
   - [ ] Current GPS pointer and recorded track render at their latitude/longitude on the basemap.
@@ -80,8 +80,10 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: P1-ORG-3, CDN availability, and internet access for OSM tiles.
 - Out of scope: Offline tiles, routing instructions or road/path network snapping, and conversion between geographic and floor-plan coordinates.
 - Verification record: 2026-10-11 04:02 IST — `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, and a source check for the Leaflet/OSM integration passed. Browser/phone interaction and runtime save/load remain unverified because Docker access is denied.
+- Verification record: 2026-10-11 04:08 IST — After the reported 403, configured Leaflet’s OSM tile `referrerPolicy`; JavaScript syntax and diff whitespace passed, Compose rebuilt and started, organizer returned HTTP 200, and served JavaScript contained the updated policy. Browser-side OSM tile success is not directly verified.
 - Commit: `3fcdea5` — `feat: add OSM map and GPS distances`.
 - Plan changes: 2026-10-11 — User requested Leaflet and OpenStreetMap as the location background with path distance; added this phase after GPS capture.
+- Follow-up: Per OSM’s current tile policy, set Leaflet’s `referrerPolicy` to `strict-origin-when-cross-origin` so tile requests identify this web origin even when Django applies a restrictive page default. Recorded in the fix checkpoint below.
 
 ## Cut first
 

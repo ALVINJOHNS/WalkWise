@@ -148,6 +148,7 @@
     state.leafletMap = window.L.map(controls.leafletMap, { zoomControl: true, scrollWheelZoom: true });
     const tiles = window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+      referrerPolicy: "strict-origin-when-cross-origin",
     }).addTo(state.leafletMap);
     tiles.on("tileerror", () => { controls.mapStatus.textContent = "Some street-map tiles could not load. Check your internet connection; GPS recording can continue."; });
     state.leafletLayers = window.L.layerGroup().addTo(state.leafletMap);

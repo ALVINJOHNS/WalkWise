@@ -3,7 +3,7 @@
 Updated: 2026-10-11 04:02 IST
 
 - Completed: P1-ORG-4 adds a Leaflet street map using attributed OpenStreetMap tiles, switches between street and floor-plan views, plots live/saved GPS capture and geolocated destinations/path points, and displays recorded-track and endpoint-to-endpoint geographic distances.
-- Current: Committed as `3fcdea5` (`feat: add OSM map and GPS distances`). The editor keeps API browser links out of its UI; same-origin requests still load/save the venue draft.
-- Next: Review and commit P1-ORG-4, then test map tiles, permission, recording, and save/load in a secure-context browser/phone when runtime is available.
-- Checks: `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, and source searches for Leaflet, OSM attribution, view controls, and distance passed.
-- Limitation: Browser/phone and Django save/load were not runtime tested because Docker socket access is denied. OSM and Leaflet require internet; distances are based on GPS samples or straight-line coordinates and do not snap to roads or compute directions.
+- Current: P1-ORG-4 implementation was committed as `3fcdea5` (`feat: add OSM map and GPS distances`). Follow-up fix adds the OSM-required cross-origin tile referrer policy; its checkpoint is pending. The editor keeps API browser links out of its UI; same-origin requests still load/save the venue draft.
+- Next: Confirm OSM tiles now load in the user's browser; check permission, recording, and save/load in a secure-context browser/phone.
+- Checks: `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`; `docker compose up --build -d` completed; organizer returned HTTP 200 and served JS contains the tile referrer policy.
+- Limitation: Browser-visible tile loading and phone GPS/save-load interaction have not been verified. OSM and Leaflet require internet; distances use GPS samples or straight-line coordinates and do not snap to roads or compute directions.

@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:08:00+05:30 — Fix OSM tile referrer policy
+
+- Changed: Set Leaflet tile image referrer policy to `strict-origin-when-cross-origin` and documented the OSM 403 cause/fix in the organizer brief.
+- Why: The browser was showing OSM “Access blocked” tiles because the cross-origin tile requests need a valid page referrer; this needs no OSM credentials.
+- Validation: JavaScript syntax and `git diff --check` passed; `docker compose up --build -d` completed; organizer returned HTTP 200 and served JavaScript contained the referrer policy.
+- Limitations: Browser-visible tile loading after the fix remains unverified.
+
 ## 2026-10-11T04:03:00+05:30 — Record Leaflet implementation checkpoint
 
 - Changed: Marked P1-ORG-4 implementation complete, added commit `3fcdea5` to its phase record, and updated the handoff pointer.
