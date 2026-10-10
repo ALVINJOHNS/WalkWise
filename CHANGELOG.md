@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:15:00+05:30 — Record street-map placement fix checkpoint
+
+- Changed: Recorded commit `2627ad9` in the organizer phase and handoff.
+- Why: Tie the phase notes to the delivered map-placement behavior.
+- Validation: `git diff --check` passed.
+- Limitations: Manual browser interaction remains pending.
+
 ## 2026-10-11T04:14:00+05:30 — Place organizer items on the street map
 
 - Changed: Added map-placement controls for selected destinations and path points, click-to-assign geographic coordinates, selectable/highlighted street-map markers, and text explaining why local-only points are absent from the geographic view. Updated organizer phase, README, and handoff.
