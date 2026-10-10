@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:31:22+05:30 — Detail the Person 3 Phase 3 suggestion plan
+
+- Changed: Expanded `docs/person-3-navigation/phases/P3-NAV-3.md` with the normalized place input, strict eligibility and wait validation, deterministic route-time ranking, result/reason contract, integration boundary, implementation sequence, and focused fixture matrix.
+- Why: Make the next-place suggestion independently implementable and reviewable while grounding it in the verified route output and actual model fields.
+- Validation: Compared the plan with `routing.py`, `MapFeature`/`EventItem`, the Person 3 brief, shared contract, and phase template; `git diff --check` passed. No application code or runtime checks were needed.
+- Limitations: Planning only; implementation and human review remain pending. `waitMinutes` is not a dedicated model field and must be normalized from supplied place properties by integration when available.
+
 ## 2026-10-11T03:24:28+05:30 — Add route distance and walking-time metrics
 
 - Changed: Implemented selected-edge length validation, summed route distance, approximate duration at 1.2 m/s, zero-edge metrics, and `invalid_length` failures in `api/venueflow/routing.py`; recorded P3-NAV-2 verification and next-phase handoff.
