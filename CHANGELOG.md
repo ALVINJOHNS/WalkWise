@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:05:00+05:30 — Split Person 3 navigation into implementation phases
+
+- Changed: Reworked `docs/person-3-navigation/BRIEF.md` into an architecture-aligned phase index and added four focused phase documents for graph routing, route metrics/output, next-place suggestions, and optional approximate manual starts. Updated `handoff.md` to point at P3-NAV-1.
+- Why: Let Person 3 implement and review routing incrementally instead of building routing, ETA, recommendations, and manual-start behavior together.
+- Validation: Reviewed the phase dependencies against the Django `PathNode`/`PathEdge` model, seed graph, 501 route stub, architecture, shared contract, and full development plan; local Markdown target checks and `git diff --check` passed.
+- Limitations: Planning only; routing implementation and runtime behavior remain unverified.
+
 ## 2026-10-11T02:55:26+05:30 — Merge default branch and resolve documentation conflicts
 
 - Changed: Integrated `main` into the integration branch and reconciled the README, AI usage record, changelog, and handoff while preserving independent changes from both branches.

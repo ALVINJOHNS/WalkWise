@@ -1,9 +1,9 @@
 # Development handoff
 
-Updated: 2026-10-11 02:55 IST
+Updated: 2026-10-11 03:05 IST
 
-- Completed: Integrated the default `main` branch, retaining its project overview and stack guidance alongside the Django SSR foundation.
-- Current: **P4-INT-1 — Runnable full-stack foundation** uses one Django SSR/DRF service, Tailwind static assets, ORM/PostGIS, and Celery/Redis. Foundation code is in `ee8ac94` (`feat: switch to Django SSR monolith`); `main` at integration was `f3e573b`.
-- Next: Install `api/requirements.txt` and required GDAL/GEOS host libraries, run Django checks, and, if Docker is available, verify Compose startup and SSR/API routes; then continue to P4-INT-2.
-- Checks: This merge is a two-parent commit; staged whitespace check, local Markdown target check, and conflict-marker scan passed. Prior Tailwind build, Compose config parsing, Python syntax compilation, and direct-SQL scan passed. Django system check stopped because host psycopg is missing. The Vite app from `0805e41` has been removed.
-- Limitation: Docker daemon is unavailable and host GDAL is absent, so Django/PostGIS/Redis/Celery startup and rendered routes remain unverified.
+- Completed: Person 3's broad routing brief is now split into four small, dependency-ordered phase documents: graph routing, route metrics/output, recommendation, and optional approximate manual start.
+- Current: **P3-NAV-1 — Graph route core** is ready to implement in the existing Django SSR/DRF architecture. The core remains pure Python in `api/venueflow/routing.py`; no application code has been changed by this planning update.
+- Next: Read `docs/person-3-navigation/phases/P3-NAV-1.md`, then implement and verify only that phase. P3-NAV-2 and P3-NAV-3 depend on it; skip optional P3-NAV-4 unless the core is verified and integration confirms the start-point input shape.
+- Checks: Reviewed the architecture, shared contract, ORM models, demo seed graph, API stub, participant briefs, and project plan. Local Markdown target checks and `git diff --check` passed.
+- Limitation: No routing code or runtime behavior has been implemented or verified yet. Existing integration runtime limitations are recorded in the integration phase brief.
