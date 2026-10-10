@@ -22,6 +22,13 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ("id", "venue", "title", "starts_at", "ends_at", "status")
 
+    def validate(self, attrs):
+        starts_at = attrs.get("starts_at", getattr(self.instance, "starts_at", None))
+        ends_at = attrs.get("ends_at", getattr(self.instance, "ends_at", None))
+        if starts_at and ends_at and ends_at <= starts_at:
+            raise serializers.ValidationError({"ends_at": "End time must be after start time."})
+        return attrs
+
 
 class MapFeatureSerializer(serializers.ModelSerializer):
     class Meta:
