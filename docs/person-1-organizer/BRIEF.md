@@ -145,6 +145,24 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Commit: `23db024` — `feat: add selectable AI floor plan overlays`; follow-up `7ca2f3c` — `fix: allow floor plan analysis through Django size guard`.
 - Plan changes: 2026-10-11 — Organizer described the intended interaction as uploading a rough image, watching AI convert it into a component layout, selecting detections, and later pinning each exact real-world location. This phase makes that review step visible and selectable while keeping GPS capture separate. Follow-up: tunnel logs showed Django's 2.5 MiB request guard rejected base64 image bodies before the view's existing 15 MiB limit; increased the Django guard to 16 MiB and verified an end-to-end tunneled analysis.
 
+### P1-ORG-8 — Independent destination map pins
+
+- Status: `in progress`
+- Goal: Make each destination's map position visible and independently editable so selecting or moving one pin does not appear to move another destination.
+- Scope: Give every destination a stable per-record numbered pin on floor-plan and street-map views; label street-map pins by destination; allow dragging an individual street-map pin to update only that destination's geolocation; preserve each coordinate through existing venue-draft save/load.
+- Acceptance criteria:
+  - [ ] Every destination with a plan coordinate gets its own numbered floor-plan pin.
+  - [ ] Every destination with a GPS/map coordinate gets its own numbered street-map pin and identifiable destination label.
+  - [ ] Moving one street-map pin changes only the matching destination's coordinates; selecting another destination leaves the first pin in place.
+  - [ ] Pin changes mark the draft dirty and persist through the existing save/load flow.
+  - [ ] Existing click-to-place and GPS capture actions continue to target only the selected destination.
+- Checks: JavaScript syntax, `git diff --check`, and local page/browser behavior if available; do not change venue API or geolocation data contracts.
+- Dependencies: P1-ORG-1, P1-ORG-3, P1-ORG-4, existing `organizer_draft` persistence.
+- Out of scope: GPS snapping, clustering, and changing the physical coordinate stored for any other destination.
+- Verification record: 2026-10-11 05:13 IST — `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Restarted the API and verified the ngrok organizer page and JS each returned HTTP 200 with the per-destination pin and drag handler. Individual pin dragging and save/reload behavior were not manually exercised in the browser.
+- Commit: pending.
+- Plan changes: 2026-10-11 — Organizer reported that placing one destination pin appeared to move the same point when selecting another destination. Added explicit per-destination identity and individual street-map movement to make the existing per-place coordinate model clear and editable.
+
 ## Cut first
 
 Calibration, zones, schedules/hours, undo/redo, mobile walk-and-plot, advanced drag handles, graph auto-layout. Do not spend time polishing editor appearance before save/export works.

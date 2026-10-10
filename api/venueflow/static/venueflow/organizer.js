@@ -25,6 +25,7 @@
   const makeId = (prefix) => `${prefix}-${crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10)}`;
   const setDirty = () => { state.dirty = true; controls.saveState.textContent = "Unsaved changes"; };
   const esc = (value) => String(value ?? "");
+  const nextPlacePinNumber = () => Math.max(0, ...state.places.map((place) => Number(place.pin_number) || 0)) + 1;
 
   function selectedItem() {
     if (!state.selected) return null;
@@ -107,11 +108,13 @@
       if (edge.proposal) line.setAttribute("stroke-dasharray", "7 6");
       controls.lines.append(line);
     }
-    [...state.places.map((item) => ({ ...item, type: "place" })), ...state.nodes.map((item) => ({ ...item, type: "node" }))].forEach((item) => {
+    [...state.places.map((item, index) => ({ ...item, type: "place", pinNumber: Number(item.pin_number) || index + 1 })), ...state.nodes.map((item) => ({ ...item, type: "node" }))].forEach((item) => {
       const marker = document.createElement("button");
       marker.type = "button"; marker.className = `map-marker ${item.type === "node" ? "node" : ""} ${state.selected?.id === item.id ? "selected" : ""}`;
+      marker.textContent = item.type === "place" ? String(item.pinNumber) : "";
       marker.style.left = `${item.x * 100}%`; marker.style.top = `${item.y * 100}%`;
-      marker.setAttribute("aria-label", `${item.type === "node" ? "Path point" : item.name || "Unnamed destination"}`);
+      marker.setAttribute("aria-label", item.type === "node" ? `Path point: ${item.name}` : `Destination ${item.pinNumber}: ${item.name || "Unnamed destination"}`);
+      if (item.type === "place") marker.title = `Destination ${item.pinNumber}: ${item.name || "Unnamed destination"}`;
       marker.dataset.type = item.type; marker.dataset.id = item.id;
       marker.addEventListener("pointerdown", (event) => {
         event.stopPropagation(); state.selected = { type: item.type, id: item.id }; state.drag = item.id;
@@ -206,15 +209,30 @@
         color: "#087f79", weight: 5, opacity: .9,
       }).addTo(state.leafletLayers);
     }
-    state.places.forEach((place) => {
+    state.places.forEach((place, index) => {
       if (!place.geolocation) return;
-      const marker = window.L.circleMarker([place.geolocation.latitude, place.geolocation.longitude], {
-        radius: state.selected?.type === "place" && state.selected.id === place.id ? 11 : 8,
-        color: state.selected?.type === "place" && state.selected.id === place.id ? "#f59e0b" : "#ffffff",
-        weight: 3, fillColor: "#0f8b83", fillOpacity: 1,
+      const pinNumber = Number(place.pin_number) || index + 1;
+      const placeName = place.name || `Destination ${pinNumber}`;
+      const isSelected = state.selected?.type === "place" && state.selected.id === place.id;
+      const icon = window.L.divIcon({
+        className: "destination-pin-icon",
+        html: `<span class="destination-pin${isSelected ? " selected" : ""}" aria-hidden="true"><span>${pinNumber}</span></span>`,
+        iconSize: [34, 42], iconAnchor: [17, 40],
+      });
+      const marker = window.L.marker([place.geolocation.latitude, place.geolocation.longitude], {
+        icon, draggable: true, keyboard: true, title: `Destination ${pinNumber}: ${placeName}`,
+        alt: `Destination ${pinNumber}: ${placeName}`,
       }).addTo(state.leafletLayers);
-      const label = document.createElement("span"); label.textContent = place.name || "Destination";
-      marker.bindTooltip(label);
+      marker.bindTooltip(`Destination ${pinNumber}: ${placeName}`, { direction: "top", offset: [0, -34] });
+      marker.on("dragend", (event) => {
+        const position = event.target.getLatLng();
+        place.geolocation = {
+          ...place.geolocation, latitude: position.lat, longitude: position.lng,
+          accuracy: 0, timestamp: new Date().toISOString(),
+        };
+        state.selected = { type: "place", id: place.id };
+        setDirty(); render();
+      });
       marker.on("click", (event) => {
         if (state.mapAddType) return;
         window.L.DomEvent.stopPropagation(event);
@@ -279,7 +297,8 @@
     items.forEach((item, index) => {
       const li = document.createElement("li"); li.className = `item-row ${state.selected?.id === item.id ? "active" : ""}`;
       const button = document.createElement("button"); button.type = "button";
-      button.textContent = type === "place" ? (item.name || `Destination ${index + 1}`) : item.name;
+      button.textContent = type === "place" ? `#${Number(item.pin_number) || index + 1} ${item.name || `Destination ${index + 1}`}` : item.name;
+      button.setAttribute("aria-label", type === "place" ? `Destination ${Number(item.pin_number) || index + 1}: ${item.name || `Destination ${index + 1}`}` : item.name);
       button.addEventListener("click", () => {
         state.selected = { type, id: item.id }; state.mapPlacement = false; state.mapAddType = null;
         if (state.leafletMap) state.leafletMap.getContainer().style.cursor = "";
@@ -383,7 +402,7 @@
     return { x: Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width)), y: Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height)) };
   }
   function addPlace(point = { x: .5, y: .5 }) {
-    const place = { id: makeId("place"), name: "", category: "facility", description: "", status: "open", ...(state.mapMode === "street" && state.currentLocation ? { geolocation: state.currentLocation } : {}), ...point };
+    const place = { id: makeId("place"), pin_number: nextPlacePinNumber(), name: "", category: "facility", description: "", status: "open", ...(state.mapMode === "street" && state.currentLocation ? { geolocation: state.currentLocation } : {}), ...point };
     state.places.push(place); state.selected = { type: "place", id: place.id }; setDirty(); render(); root.querySelector('[data-field="name"]').focus();
   }
   function addNode(point = { x: .5, y: .5 }) {
@@ -465,6 +484,7 @@
       controls.analyze.disabled = !state.imageData;
       controls.aiStatus.textContent = "";
       state.places = Array.isArray(draft.places) ? draft.places : [];
+      state.places.forEach((place, index) => { place.pin_number = Number(place.pin_number) || index + 1; });
       state.nodes = Array.isArray(draft.nodes) ? draft.nodes : [];
       state.edges = Array.isArray(draft.edges) ? draft.edges : [];
       state.geoOutline = Array.isArray(draft.geo_outline) ? draft.geo_outline : [];
@@ -634,7 +654,7 @@
   controls.addSuggestions.addEventListener("click", () => {
     const selected = state.aiSuggestions.filter((item) => item.selected);
     selected.forEach((item) => state.places.push({
-      id: makeId("place"), name: item.name, category: item.category, description: item.description,
+      id: makeId("place"), pin_number: nextPlacePinNumber(), name: item.name, category: item.category, description: item.description,
       status: "open", x: item.plan_x, y: item.plan_y,
     }));
     state.aiSuggestions = state.aiSuggestions.filter((item) => !item.selected);

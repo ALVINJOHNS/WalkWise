@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:13:00+05:30 — Add independent destination pins
+
+- Changed: Added persistent pin numbers to each destination, displayed the pin number on floor-plan markers and labeled Leaflet markers, made each street-map pin independently draggable, and updated only that destination's geolocation on drag. Updated organizer phase, README, and AI usage record.
+- Why: Selecting or moving a destination should not make the organizer think every destination shares one moving point.
+- Validation: JavaScript syntax and `git diff --check` passed; restarted Django and verified the ngrok organizer page and static JS both returned HTTP 200 and contain the new pin/drag UI.
+- Limitations: Pin dragging and draft save/reload were not manually exercised in the browser.
+
 ## 2026-10-11T05:08:00+05:30 — Record ngrok analysis fix commit
 
 - Changed: Recorded request-size fix commit `7ca2f3c` in P1-ORG-7 and the handoff.
