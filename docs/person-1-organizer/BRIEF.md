@@ -86,3 +86,12 @@ The organizer page now provides venue selection, a PNG/JPG backdrop preview, des
 ### UI follow-up — 2026-10-11
 
 Updated the empty canvas placeholder so the selected image's alt text cannot show through, added visible PNG/JPG drag-and-drop feedback and loading, and removed API browser links from the organizer, shared navigation, and overview. The editor retains internal same-origin requests for draft load/save. Validation run: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed; browser/Django rendering remains unverified because Docker access is denied.
+
+
+### GPS capture — 2026-10-11
+
+Added user-triggered current-location and outline-recording controls. A destination can save a GPS fix with latitude/longitude, accuracy, altitude, heading, speed, and timestamp. Outline recording uses `watchPosition`, renders the recorded track on the canvas, and saves timestamped fixes in `calibration.organizer_draft.geo_outline`. A secure context is required (HTTPS or localhost in development); the browser asks for permission when an organizer starts a location action. GPS data is intentionally kept separate from plan `x`/`y` coordinates. The existing API serializer exposes `Venue.boundary` as read-only, so recorded GPS outline remains in draft metadata and is not yet written as the ORM geometry boundary.
+
+- Checks run: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Runtime limitation: Browser permission, hardware GPS, and Django save/load behavior could not be verified because Docker socket access is denied.
+- Commit: Pending.

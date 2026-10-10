@@ -4,6 +4,14 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:43:16+05:30 — Add GPS destination fixes and outline recording
+
+- Changed: Added user-triggered current-location capture, GPS metadata for selected destinations, live start/stop/clear perimeter tracking, visible GPS trace/status, and draft save/load of timestamped coordinates. Revised P1-ORG-3 to document the requested scope.
+- Why: Capture real geolocation coordinates and a walk-recorded venue outline, separate from local floor-plan coordinates.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Limitations: Browser permission, device GPS, and Django save/load were not runtime tested because Docker socket access is denied. Current API stores the outline under `Venue.calibration.organizer_draft`; the read-only boundary serializer prevents writing `Venue.boundary`. Browser geolocation requires permission and a secure context (HTTPS or localhost).
+
+
 ## 2026-10-11T03:33:41+05:30 — Improve organizer canvas and hide API browser links
 
 - Changed: Replaced the blank canvas text with a centered floor-plan drop prompt, prevented hidden image alt text from displaying, added PNG/JPG drag-and-drop loading and hover feedback, and removed user-facing API browser links from organizer, shared navigation, and overview templates.

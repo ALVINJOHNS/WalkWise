@@ -49,15 +49,18 @@
       const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
       const latRange = maxLat - minLat || 0.00001;
       const lngRange = maxLng - minLng || 0.00001;
-      const points = state.geoOutline.map((point) => `${((point.longitude - minLng) / lngRange) * 940 + 30},${((maxLat - point.latitude) / latRange) * 940 + 30}`).join(" ");
+      const projectedPoints = state.geoOutline.map((point) => ({
+        x: ((point.longitude - minLng) / lngRange) * 940 + 30,
+        y: ((maxLat - point.latitude) / latRange) * 940 + 30,
+      }));
+      const points = projectedPoints.map((point) => `${point.x},${point.y}`).join(" ");
       const outline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
       outline.setAttribute("points", state.geoRecording || state.geoOutline.length < 3 ? points : `${points} ${points.split(" ")[0]}`);
       outline.setAttribute("class", "geo-outline");
       controls.lines.append(outline);
-      state.geoOutline.forEach((point) => {
-        const [cx, cy] = points.split(" ")[state.geoOutline.indexOf(point)].split(",");
+      projectedPoints.forEach(({ x, y }) => {
         const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        dot.setAttribute("cx", cx); dot.setAttribute("cy", cy); dot.setAttribute("r", "4"); dot.setAttribute("class", "geo-point");
+        dot.setAttribute("cx", x); dot.setAttribute("cy", y); dot.setAttribute("r", "4"); dot.setAttribute("class", "geo-point");
         controls.lines.append(dot);
       });
     }
@@ -138,14 +141,15 @@
     };
   }
 
-  function locationError(error) {
+  function locationError(error, tracking = false) {
     const messages = {
       1: "Location permission was denied. Allow location access in your browser settings, then try again.",
       2: "Your device could not determine a location. Check that location services are enabled.",
       3: "Location lookup timed out. Try again in an open area.",
     };
-    controls.gpsStatus.textContent = messages[error.code] || "Could not access your location.";
-    if (state.geoWatchId !== null) stopOutlineRecording();
+    const message = messages[error.code] || "Could not access your location.";
+    controls.gpsStatus.textContent = message;
+    if (tracking && state.geoWatchId !== null) stopOutlineRecording(message);
   }
 
   function requestLocation(onSuccess) {
@@ -159,11 +163,11 @@
     }, locationError, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
   }
 
-  function stopOutlineRecording() {
+  function stopOutlineRecording(message = "") {
     if (state.geoWatchId !== null) navigator.geolocation.clearWatch(state.geoWatchId);
     state.geoWatchId = null; state.geoRecording = false;
     controls.startOutline.disabled = false; controls.stopOutline.hidden = true;
-    controls.gpsStatus.textContent = `Outline recording stopped · ${state.geoOutline.length} GPS samples saved in this draft.`;
+    controls.gpsStatus.textContent = message || `Outline recording stopped · ${state.geoOutline.length} GPS samples saved in this draft.`;
     if (state.geoOutline.length) setDirty();
     render();
   }
@@ -181,7 +185,7 @@
       if (!previous || distanceMeters(previous, fix) >= 1.5) state.geoOutline.push(fix);
       state.currentLocation = fix; controls.gpsStatus.textContent = `Recording venue outline · ${state.geoOutline.length} GPS samples · current fix ±${Math.round(fix.accuracy)} m`;
       setDirty(); render();
-    }, locationError, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+    }, (error) => locationError(error, true), { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
   }
 
   function distanceMeters(a, b) {
@@ -204,6 +208,7 @@
       state.edges = Array.isArray(draft.edges) ? draft.edges : [];
       state.geoOutline = Array.isArray(draft.geo_outline) ? draft.geo_outline : [];
       state.currentLocation = state.geoOutline.at(-1) || null;
+      controls.gpsStatus.textContent = state.geoOutline.length ? `Saved outline loaded · ${state.geoOutline.length} GPS samples.` : "GPS is off. Choose a GPS action to request location access.";
       state.selected = null; state.dirty = false; controls.saveState.textContent = "Saved"; render();
     } catch (error) { controls.errors.textContent = error.message; controls.saveState.textContent = "Load failed"; }
   }
@@ -251,6 +256,7 @@
     if (state.dirty && !window.confirm("Discard unsaved organizer changes?")) { venuePicker.value = state.venue.id; return; }
     if (state.geoWatchId !== null) navigator.geolocation.clearWatch(state.geoWatchId);
     state.geoWatchId = null; state.geoRecording = false;
+    controls.startOutline.disabled = false; controls.stopOutline.hidden = true;
     loadVenue(venuePicker.value);
   });
   $("[data-current-location]").addEventListener("click", () => requestLocation((fix) => {

@@ -56,8 +56,8 @@ Templates and the API are served by the same Django process. When changing Tailw
 
 ### Project status
 
-- Implemented: Responsive Django SSR overview, organizer map editor (image preview and drag-and-drop, destination status and details, path points/connections, validation, and venue draft save; API browser links are not exposed in the UI), and visitor page; Tailwind static styles and JS; overview venue search and non-navigating flow feedback; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Docker Compose migrations, seed, overview, stylesheet, and health route have been verified locally.
-- Not implemented: Related `MapFeature`/`PathNode`/`PathEdge` API persistence and loading in the organizer editor (the current draft is stored under venue calibration metadata), route calculation (returns 501), publishing, QR, auth, and production deployment.
+- Implemented: Responsive Django SSR overview, organizer map editor (image preview and drag-and-drop, destination details/status/GPS fixes, live GPS outline recording, path points/connections, validation, and venue draft save; API browser links are not exposed in the UI), and visitor page; Tailwind static styles and JS; overview venue search and non-navigating flow feedback; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Docker Compose migrations, seed, overview, stylesheet, and health route have been verified locally.
+- Not implemented: Related `MapFeature`/`PathNode`/`PathEdge` API persistence and loading in the organizer editor (including GPS outline samples, which currently remain in venue calibration metadata rather than `Venue.boundary`), route calculation (returns 501), publishing, QR, auth, and production deployment.
 - OpenStreetMap and Leaflet have not yet been added; add OSM attribution when the map view is introduced.
 
 For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). Runtime packages are public libraries; there are no external map tiles or datasets configured yet.

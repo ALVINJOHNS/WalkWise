@@ -4,6 +4,9 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex added explicit browser geolocation actions for current destination fixes and live venue-outline recording. Captured latitude/longitude and available accuracy, altitude, heading, speed, and timestamp values are stored separately from plan coordinates in the venue draft; the outline is rendered as a GPS trace. The browser requires user permission and a secure context. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; browser permission, physical GPS, and Django persistence could not be exercised because Docker access is denied.
+
+
 On 11 October 2026, Codex fixed the organizer canvas placeholder leaking image alt text, added PNG/JPG drag-and-drop loading with visual feedback, and removed API browser links from organizer/shared navigation/overview while preserving internal draft persistence requests. Human review: pending. Validation: JavaScript syntax and `git diff --check` passed; Django/browser verification was unavailable because Docker socket access is denied.
 
 
