@@ -1,6 +1,6 @@
-# VenueFlow — DevDay Exchange Community Hackathon: Kochi
+# WalkWise — DevDay Exchange Community Hackathon: Kochi
 
-VenueFlow is a hackathon starter for turning venue plans into reusable event maps and visitor navigation.
+WalkWise is a hackathon project for turning venue plans into reusable event maps and visitor navigation.
 
 **[Event and registration on Luma](https://luma.com/z10nz8gp)** · **[Event rules](RULES.md)** · **[Agent instructions](AGENTS.md)**
 
@@ -27,11 +27,15 @@ Project and workflow context lives in [the team execution plan](docs/README.md),
 
 For a four-person, six-hour build, use the [team execution plan](docs/README.md), its [shared contract](docs/SHARED_CONTRACT.md), and the four role briefs. The full product plan remains in [docs/Walkwise_Development_Plan.md](docs/Walkwise_Development_Plan.md).
 
-- **Project name:** VenueFlow
-- **Short description:** Turn a venue plan into an editable event map with walkable paths and visitor destinations.
+- **Project name:** WalkWise
+- **Short description:** WalkWise is a QR-accessible, organizer-maintained map for temporary venues. It is designed to help visitors find destinations along organizer-defined walking paths, see current place status, and keep a saved venue snapshot useful when connectivity is limited.
 - **Team:** TODO — participant names and GitHub handles; maximum 4 members.
 - **Working demo:** Local server at `http://localhost:8000`; feature behavior is still under development.
 - **Technology stack:** Django server-rendered templates, Django REST Framework, Django ORM/GeoDjango, PostgreSQL/PostGIS, Tailwind CSS, Redis, Celery, Docker Compose.
+
+### What we are building
+
+Temporary events such as college fests, fairs, and pop-up venues often rely on static maps that cannot show an updated route or whether a destination is open. WalkWise will let organizers publish a venue layout, paths, and place updates through a QR-accessible visitor map. The hackathon MVP focuses on one realistic venue, organizer-defined routes, clear destination status, and honest saved/offline state rather than claiming live or cross-device updates that have not been verified.
 
 ### Run the project
 
