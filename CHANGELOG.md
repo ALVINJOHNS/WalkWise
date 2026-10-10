@@ -96,6 +96,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 Replace this sentence with entries as you build:
 
+## 2026-10-11T05:20:00+05:30 — Allow local phone access to the visitor demo
+
+- Changed: Made Django `ALLOWED_HOSTS` configurable with `DJANGO_ALLOWED_HOSTS`; exposed it to the API service and documented same-Wi-Fi phone access in `.env.example`, `README.md`, and the integration brief.
+- Why: Requests to the app's Wi-Fi IP were rejected with Django `DisallowedHost`, preventing a phone from opening the demo.
+- Validation: `docker compose config --quiet` and `git diff --check` passed. Restarted the isolated API with `DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,api,10.10.19.157`; Django returned HTTP 200 and the venue page through `http://10.10.19.157:8000/v/kochi-expo/`.
+- Limitations: Phone access is limited to the local network and may require a Windows Firewall allowance.
+
 ## 2026-10-11T05:10:00+05:30 — Verify visitor phases in isolated Compose app
 
 - Changed: Added follow-up verification notes to the Person 2 visitor phase brief and updated the current handoff.

@@ -32,6 +32,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: None.
 - Out of scope: Authentication, production deployment, full map editor, routing implementation, GPS calibration, and realtime sync.
 - Verification record: 2026-10-11T02:35+05:30 — `npm install` and `npm run build:css` passed; `docker compose config --quiet`, `python3 -m compileall -q api`, `git diff --check`, and a source scan for direct SQL calls passed. `python3 api/manage.py check` could not run because psycopg is not installed on the host; host GDAL is also absent. Docker runtime is unavailable because the local daemon is not running. Original Vite checks from `0805e41` are historical; Vite has been removed.
+- Follow-up: 2026-10-11T05:20+05:30 — Added `DJANGO_ALLOWED_HOSTS` configuration for local phone demos; Compose config passed. The isolated Compose API was restarted with the exact Wi-Fi IP `10.10.19.157` allowed, and `/v/kochi-expo/` returned HTTP 200 through that address.
 - Follow-up verification: 2026-10-11T04:37+05:30 — Added explicit router basenames for viewsets that provide `get_queryset()` dynamically. Compose startup, migrations, and demo seeding then succeeded. Database, Redis, and API reported healthy; worker was running. The seeded visitor route returned HTTP 200 and rendered expected venue, place, and path overlay content. Local Compose host port is 8001.
 - Commit: `ee8ac94` (`feat: switch to Django SSR monolith`; Docker runtime verification pending).
 - Plan changes: 2026-10-11 — expanded the original browser-only shell to the user's explicitly requested Docker/PostgreSQL, server, Celery, and Redis foundation. User specified Django REST Framework instead of direct SQL querying and then requested SSR with no separate frontend service. A supplied Django monolith architecture was used as a reference for layering and progressive enhancement; keep the prior DRF requirement, and omit its CareUI, auth, tenancy, and production infrastructure from this hackathon foundation. Use Django ORM migrations, templates, and compiled Tailwind static assets served by the same Django service.
@@ -59,6 +60,8 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Next: submission and demo rehearsal.
 
 ## Then build
+
+For local phone demos, allow the host's exact Wi-Fi IP through the `DJANGO_ALLOWED_HOSTS` environment variable on the API service; do not use a wildcard host list. The development server must bind to `0.0.0.0`, and the phone must be on the same LAN.
 
 1. Integrate organizer and visitor templates/JS from the feature-owned paths in `docs/architecture.md`; avoid editing feature files.
 2. Connect organizer forms to DRF persistence; make the visitor view read the selected published snapshot.
