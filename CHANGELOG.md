@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:08:00+05:30 — Record ngrok analysis fix commit
+
+- Changed: Recorded request-size fix commit `7ca2f3c` in P1-ORG-7 and the handoff.
+- Why: Keep the organizer phase evidence aligned with the committed tunnel fix.
+- Validation: `git diff --check` passed.
+- Limitations: Interactive SVG click/checkbox behavior remains unverified in a browser.
+
 ## 2026-10-11T05:06:00+05:30 — Fix ngrok AI analysis request size limit
 
 - Changed: Set Django's `DATA_UPLOAD_MAX_MEMORY_SIZE` to 16 MiB, just above the organizer's existing 15 MiB JSON body guard. Updated P1-ORG-7 evidence and AI usage record.
