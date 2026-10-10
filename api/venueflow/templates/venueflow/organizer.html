@@ -1,0 +1,20 @@
+{% extends "venueflow/base.html" %}
+{% load static %}
+{% block title %}Organizer Studio — VenueFlow{% endblock %}
+{% block content %}
+<main class="mx-auto max-w-6xl px-5 py-12">
+  <a href="/" class="text-sm font-medium text-teal-700">← Home</a>
+  <div class="mt-6 flex flex-wrap items-end justify-between gap-4">
+    <div><p class="text-sm font-semibold uppercase tracking-wider text-teal-700">Organizer Studio</p><h1 class="mt-2 text-3xl font-bold">Your venues</h1></div>
+    <a class="rounded-lg bg-teal-700 px-4 py-2.5 font-semibold text-white" href="/api/venues/">Manage through API</a>
+  </div>
+  {% if venues %}
+    <ul class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{% for venue in venues %}
+      <li class="rounded-2xl border border-slate-200 bg-white p-5"><h2 class="font-semibold">{{ venue.name }}</h2><p class="mt-1 text-sm text-slate-500">/{{ venue.slug }}</p><a class="mt-4 inline-block text-sm font-semibold text-teal-700" href="/v/{{ venue.slug }}/">Preview visitor page →</a></li>
+    {% endfor %}</ul>
+  {% else %}
+    <section class="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><h2 class="text-lg font-semibold">No venues yet</h2><p class="mt-2 text-slate-600">Create a venue through the browsable API to begin building the map.</p><a class="mt-5 inline-block rounded-lg bg-teal-700 px-4 py-2.5 font-semibold text-white" href="/api/venues/">Create venue</a></section>
+  {% endif %}
+</main>
+<script defer src="{% static 'venueflow/organizer.js' %}"></script>
+{% endblock %}

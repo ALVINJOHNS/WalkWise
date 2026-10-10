@@ -30,30 +30,30 @@ For a four-person, six-hour build, use the [team execution plan](docs/README.md)
 - **Project name:** VenueFlow
 - **Short description:** Turn a venue plan into an editable event map with walkable paths and visitor destinations.
 - **Team:** TODO — participant names and GitHub handles; maximum 4 members.
-- **Working demo:** Local foundation at `http://localhost:5173`; feature behavior is still under development.
-- **Technology stack:** React, TypeScript, Vite, Tailwind CSS, FastAPI, PostgreSQL/PostGIS, Redis, Celery, Docker Compose.
+- **Working demo:** Local server at `http://localhost:8000`; feature behavior is still under development.
+- **Technology stack:** Django server-rendered templates, Django REST Framework, Django ORM/GeoDjango, PostgreSQL/PostGIS, Tailwind CSS, Redis, Celery, Docker Compose.
 
 ### Run the project
 
-Prerequisites: Docker Compose v2, Node.js 22+ and npm (for host frontend development).
+Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebuilding Tailwind CSS assets.
 
 ### Docker Compose (recommended)
 
 1. Copy `.env.example` to `.env` and adjust local ports/credentials if needed.
-2. Start the database, Redis, API, worker, and web dev server: `docker compose up --build`.
-3. Open `http://localhost:5173`; API docs are at `http://localhost:8000/docs` and the health check is `http://localhost:8000/api/health`.
+2. Start the database, migration/seed jobs, Django SSR/API server, Redis, and worker: `docker compose up --build`.
+3. Open `http://localhost:8000`; organizer and visitor pages and the browsable API share this Django server. API health is at `http://localhost:8000/api/health`.
 4. Stop services with `docker compose down`. Remove local database data with `docker compose down -v`.
 
-PostGIS tables are initialized from `api/migrations/001_initial.sql` when the database volume is first created. For a fresh schema after editing that bootstrap SQL, reset the volume with the command above.
+The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`.
 
-### Run the web app on the host
+### Rebuild Tailwind assets
 
-Start dependencies and API with `docker compose up db redis api worker`, then run `npm install` and `npm run dev` in another terminal. Use `npm run typecheck` and `npm run build` for frontend checks.
+Templates and the API are served by the same Django process. When changing Tailwind classes, run `npm install` and `npm run build:css` (or rebuild the Docker image). To run Django on the host, install system GDAL/GEOS libraries and Python requirements with `python -m pip install -r api/requirements.txt`, set `POSTGRES_HOST=localhost`, start the Compose database and Redis, run `python api/manage.py migrate` and `python api/manage.py seed_demo`, then `python api/manage.py runserver`.
 
 ### Project status
 
-- Working: Starter UI routes, seeded venue contract, API and database health endpoint, schema bootstrap, Celery worker task registration.
-- Not implemented: Venue/event persistence endpoints (return 501), map editing, route calculation, publishing, QR, auth, and production deployment.
+- Implemented: Django SSR landing, organizer and visitor pages; Tailwind static styles and JS; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Backend runtime remains unverified while Docker is unavailable.
+- Not implemented: Map editing, route calculation (returns 501), publishing, QR, auth, and production deployment.
 - OpenStreetMap and Leaflet have not yet been added; add OSM attribution when the map view is introduced.
 
 For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). Runtime packages are public libraries; there are no external map tiles or datasets configured yet.

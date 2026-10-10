@@ -6,15 +6,15 @@ Own the seams and keep a working app available throughout the build. Wire the th
 
 ## Owned files
 
-- `src/app/**`, `src/shared/**`, app entry/config/package/deploy files, and project integration docs.
+- `api/config/**`, shared base/page templates and page routing, deployment files, and project integration docs.
 - Do not edit the three feature folders. Ask the owner for changes or wire around their documented exports.
 
 ## Build first (first 45 minutes)
 
-1. Freeze the Vite React TypeScript + Tailwind frontend, FastAPI API, Postgres/PostGIS, Redis, and Celery stack.
-2. Create Compose services and health checks, environment example, API and worker skeletons, and a runnable frontend shell.
+1. Freeze Django server-rendered templates + Tailwind static CSS + JavaScript, Django REST Framework API with Django ORM, Postgres/PostGIS, Redis, and Celery stack.
+2. Create Compose services and health checks, environment example, API and worker skeletons, and organizer/visitor page routes served by Django.
 3. Add domain stubs and task split docs so team members can begin parallel work against stable boundaries.
-4. Add a realistic, hand-authored seed venue with a connected graph and destinations; preserve local snapshot save/load as a browser adapter.
+4. Add a realistic, hand-authored seed venue with a connected graph and destinations; use Django ORM persistence as the primary storage adapter.
 
 ## Phases
 
@@ -23,24 +23,24 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 ### P4-INT-1 — Runnable full-stack foundation
 
 - Status: in progress
-- Scope: Establish the team foundation requested on 2026-10-11: Vite/React/TypeScript/Tailwind web shell, FastAPI API, PostgreSQL/PostGIS, Redis/Celery worker, Compose services, shared domain contract, seed, and contributor/task-split docs. Add scaffold files only inside feature-owned folders; leave feature behavior to each owner.
+- Scope: Establish the team foundation requested on 2026-10-11: Django SSR templates with compiled Tailwind and static JavaScript, Django REST Framework API using Django ORM, PostgreSQL/PostGIS, Redis/Celery worker, Compose services, shared domain contract, seed, and contributor/task-split docs. Use one Django service for pages and API. Add scaffold files only inside feature-owned folders; leave feature behavior to each owner.
 - Acceptance criteria:
-  - [ ] `docker compose up --build` starts healthy database, Redis, API, and worker services.
-  - [ ] Frontend install/dev/build commands are documented and usable.
+  - [ ] `docker compose up --build` starts healthy database, Redis, Django web/API, and worker services.
+  - [ ] Django renders organizer and visitor routes; Tailwind is served as a static asset.
   - [ ] API health and domain stub endpoints return explicit responses.
   - [ ] Teammates have clear owned paths and interface guidance.
 - Dependencies: None.
 - Out of scope: Authentication, production deployment, full map editor, routing implementation, GPS calibration, and realtime sync.
-- Verification record: 2026-10-11T02:23+05:30 — `npm install` completed; `npm run build` passed; `docker compose config --quiet` passed; `python3 -m compileall -q api/app` passed; `git diff --check` passed; Vite dev server served the app shell with HTTP 200 using the elevated local-server check. `docker compose up --build -d` could not run because the local Docker daemon socket is absent. Full service integration remains unverified.
-- Commit: `0805e41` (`feat: scaffold VenueFlow full-stack foundation`; runtime verification pending Docker daemon availability).
-- Plan changes: 2026-10-11 — expanded the original browser-only shell to the user's explicitly requested Docker/PostgreSQL, server, Celery, and Redis foundation. The architecture brief supplied with the request recommends a single Next.js API and excludes queues; to preserve the existing Vite React team contract and satisfy the more specific latest request, this starter uses a small FastAPI API plus a Celery worker as a modular development stack.
-- Next: P4-INT-2.
+- Verification record: 2026-10-11T02:35+05:30 — `npm install` and `npm run build:css` passed; `docker compose config --quiet`, `python3 -m compileall -q api`, `git diff --check`, and a source scan for direct SQL calls passed. `python3 api/manage.py check` could not run because psycopg is not installed on the host; host GDAL is also absent. Docker runtime is unavailable because the local daemon is not running. Original Vite checks from `0805e41` are historical; Vite has been removed.
+- Commit: Pending current SSR migration checkpoint; prior implementation commit `0805e41` is superseded.
+- Plan changes: 2026-10-11 — expanded the original browser-only shell to the user's explicitly requested Docker/PostgreSQL, server, Celery, and Redis foundation. User specified Django REST Framework instead of direct SQL querying and then requested SSR with no separate frontend service. A supplied Django monolith architecture was used as a reference for layering and progressive enhancement; keep the prior DRF requirement, and omit its CareUI, auth, tenancy, and production infrastructure from this hackathon foundation. Use Django ORM migrations, templates, and compiled Tailwind static assets served by the same Django service.
+- Next: Verify Compose runtime and SSR/API routes, then P4-INT-2.
 
 ### P4-INT-2 — Venue API persistence
 
 - Status: not started
-- Scope: Add database schema/migration and venue/event persistence endpoints; keep frontend snapshot adapter as fallback.
-- Exit checks: Save survives same-browser reload; invalid storage has useful recovery; focused check passes.
+- Scope: Add database schema/migration and venue/event persistence endpoints used by SSR organizer/visitor pages.
+- Exit checks: Venue/event changes persist across server reload; focused ORM/API check passes.
 - Next: P4-INT-3.
 
 ### P4-INT-3 — Feature wiring and publish entry
@@ -59,16 +59,16 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 ## Then build
 
-1. Wire feature exports from `src/features/organizer`, `visitor`, and `navigation` as they arrive; avoid editing their owned files.
-2. Connect organizer `onSave` to local persistence; make published visitor view read the saved snapshot.
+1. Integrate organizer and visitor templates/JS from the feature-owned paths in `docs/architecture.md`; avoid editing feature files.
+2. Connect organizer forms to DRF persistence; make the visitor view read the selected published snapshot.
 3. Add publish action that increments revision/updatedAt, validates essential fields, and produces `/v/<slug>` visitor link.
 4. Generate and display a QR code for that URL using a small established dependency. If HTTPS deployment is unavailable, show the short URL and use local QR only for a localhost demo.
-5. Show honest snapshot/freshness state. Local browser storage is not cross-device sync; do not claim realtime status updates.
+5. Show honest snapshot/freshness state. A local database is not cross-device sync; do not claim realtime status updates.
 6. Try a service worker/offline app shell only after the end-to-end demo is green and time remains. Verify cold reload in airplane mode before claiming it.
 
 ## Independent development
 
-Use your own fixture and placeholder screens; the feature owners must not wait for the shell to build. Keep package/dependency edits centralized here. Send export/import expectations to everyone in the first 15 minutes.
+Use the seeded venue and owned Django template/static paths; feature owners must not wait for integration. Keep package/dependency, migrations, and shared base-template edits centralized here. Send API/template expectations to everyone early.
 
 ## Done when
 
@@ -84,4 +84,4 @@ Database/auth setup, realtime, multi-device sync, immutable server versions, ana
 
 ## Short Codex prompt
 
-“Implement only the app/integration files assigned in `docs/person-4-integration/BRIEF.md`. Follow `docs/SHARED_CONTRACT.md`, keep dependencies minimal, and do not modify the three feature folders. Prioritize a runnable shell, seed venue, local save/publish, and QR. Report actual checks and limitations.”
+“Implement only the integration-owned Django app/config, shared template, migrations, and Compose files in `docs/person-4-integration/BRIEF.md`. Follow `docs/SHARED_CONTRACT.md`, keep dependencies minimal, and do not modify feature-owned templates or JS. Prioritize SSR, ORM persistence, publish, and QR. Report actual checks and limitations.”

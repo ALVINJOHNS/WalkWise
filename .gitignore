@@ -21,5 +21,6 @@ __pycache__/
 Thumbs.db
 *.log
 *.tsbuildinfo
+/api/staticfiles/
 
 # Add entries appropriate to your chosen language or framework.

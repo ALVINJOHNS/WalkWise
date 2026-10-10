@@ -1,27 +1,13 @@
 {
-  "name": "venueflow-web",
+  "name": "venueflow-assets",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "typecheck": "tsc -b",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview --host 0.0.0.0"
-  },
-  "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "lucide-react": "latest",
-    "react-router-dom": "latest"
+    "build:css": "tailwindcss -i api/venueflow/static_src/input.css -o api/venueflow/static/venueflow/css/app.css --minify"
   },
   "devDependencies": {
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "tailwindcss": "latest",
-    "@tailwindcss/vite": "latest"
+    "@tailwindcss/cli": "latest",
+    "tailwindcss": "latest"
   }
 }

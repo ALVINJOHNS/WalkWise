@@ -1,0 +1,14 @@
+{% extends "venueflow/base.html" %}
+{% block title %}VenueFlow — Venue maps{% endblock %}
+{% block content %}
+<main class="mx-auto max-w-6xl px-5 py-16">
+  <p class="text-sm font-semibold uppercase tracking-widest text-teal-700">VenueFlow foundation</p>
+  <h1 class="mt-3 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">A venue plan visitors can navigate.</h1>
+  <p class="mt-5 max-w-2xl text-lg text-slate-600">Set up a venue, map walkable paths, and help event visitors find destinations.</p>
+  <div class="mt-9 flex flex-wrap gap-3">
+    <a href="/organizer/" class="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white hover:bg-teal-800">Open Organizer Studio</a>
+    <a href="/api/venues/" class="rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold hover:border-teal-600">Browse venues API</a>
+  </div>
+  <p class="mt-8 text-sm text-slate-500">{{ venue_count }} saved venue{{ venue_count|pluralize }}</p>
+</main>
+{% endblock %}
