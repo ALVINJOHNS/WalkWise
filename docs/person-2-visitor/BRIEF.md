@@ -30,6 +30,24 @@ Use the contract and a local fixture. You can implement manual start selection a
 - Screen remains usable at a narrow phone width and offers manual location fallback.
 - The feature compiles and is ready for integration by elapsed hour 2.
 
+## Phases
+
+Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with the [phase template](../PHASE_TEMPLATE.md). Keep this feature's owned paths intact.
+
+### P2-VIS-1 — Read-only venue map
+
+- Status: not started
+- Scope: Visitor screen props, map/backdrop, graph lines, labeled pins, and place status.
+- Exit checks: Seed snapshot renders independently; place details/status legible; focused compile/check passes.
+- Next: P2-VIS-2.
+
+### P2-VIS-2 — Find and orient
+
+- Status: not started
+- Scope: Search/filter/select, freshness cue driven by props, Locate entry point and manual-start fallback, mobile layout, route-overlay prop slot.
+- Exit checks: Search/select works; freshness reflects supplied state; no location prompt on load; narrow layout and fallback usable; focused compile/check passes.
+- Next: integration review; QR and cache remain integration-owned.
+
 ## Cut first
 
 GPS snapping, spoken directions, event agenda, interests, compass, analytics, animated UI, external map tiles. Never imply live data or offline readiness based on network status alone.

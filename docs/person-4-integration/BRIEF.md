@@ -16,6 +16,38 @@ Own the seams and keep a working app available throughout the build. Wire the th
 3. Add a realistic, hand-authored seed venue with a map image, connected three-edge graph, three destinations, and one optional blocked-edge/status toggle. Keep its data in one fixture file.
 4. Add local load/save for the venue snapshot (localStorage). Use a key scoped to app + venue slug and handle invalid JSON with a visible reset/retry message.
 
+## Phases
+
+Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with the [phase template](../PHASE_TEMPLATE.md). Keep package and shared-contract edits integration-owned.
+
+### P4-INT-1 — Runnable shell and seed
+
+- Status: not started
+- Scope: Freeze stack, create minimal app shell/routes, shared contract and realistic seed; install/start commands documented in README.
+- Exit checks: Actual project start command works; both routes render seed/placeholder; focused build check passes.
+- Next: P4-INT-2.
+
+### P4-INT-2 — Local venue persistence
+
+- Status: not started
+- Scope: Load/save scoped venue snapshot and recover visibly from invalid stored JSON.
+- Exit checks: Save survives same-browser reload; invalid storage has useful recovery; focused check passes.
+- Next: P4-INT-3.
+
+### P4-INT-3 — Feature wiring and publish entry
+
+- Status: not started
+- Scope: Wire merged screens, connect organizer save to persistence, publish revision and visitor URL/QR; freshness labels remain truthful.
+- Exit checks: Status change appears on visitor route after save; URL/QR opens selected venue; integrated demo sequence succeeds.
+- Next: P4-INT-4 only after core demo is green.
+
+### P4-INT-4 — Offline shell (stretch gate)
+
+- Status: not started; optional
+- Scope: Service worker/app-shell offline support only if time remains and core demo is stable.
+- Exit checks: Cold reload in airplane mode succeeds before claiming offline readiness; otherwise record as incomplete and disclose limitation.
+- Next: submission and demo rehearsal.
+
 ## Then build
 
 1. Wire feature exports from `src/features/organizer`, `visitor`, and `navigation` as they arrive; avoid editing their owned files.

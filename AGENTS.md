@@ -1,5 +1,26 @@
 # Agent guide for hackathon projects
 
+## Work from phase documents
+
+- Before starting, inspect `git status`, read `RULES.md`, this file, `handoff.md`, and the active plan/phase brief linked there. Read only the additional docs needed for the assigned phase; do not reload unrelated history or entire plans when a focused brief is enough.
+- The phase document is the scope authority. Implement its current phase only, respecting the shared contract and owned paths. Work independently without waiting for prompts when the next action is clear from these docs.
+- Split each user's section or feature into small, independently verifiable phases. Use `docs/PHASE_TEMPLATE.md`; keep phase IDs stable and record dependencies, acceptance criteria, and file ownership. One phase should produce a reviewable outcome, not a broad feature wish list.
+- When a plan changes, update the affected phase document first (scope, rationale, dependencies, acceptance criteria and phase status), then implement against that revision. Record meaningful plan changes in the changelog. Do not leave conflicting instructions in briefs or the handoff.
+- Treat `handoff.md` as a short pointer, not a second changelog: state the last completed phase, current state, the exact next phase document/ID to read, the relevant commit, checks actually run, and any immediate blocker or limitation. Update it at the end of every phase, including a phase paused before completion. Keep only context the next agent needs to continue; omit transcripts, speculation, and unrelated history.
+
+## Phase loop: implement, verify, fix, commit, hand off
+
+For each phase, use this compact loop:
+
+1. Read the acceptance criteria and identify the smallest implementation that satisfies them. Check for existing tests/scripts and use the project's actual commands; don't invent a test framework or broaden scope.
+2. Implement a focused slice. Run the smallest relevant automated checks and a direct manual check where user-visible behavior is involved. Verify the working result, not just that a command starts.
+3. If a check fails, diagnose it, fix the issue, and rerun the relevant check. Repeat until the phase meets its acceptance criteria or a real external blocker prevents it. Do not claim a pass for an unrun check; document unresolved failures and their evidence.
+4. Update the phase status and evidence, `CHANGELOG.md`, and `AI_USAGE.md` when Codex made a meaningful contribution. Update `README.md` if setup, commands, requirements, behavior, or demo instructions changed.
+5. Review the diff and whitespace, explicitly stage only this phase's files, and commit the coherent completed phase with a short descriptive message. Do not include another participant's unrelated work. If blocked or interrupted, make a useful honest `wip:` checkpoint when appropriate; never create empty commits.
+6. Rewrite `handoff.md` for the next agent: mark what is complete, identify the exact next phase doc/ID, note commit and checks, and include only essential continuation context. Before handing off, ensure all changed files and planned next steps are reflected in docs.
+
+Work phase by phase within each participant's assigned section. Keep commits small so the team can merge participant branches manually at phase boundaries. Avoid pushing unless the team has authorized the remote. Do not wait for a user prompt to perform the documented next phase; ask only when a genuine decision or missing input blocks safe progress.
+
 ## Event requirements
 
 - Read [RULES.md](RULES.md) before working. Build project implementation from scratch at the event; do not import a pre-built project.
@@ -22,6 +43,7 @@
 - Update [README.md](README.md) whenever setup, commands, environment requirements, project behavior, or demo instructions change.
 - Update [AI_USAGE.md](AI_USAGE.md) whenever Codex makes a meaningful contribution. Record the task, assistance, human review status, checks, and any corrections. Brief summaries are enough; full chat transcripts are unnecessary.
 - Keep claims accurate. Distinguish implemented and verified behavior from planned or incomplete work. Never invent test results, deployment success, AI usage, or commit timestamps.
+- Keep detailed development evidence in the relevant phase doc and concise chronological records in `CHANGELOG.md`; `handoff.md` remains a compact current-state pointer.
 
 ## Make regular, timely commits
 

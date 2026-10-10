@@ -30,6 +30,24 @@ Use a local fixture and no UI imports for core logic. Keep the algorithm small (
 - “What next?” never recommends closed destinations and includes a plain reason.
 - The feature compiles and is ready for integration by elapsed hour 2.
 
+## Phases
+
+Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with the [phase template](../PHASE_TEMPLATE.md). Keep this feature's owned paths intact.
+
+### P3-NAV-1 — Shortest path and ETA
+
+- Status: not started
+- Scope: Pure typed shortest-path function, blocked-edge filtering, explicit invalid/disconnected outcomes, distance and ETA.
+- Exit checks: Known route avoids blocked edge; disconnected/missing IDs return explicit result; distance and ETA finite/plausible; focused check passes.
+- Next: P3-NAV-2.
+
+### P3-NAV-2 — Next-place suggestion
+
+- Status: not started
+- Scope: Rank open places by route time with optional wait penalty; provide short reason; keep route geometry derivable from returned edge IDs.
+- Exit checks: Closed places never recommended; reason is clear; focused check passes. Optional map-tap start only after this gate.
+- Next: integration review; continuous GPS remains out of scope.
+
 ## Cut first
 
 GPS snapping, A*, accessibility profiles, turn instructions, deviation detection, event schedule ranking, route animation. Do not claim GPS precision or accessibility coverage.

@@ -30,6 +30,24 @@ Use a local typed fixture in your folder until integration's shared types exist.
 - Invalid/dangling data is reported without crashing.
 - The feature compiles and is ready for integration by elapsed hour 2.
 
+## Phases
+
+Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with the [phase template](../PHASE_TEMPLATE.md). Keep this feature's owned paths intact.
+
+### P1-ORG-1 — Editor foundation
+
+- Status: not started
+- Scope: Organizer screen, local fixture, image selection/backdrop, place pins and basic place fields/status.
+- Exit checks: PNG/JPG selection displays; add/select/edit three places; screen compiles against fixture.
+- Next: P1-ORG-2.
+
+### P1-ORG-2 — Walk graph and validation
+
+- Status: not started
+- Scope: Add/connect nodes and edges; validate blank/duplicate names and dangling references; expose save callback and unsaved state.
+- Exit checks: Author connected three-edge path; invalid data shows useful messages without crash; saved Venue contains edited status; focused compile/check passes.
+- Next: integration review; do not add calibration or storage.
+
 ## Cut first
 
 Calibration, zones, schedules/hours, undo/redo, mobile walk-and-plot, advanced drag handles, graph auto-layout. Do not spend time polishing editor appearance before save/export works.

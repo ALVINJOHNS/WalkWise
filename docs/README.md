@@ -1,5 +1,9 @@
 # Six-hour team build plan
 
+## Phase execution and handoffs
+
+Follow the repository workflow in [AGENTS.md](../AGENTS.md). Each participant brief is split into numbered phases with acceptance criteria and a verification record. Start from the current [handoff](../handoff.md), which names the completed phase and exact next brief/phase. Use [the phase template](PHASE_TEMPLATE.md) when adding or revising phase breakdowns. At each phase boundary, verify behavior, document evidence and limitations, commit that participant's coherent change, and rewrite the handoff for the next agent. Keep the handoff minimal; detailed evidence belongs in the phase doc and `CHANGELOG.md`.
+
 Use these four briefs as the execution plan derived from [Walkwise_Development_Plan.md](Walkwise_Development_Plan.md). They narrow its original eight-hour core to a six-hour, demo-first MVP. Assign one brief to each teammate; keep the folder names stable so ownership and merge boundaries are clear.
 
 ## Shared decisions before anyone starts coding
