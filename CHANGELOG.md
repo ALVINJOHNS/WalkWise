@@ -4,6 +4,34 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:21:35+05:30 — Merge main and resolve documentation conflicts
+
+- Changed: Merged `main` into `overview`; reconciled README, handoff, changelog, and AI usage records while retaining the latest Walkwise branding and overview details.
+- Why: Incorporate shared project guidance and product overview updates without losing the work on `overview`.
+- Validation: `git diff --cached --check`, local Markdown target check, conflict-marker scan, and two-parent merge verification passed.
+- Limitations: Application runtime was not retested because this merge only changes documentation and agent guidance.
+
+## 2026-10-11T03:15:33+05:30 — Rename product branding to Walkwise
+
+- Changed: Replaced the previous product branding with Walkwise in the README, shared header/footer, overview, organizer/visitor page titles, architecture heading, and project history; renamed the npm asset package to `walkwise-assets`.
+- Why: Use the project name selected by the user consistently across the repository and rendered app.
+- Validation: Rendered Django overview returned HTTP 200 with Walkwise title/branding, no old brand, and the stylesheet link. `npm run build:css`, `python3 -m compileall -q api`, JSON parsing of package files, and `git diff --check` passed.
+- Limitations: Internal Django module and static paths remain `venueflow` to avoid an unrelated app-label migration.
+
+## 2026-10-11T03:13:55+05:30 — Fix API router startup
+
+- Changed: Registered the venue and event DRF viewsets with explicit router basenames in `api/venueflow/urls.py`; updated phase evidence, README, handoff, and AI usage notes.
+- Why: Compose migration exited before applying migrations because DRF could not infer a basename from viewsets that define `get_queryset()` dynamically; the API never started, so the browser had no rendered page or Tailwind asset to load.
+- Validation: `docker compose up --build -d` completed migrations and seed. In-container requests returned overview HTTP 200, compiled Tailwind stylesheet HTTP 200 with expected overview/grid rules, and `/api/health` HTTP 200 with database healthy. `python3 -m compileall -q api` and `git diff --check` passed.
+- Limitations: The host sandbox cannot access the Docker socket or localhost port directly; equivalent HTTP checks passed from inside the API container. No browser visual QA was performed.
+
+## 2026-10-11T03:06:43+05:30 — Build interactive overview dashboard
+
+- Changed: Replaced the placeholder home screen with a responsive Tailwind overview, server-rendered venue/event/published counts and venue cards, venue search, and non-navigating organizer/visitor/API flow buttons with feedback. Updated the integration acceptance criteria, README, and AI usage record.
+- Why: Give the app a polished starting point that explains the intended organizer-to-visitor journey while page wiring is still under development.
+- Validation: `npm run build:css`, `python3 -m compileall -q api`, and `git diff --check` passed.
+- Limitations: Django-rendered browser behavior could not be checked because host Django database dependencies and Docker runtime are unavailable. Overview flow controls intentionally do not navigate.
+
 ## 2026-10-11T02:55:26+05:30 — Merge default branch and resolve documentation conflicts
 
 - Changed: Integrated `main` into the integration branch and reconciled the README, AI usage record, changelog, and handoff while preserving independent changes from both branches.
@@ -25,7 +53,7 @@ Record each meaningful project change during the event, newest first. Update thi
 - Validation: Tailwind installation and `npm run build:css` passed; `docker compose config --quiet`, `python3 -m compileall -q api`, and `git diff --check` passed. `python3 api/manage.py check` could not run because host psycopg is not installed. Docker runtime could not run because the local Docker daemon is unavailable.
 - Limitations: Django/PostGIS/Redis/Celery service startup and rendered page/API responses remain unverified. The host also lacks GDAL required by GeoDjango; the API image installs GDAL/GEOS/PROJ system libraries.
 
-## 2026-10-11T02:23:33+05:30 — Add VenueFlow full-stack team foundation
+## 2026-10-11T02:23:33+05:30 — Add Walkwise full-stack team foundation
 
 - Changed: Added Vite/React/TypeScript/Tailwind app shell and seed, FastAPI health and explicit API stubs, PostgreSQL/PostGIS bootstrap schema, Redis/Celery worker skeleton, Docker Compose services, `.env.example`, architecture/task ownership guide, and updated the integration brief/shared contract/README.
 - Why: Give teammates a runnable structure and stable file ownership/interfaces for parallel feature implementation, including the server and worker infrastructure requested for the build.
