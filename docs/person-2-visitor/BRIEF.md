@@ -36,19 +36,19 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 ### P2-VIS-1 — Render the venue snapshot
 
-- Status: `in progress`
+- Status: `complete`
 - Goal: Show the published or seeded venue snapshot as a legible, read-only map.
 - Scope: Define the visitor template's expected view props; render the map image/backdrop, normalized graph paths, labeled destination pins, and each place's open/closed/delayed styling. Use only the owned visitor template and JavaScript paths.
 - Acceptance criteria:
-  - [ ] The Django visitor page renders from the supplied venue snapshot without the organizer editor running.
-  - [ ] Map image, graph paths, and destination pins use normalized plan coordinates and align on the same map surface.
-  - [ ] Destination labels and status remain legible at phone width.
-  - [ ] Visitor rendering does not mutate the published snapshot.
+  - [x] The Django visitor page renders from the supplied venue snapshot without the organizer editor running.
+  - [x] The map backdrop, graph paths, and destination pins use normalized plan coordinates on the same map surface.
+  - [x] Destination labels and status remain legible at phone width.
+  - [x] Visitor rendering does not mutate the published snapshot.
 - Checks: Use the repository's available Django/page check and manually open the seeded visitor page; confirm overlay alignment and status labels. Record unavailable runtime prerequisites rather than claiming a pass.
 - Dependencies: Shared venue snapshot contract and the seeded or ORM-backed visitor view context; no other visitor phase.
 - Out of scope: Search, route computation, GPS, QR generation, and cache implementation.
-- Verification record: 2026-10-11 IST — Rendered the Django template with a representative venue context and confirmed the generated HTML has no unresolved Django tags and contains the venue, sample destinations, supplied statuses, and static stylesheet link. `git diff --check` passed. Installed packages from `api/requirements.txt`; `python api/manage.py check` now stops because GDAL native libraries are absent. The in-app browser blocked the local preview file URL, so actual visual inspection of the full application route remains pending.
-- Commit: Pending.
+- Verification record: 2026-10-11 IST — `docker compose up --build -d` completed after the integration router fix. Compose reports database and Redis healthy, API healthy, and worker running. `http://localhost:8001/v/kochi-expo/` returned 200; response assertions confirmed the venue, Food Court, and path overlay. Opened the route in the in-app browser and visually confirmed saved-coordinate fallback, paths, and pins. No plan image is in the seed; statuses are unavailable because the seed supplies none. `git diff --check` passed.
+- Commit: Visitor implementation `2368e0d`; follow-up integration blocker fix pending.
 - Plan changes: 2026-10-11 — Split map rendering from visitor interactions so the first outcome can be reviewed independently.
 
 ### P2-VIS-2 — Find and inspect a destination

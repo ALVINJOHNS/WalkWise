@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:37:00+05:30 — Start and verify the visitor map
+
+- Changed: Added explicit DRF router basenames for the venue and event viewsets so Django's URL checks and migration command can run. Completed P2-VIS-1 runtime evidence and clarified how to find the Compose host port in `README.md`.
+- Why: The integration router assertion blocked migrations and seeding, which made the seeded visitor URL return 404. The running workspace publishes Django on port 8001.
+- Validation: `docker compose up --build -d` succeeded; `docker compose ps` showed healthy API/database/Redis and a running worker. The visitor URL on port 8001 returned HTTP 200 with the venue, sample place, and path overlay; the page was opened and visually inspected. `git diff --check` passed.
+- Limitations: The seed has no plan image or explicit status values, so the page shows its saved-coordinate backdrop and “Status unavailable” labels. Search, selection, freshness, and location are later visitor phases.
+
 ## 2026-10-11T03:57:00+05:30 — Refine visitor map presentation
 
 - Changed: Refined the visitor page hierarchy, map card, destination list, status badges, and responsive spacing in the owned template. Adjusted status lookup so missing optional status data renders as unavailable.

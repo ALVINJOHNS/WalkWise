@@ -45,10 +45,10 @@ Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebui
 
 1. Copy `.env.example` to `.env` and adjust local ports/credentials if needed.
 2. Start the database, migration/seed jobs, Django SSR/API server, Redis, and worker: `docker compose up --build`.
-3. Open `http://localhost:8000`; organizer and visitor pages and the browsable API share this Django server. API health is at `http://localhost:8000/api/health`.
+3. Open the host port shown by `docker compose ps` (default `http://localhost:8000`; this workspace currently uses `http://localhost:8001`). Organizer and visitor pages and the browsable API share this Django server. API health is at the same host and `/api/health`.
 4. Stop services with `docker compose down`. Remove local database data with `docker compose down -v`.
 
-Open the visitor page at `http://localhost:8000/v/kochi-expo/` after startup. Do not open `api/venueflow/templates/venueflow/visitor.html` directly in a browser: it is a Django template, so its `{% ... %}` and `{{ ... }}` tags only render when Django serves the page.
+Open the visitor page at `<host>/v/kochi-expo/` after startup (for this workspace: `http://localhost:8001/v/kochi-expo/`). Do not open `api/venueflow/templates/venueflow/visitor.html` directly in a browser: it is a Django template, so its `{% ... %}` and `{{ ... }}` tags only render when Django serves the page.
 
 The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`.
 
