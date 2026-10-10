@@ -37,32 +37,49 @@
       canvas.style.aspectRatio = "1.45";
       canvas.style.minHeight = "420px";
     }
-    controls.empty.hidden = Boolean(controls.backdrop.src) || state.geoOutline.length > 0;
+    controls.empty.hidden = Boolean(controls.backdrop.src) || state.geoOutline.length > 0 || Boolean(state.currentLocation);
     controls.markers.replaceChildren();
     controls.lines.replaceChildren();
     controls.lines.setAttribute("viewBox", "0 0 1000 1000");
     controls.lines.setAttribute("preserveAspectRatio", "none");
-    if (state.geoOutline.length) {
-      const lats = state.geoOutline.map((point) => point.latitude);
-      const lngs = state.geoOutline.map((point) => point.longitude);
+    const gpsPoints = state.geoOutline.length ? state.geoOutline : (state.currentLocation ? [state.currentLocation] : []);
+    if (gpsPoints.length) {
+      const lats = gpsPoints.map((point) => point.latitude);
+      const lngs = gpsPoints.map((point) => point.longitude);
       const minLat = Math.min(...lats), maxLat = Math.max(...lats);
       const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-      const latRange = maxLat - minLat || 0.00001;
-      const lngRange = maxLng - minLng || 0.00001;
-      const projectedPoints = state.geoOutline.map((point) => ({
-        x: ((point.longitude - minLng) / lngRange) * 940 + 30,
-        y: ((maxLat - point.latitude) / latRange) * 940 + 30,
-      }));
+      const latRange = maxLat - minLat;
+      const lngRange = maxLng - minLng;
+      const project = (point) => ({
+        x: lngRange ? ((point.longitude - minLng) / lngRange) * 940 + 30 : 500,
+        y: latRange ? ((maxLat - point.latitude) / latRange) * 940 + 30 : 500,
+      });
+      const projectedPoints = state.geoOutline.map(project);
       const points = projectedPoints.map((point) => `${point.x},${point.y}`).join(" ");
-      const outline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-      outline.setAttribute("points", state.geoRecording || state.geoOutline.length < 3 ? points : `${points} ${points.split(" ")[0]}`);
-      outline.setAttribute("class", "geo-outline");
-      controls.lines.append(outline);
+      if (projectedPoints.length) {
+        const outline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        outline.setAttribute("points", state.geoRecording || state.geoOutline.length < 3 ? points : `${points} ${points.split(" ")[0]}`);
+        outline.setAttribute("class", "geo-outline");
+        controls.lines.append(outline);
+      }
       projectedPoints.forEach(({ x, y }) => {
         const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         dot.setAttribute("cx", x); dot.setAttribute("cy", y); dot.setAttribute("r", "4"); dot.setAttribute("class", "geo-point");
         controls.lines.append(dot);
       });
+      if (state.currentLocation) {
+        const { x, y } = project(state.currentLocation);
+        const metersPerDegree = 111320;
+        const maxSpanMeters = Math.max(latRange * metersPerDegree, lngRange * metersPerDegree * Math.cos((minLat + maxLat) * Math.PI / 360), 1);
+        const accuracyRadius = Math.max(8, Math.min(90, (state.currentLocation.accuracy || 0) * 940 / maxSpanMeters));
+        const accuracy = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        accuracy.setAttribute("cx", x); accuracy.setAttribute("cy", y); accuracy.setAttribute("r", accuracyRadius); accuracy.setAttribute("class", "gps-accuracy");
+        controls.lines.append(accuracy);
+        const pointer = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        pointer.setAttribute("cx", x); pointer.setAttribute("cy", y); pointer.setAttribute("r", "8"); pointer.setAttribute("class", "gps-live-pointer");
+        pointer.setAttribute("aria-label", `Current GPS position, ${state.currentLocation.latitude.toFixed(6)}, ${state.currentLocation.longitude.toFixed(6)}`);
+        controls.lines.append(pointer);
+      }
     }
     for (const edge of state.edges) {
       const from = state.nodes.find((node) => node.id === edge.from);
@@ -165,7 +182,7 @@
 
   function stopOutlineRecording(message = "") {
     if (state.geoWatchId !== null) navigator.geolocation.clearWatch(state.geoWatchId);
-    state.geoWatchId = null; state.geoRecording = false;
+    state.geoWatchId = null; state.geoRecording = false; state.geoWatchToken = (state.geoWatchToken || 0) + 1;
     controls.startOutline.disabled = false; controls.stopOutline.hidden = true;
     controls.gpsStatus.textContent = message || `Outline recording stopped · ${state.geoOutline.length} GPS samples saved in this draft.`;
     if (state.geoOutline.length) setDirty();
@@ -179,20 +196,17 @@
     }
     controls.gpsStatus.textContent = "Waiting for GPS permission and first fix…";
     state.geoRecording = true; controls.startOutline.disabled = true; controls.stopOutline.hidden = false;
+    const watchToken = (state.geoWatchToken || 0) + 1;
+    state.geoWatchToken = watchToken;
     state.geoWatchId = navigator.geolocation.watchPosition((position) => {
+      if (!state.geoRecording || state.geoWatchToken !== watchToken) return;
       const fix = locationFix(position);
-      const previous = state.geoOutline[state.geoOutline.length - 1];
-      if (!previous || distanceMeters(previous, fix) >= 1.5) state.geoOutline.push(fix);
+      state.geoOutline.push(fix);
       state.currentLocation = fix; controls.gpsStatus.textContent = `Recording venue outline · ${state.geoOutline.length} GPS samples · current fix ±${Math.round(fix.accuracy)} m`;
       setDirty(); render();
-    }, (error) => locationError(error, true), { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
-  }
-
-  function distanceMeters(a, b) {
-    const radians = (degrees) => degrees * Math.PI / 180;
-    const dLat = radians(b.latitude - a.latitude), dLng = radians(b.longitude - a.longitude);
-    const value = Math.sin(dLat / 2) ** 2 + Math.cos(radians(a.latitude)) * Math.cos(radians(b.latitude)) * Math.sin(dLng / 2) ** 2;
-    return 6371000 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+    }, (error) => {
+      if (state.geoWatchToken === watchToken) locationError(error, true);
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
   }
 
   async function loadVenue(id) {
@@ -261,6 +275,7 @@
   });
   $("[data-current-location]").addEventListener("click", () => requestLocation((fix) => {
     controls.gpsStatus.textContent = `Current location: ${fix.latitude.toFixed(6)}, ${fix.longitude.toFixed(6)} · ±${Math.round(fix.accuracy)} m`;
+    render();
   }));
   controls.setPlaceLocation.addEventListener("click", () => requestLocation((fix) => {
     const place = selectedItem();
@@ -269,7 +284,7 @@
     controls.gpsStatus.textContent = `Saved GPS fix for ${place.name || "this destination"}: ${fix.latitude.toFixed(6)}, ${fix.longitude.toFixed(6)} · ±${Math.round(fix.accuracy)} m`;
   }));
   controls.startOutline.addEventListener("click", startOutlineRecording);
-  controls.stopOutline.addEventListener("click", stopOutlineRecording);
+  controls.stopOutline.addEventListener("click", () => stopOutlineRecording());
   $("[data-clear-outline]").addEventListener("click", () => {
     if (state.geoWatchId !== null) navigator.geolocation.clearWatch(state.geoWatchId);
     state.geoWatchId = null; state.geoRecording = false; state.geoOutline = [];

@@ -95,3 +95,12 @@ Added user-triggered current-location and outline-recording controls. A destinat
 - Checks run: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
 - Runtime limitation: Browser permission, hardware GPS, and Django save/load behavior could not be verified because Docker socket access is denied.
 - Commit: Pending.
+
+
+### GPS follow-up — 2026-10-11
+
+Fixed stop handling so the click event is not used as a status message, invalidated queued location callbacks after stop, and added a moving GPS pointer with an accuracy halo. The recorder now retains each browser-reported fix, including small changes, rather than applying a distance filter. A live pointer follows the latest fix and its halo visualizes the reported accuracy radius. `enableHighAccuracy` remains enabled for phone GPS where supported; actual update cadence and accuracy depend on the device/browser and location conditions.
+
+- Checks run: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Runtime limitation: Stop/start behavior and phone GPS pointer movement were not manually exercised because the browser/Django runtime is unavailable here.
+- Commit: Pending.

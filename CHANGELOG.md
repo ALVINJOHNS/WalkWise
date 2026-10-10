@@ -4,6 +4,22 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:53:21+05:30 — Fix GPS stop and show live pointer
+
+- Changed: Fixed the stop click handler, invalidated callbacks from stopped watches, retained every device-reported position, and added a live pointer with an accuracy halo.
+- Why: Let organizers stop reliably and see the phone’s reported position move while recording the venue outline.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Limitations: Browser and phone GPS behavior could not be manually verified in this environment; high-accuracy mode is requested but device location conditions determine actual results.
+
+
+## 2026-10-11T04:53:04+05:30 — Fix GPS stop and add moving position marker
+
+- Changed: Stop control now calls its handler without passing the click event as a status string; stopped/old watches ignore queued callbacks. Added a moving current-location marker and accuracy halo; recorded every browser-reported fix without minimum-distance filtering.
+- Why: Ensure tracking can be stopped and make the phone’s reported position visible while it records the perimeter.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Limitations: Device-specific GPS accuracy and cadence, browser stop behavior, and API save/load were not manually verified because the local runtime is unavailable. High-accuracy mode is requested but cannot force device GPS availability.
+
+
 ## 2026-10-11T03:46:00+05:30 — Record GPS implementation checkpoint
 
 - Changed: Recorded the GPS editor fix commit and validation evidence in the organizer phase brief and handoff.

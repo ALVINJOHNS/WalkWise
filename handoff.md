@@ -1,9 +1,9 @@
 # Development handoff
 
-Updated: 2026-10-11 03:46 IST
+Updated: 2026-10-11 04:53 IST
 
-- Completed: P1-ORG-3 GPS controls and destination/outline capture are implemented. GPS UI started in `97d8598`; permission error handling and outline rendering follow-up is `9035fa8` (`fix: preserve GPS errors and outline state`).
-- Current: Destination fixes include latitude/longitude and available accuracy/altitude/heading/speed/timestamp; perimeter samples draw live and persist in `Venue.calibration.organizer_draft.geo_outline`. `Venue.boundary` remains read-only in the current serializer.
-- Next: Verify in a secure-context browser with location permission and a physical GPS device, then verify Django save/load. Coordinate writable geospatial boundary persistence with integration.
+- Completed: Fixed GPS stop handling, ignored queued callbacks after stop, retained each browser GPS update, and added a moving location pointer with an accuracy halo.
+- Current: Changes are in the organizer JavaScript and inline page styles; commit pending. GPS data continues to save in `Venue.calibration.organizer_draft.geo_outline`.
+- Next: Verify Stop/start and live pointer movement on a secure-context browser with phone location enabled; check the final save/load round-trip when Docker is available.
 - Checks: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
-- Limitation: Docker access is denied; browser permission, device GPS, rendered UI, and API round-trip were not exercised.
+- Limitation: No browser or phone GPS session was available; GPS update frequency and accuracy depend on device/location conditions.

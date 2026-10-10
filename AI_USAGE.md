@@ -4,6 +4,12 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex fixed the GPS stop click handler and late callback handling, retained each browser-reported position, and added a moving current-location pointer with an accuracy halo during perimeter recording. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; a phone GPS session was not available for manual verification.
+
+
+On 11 October 2026, Codex fixed the GPS stop control and late callback handling, added a moving current-position pointer and accuracy halo, and retained each geolocation fix reported during an outline recording. `enableHighAccuracy` is requested; actual accuracy and update cadence depend on the device and environment. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; live phone GPS was not available for manual verification.
+
+
 On 11 October 2026, Codex added explicit browser geolocation actions for current destination fixes and live venue-outline recording. Captured latitude/longitude and available accuracy, altitude, heading, speed, and timestamp values are stored separately from plan coordinates in the venue draft; the outline is rendered as a GPS trace. The browser requires user permission and a secure context. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; browser permission, physical GPS, and Django persistence could not be exercised because Docker access is denied.
 
 
