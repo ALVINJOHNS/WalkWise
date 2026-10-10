@@ -4,6 +4,12 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex fixed the organizer canvas placeholder leaking image alt text, added PNG/JPG drag-and-drop loading with visual feedback, and removed API browser links from organizer/shared navigation/overview while preserving internal draft persistence requests. Human review: pending. Validation: JavaScript syntax and `git diff --check` passed; Django/browser verification was unavailable because Docker socket access is denied.
+
+
+On 11 October 2026, Codex implemented the organizer map editor in the owned organizer template and JavaScript: PNG/JPG backdrop preview, destination fields and statuses, movable markers, path nodes/connections, validation, and venue-draft saving. Because the current API has no related map-feature/path endpoints, drafts are stored in the existing venue calibration JSON field. Human review: pending. Validation: JavaScript syntax check and `git diff --check` passed; Docker socket permission denied prevented Django/API runtime verification. Integration limitations are recorded in the organizer brief.
+
+
 On 11 October 2026, Codex merged `main` into `overview`, reconciled conflicts in the README, changelog, handoff, and AI usage record, and retained the newer Walkwise branding and overview implementation alongside shared project guidance. Human review: pending. Validation: staged whitespace check, local Markdown target check, conflict-marker scan, and two-parent merge verification passed.
 
 On 11 October 2026, Codex updated `AGENTS.md` to require use of the active phase's declared technology stack, including installing missing required tools and dependencies rather than silently substituting alternatives. Human review: pending. Validation: reviewed consistency with existing dependency guidance and ran `git diff --check` successfully; no application runtime check applies.

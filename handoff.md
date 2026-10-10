@@ -1,9 +1,9 @@
 # Development handoff
 
-Updated: 2026-10-11 03:21 IST
+Updated: 2026-10-11 03:33 IST
 
-- Completed: Merged `main` into `overview` and reconciled shared documentation while retaining the newer Walkwise overview and branding.
-- Current: **P4-INT-1 — Runnable full-stack foundation** includes the responsive overview and starts under Compose after explicit DRF router basenames. The overview HTML, Tailwind CSS, and health endpoint returned HTTP 200 from inside the container.
-- Next: Complete any remaining integration checks for **P4-INT-1** in `docs/person-4-integration/BRIEF.md`, then proceed to **P4-INT-2 — Venue API persistence**.
-- Checks: Prior Compose startup, migration/seed, in-container overview/CSS/API health requests, Python syntax compilation, and Tailwind build passed. Merge whitespace, local Markdown target, conflict-marker, and two-parent checks passed.
-- Limitation: Host sandbox cannot access Docker socket/localhost directly; host GDAL is absent, so host-run Django checks are unavailable.
+- Completed: Organizer canvas now has a clear floor-plan drop placeholder, PNG/JPG drag-and-drop loading, and no visible API browser links in the home/organizer navigation. Latest editor implementation checkpoint: `66a59b3`; this UI follow-up is pending commit.
+- Current: Internal same-origin venue API calls remain in use for organizer draft load/save. Backend API routes were not removed.
+- Next: Verify organizer rendering and drag/drop in the Django browser when Docker is available; check the save/load round-trip.
+- Checks: `node --check api/venueflow/static/venueflow/organizer.js`, template search for API browser links, and `git diff --check` passed.
+- Limitation: Docker socket access is denied, so browser/runtime behavior is not yet verified.
