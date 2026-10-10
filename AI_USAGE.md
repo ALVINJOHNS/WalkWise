@@ -4,6 +4,12 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex merged `main` into `overview`, reconciled conflicts in the README, changelog, handoff, and AI usage record, and retained the newer Walkwise branding and overview implementation alongside shared project guidance. Human review: pending. Validation: staged whitespace check, local Markdown target check, conflict-marker scan, and two-parent merge verification passed.
+
+On 11 October 2026, Codex updated `AGENTS.md` to require use of the active phase's declared technology stack, including installing missing required tools and dependencies rather than silently substituting alternatives. Human review: pending. Validation: reviewed consistency with existing dependency guidance and ran `git diff --check` successfully; no application runtime check applies.
+
+On 11 October 2026, Codex reviewed the Walkwise product plan, shared contract, and active integration brief, then added a concise project description and product-direction section to `README.md`. The wording distinguishes the intended QR-accessible, organizer-maintained venue-map MVP from unverified implementation. Human review: pending. Validation: plan/contract consistency review, referenced Markdown target checks, and `git diff --check` passed.
+
 On 11 October 2026, Codex updated the product branding to Walkwise across rendered page titles/header/footer, README, architecture heading, historical project references, and npm package metadata. The internal Django module path remains unchanged. Human review: pending. Validation: Django rendered overview check, Tailwind CSS build, Python syntax compilation, package JSON parsing, and `git diff --check` passed.
 
 On 11 October 2026, Codex fixed startup failure reported from Compose by adding explicit DRF router basenames for dynamically queried venue/event viewsets. The migration and seed services then completed, and the overview, compiled Tailwind stylesheet, and health endpoint returned HTTP 200 from inside the API container. Human review: pending. Validation: Compose startup, HTTP response checks, Python syntax compilation, and `git diff --check` passed.
