@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:41:20+05:30 — Verify organizer AI endpoint setup behavior
+
+- Changed: Updated P1-ORG-5, AI usage, and handoff records with the successful Docker rebuild and local page/CSRF response check.
+- Why: The initial sandbox could not access Docker; after approved local Docker access, the changed application could be brought up and its no-key branch verified.
+- Validation: Organizer GET returned HTTP 200 and included the AI button. A CSRF-protected same-origin analysis POST returned HTTP 503 with the expected `OPENAI_API_KEY` setup message. No model request was sent.
+- Limitations: Actual model response and browser selection/edit/GPS interactions await an OpenAI key and manual browser verification.
+
 ## 2026-10-11T04:40:00+05:30 — Record AI suggestion phase commit
 
 - Changed: Recorded organizer phase commit `a13568a` in the handoff and P1-ORG-5 evidence.
@@ -15,8 +22,8 @@ Record each meaningful project change during the event, newest first. Update thi
 
 - Changed: Added a server-side OpenAI Responses API request for the selected PNG/JPG plan; structured results include destination names, categories, descriptions, approximate normalized floor-plan positions, and confidence. Added a review/select/add panel in the organizer and exposed optional `OPENAI_API_KEY` / `OPENAI_MODEL` settings only to the Django container. The request uses the existing organizer page POST handler; no API URL or UI API link was added. Updated the organizer phase, shared contract, README, and AI usage record.
 - Why: Let the organizer extract and stage destination candidates from a plan image, then verify exact positions on-site with GPS before constructing confirmed path connections.
-- Validation: `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. `docker compose up --build -d` was blocked because Docker socket access was denied.
-- Limitations: No OpenAI API key is configured in this checkout, so no live request was made. Browser/page/CSRF interaction is unverified. Image-derived positions are estimates; the model cannot determine real-world GPS coordinates or trustworthy walkable paths from a floor plan.
+- Validation: `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started the app; local organizer GET returned HTTP 200 with the AI action, and a CSRF-protected POST returned the expected missing-key setup message.
+- Limitations: No OpenAI API key is configured, so no live model call was made. Full browser interactions remain unverified. Image-derived positions are estimates; the model cannot determine real-world GPS coordinates or trustworthy walkable paths from a floor plan.
 
 ## 2026-10-11T04:26:00+05:30 — Record ngrok tunnel configuration checkpoint
 
