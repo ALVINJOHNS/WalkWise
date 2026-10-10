@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:33:09+05:30 — Add next-place suggestion ranking
+
+- Changed: Added pure-Python `suggest_next_place` in `api/venueflow/routing.py` to skip closed/malformed/unreachable candidates, apply finite optional `waitMinutes` penalties in ranking seconds, preserve deterministic input-order ties, and return the selected place, verified route, timing fields, and concise reason. Updated P3-NAV-3 verification and handoff.
+- Why: Complete the visitor's explainable “What next?” routing result using only open, reachable places and supplied organizer data.
+- Validation: Focused plain-Python suggestion/routing fixtures passed; `python -m compileall -q api/venueflow/routing.py` and `git diff --check` passed.
+- Limitations: Integration must normalize model-backed place status/access-node fields and optionally provide `waitMinutes`; no ORM/API/page wiring or dedicated repository routing test runner exists.
+
 ## 2026-10-11T03:31:22+05:30 — Detail the Person 3 Phase 3 suggestion plan
 
 - Changed: Expanded `docs/person-3-navigation/phases/P3-NAV-3.md` with the normalized place input, strict eligibility and wait validation, deterministic route-time ranking, result/reason contract, integration boundary, implementation sequence, and focused fixture matrix.

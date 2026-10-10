@@ -6,7 +6,7 @@ Owned paths: `api/venueflow/routing.py`; this phase document
 
 Shared dependencies: [P3-NAV-2](P3-NAV-2.md), [Person 3 brief](../BRIEF.md), [shared contract](../../SHARED_CONTRACT.md), [venue/event models](../../../api/venueflow/models.py)
 
-- Status: `not started`
+- Status: `verified`
 - Goal: Recommend one open, reachable place from a visitor's current graph node using route time and any organizer-supplied wait estimate, with a concise reason that can be shown to the visitor.
 - User value: “What next?” returns a practical destination grounded in the published map and available data, and makes clear why that destination ranked first.
 - Scope:
@@ -33,16 +33,16 @@ Shared dependencies: [P3-NAV-2](P3-NAV-2.md), [Person 3 brief](../BRIEF.md), [sh
   - For unusable top-level inputs (non-iterable `nodes`, `edges`, or `places`, or invalid start ID), return a stable failure with `ok=False`, `reason="invalid_input"`, a concise `message`, and the other selection fields set to `None`. For valid top-level inputs with zero valid candidates, use the `no_eligible_place` result above.
   - `waitMinutes` currently has no dedicated model field. Integration must explicitly source and normalize it from organizer-provided event/place properties when available; if absent, pass it as absent. This phase must not add model fields or migrations.
 - Acceptance criteria:
-  - [ ] The module stays standard-library-only and `find_route` retains its existing signature, failure behavior, and route-choice semantics.
-  - [ ] Closed candidates, candidates without a valid access node, and candidates with failed routes are never selected; a malformed candidate does not hide a valid alternative.
-  - [ ] Among eligible candidates with no supplied waits, the smallest route `duration_s` wins.
-  - [ ] A finite non-negative supplied wait estimate is converted from minutes to seconds and added only to ranking time; a candidate with a longer wait can lose despite a shorter route, while returned route duration remains unchanged.
-  - [ ] Missing wait data adds zero; malformed supplied wait values are handled exactly as documented and never silently coerced.
-  - [ ] Equal ranking times choose the first candidate in input order consistently.
-  - [ ] The success result exposes selected place ID/name, the exact route result, unrounded travel duration, normalized optional wait, total ranking seconds, and a short reason reflecting only used values.
-  - [ ] An empty list, all closed candidates, or all unreachable/invalid candidates returns the documented explicit no-suggestion shape and reason.
-  - [ ] Start equal to a candidate access node is considered a valid zero-second route and can win.
-  - [ ] The helper does not mutate inputs, infer status/waits, use coordinates, or import Django.
+- [x] The module stays standard-library-only and `find_route` retains its existing signature, failure behavior, and route-choice semantics.
+- [x] Closed candidates, candidates without a valid access node, and candidates with failed routes are never selected; a malformed candidate does not hide a valid alternative.
+- [x] Among eligible candidates with no supplied waits, the smallest route `duration_s` wins.
+- [x] A finite non-negative supplied wait estimate is converted from minutes to seconds and added only to ranking time; a candidate with a longer wait can lose despite a shorter route, while returned route duration remains unchanged.
+- [x] Missing wait data adds zero; malformed supplied wait values are handled exactly as documented and never silently coerced.
+- [x] Equal ranking times choose the first candidate in input order consistently.
+- [x] The success result exposes selected place ID/name, the exact route result, unrounded travel duration, normalized optional wait, total ranking seconds, and a short reason reflecting only used values.
+- [x] An empty list, all closed candidates, or all unreachable/invalid candidates returns the documented explicit no-suggestion shape and reason.
+- [x] Start equal to a candidate access node is considered a valid zero-second route and can win.
+- [x] The helper does not mutate inputs, infer status/waits, use coordinates, or import Django.
 - Implementation sequence:
   1. Re-read `find_route` and its tests/fixtures; preserve the existing route result as the single source of travel-time truth. Inspect the repository for test commands before choosing how to verify.
   2. Follow the candidate error policy and exact public result keys in this document: skip malformed candidate records and all occurrences of duplicate IDs; reserve top-level `invalid_input` for unusable shared inputs such as missing/non-iterable node, edge, or place collections or an invalid start ID.
@@ -54,6 +54,6 @@ Shared dependencies: [P3-NAV-2](P3-NAV-2.md), [Person 3 brief](../BRIEF.md), [sh
 - Checks: Inspect existing test files and project commands first. If no routing test runner exists, run documented standard-library fixtures covering every acceptance case, `python -m compileall -q api/venueflow/routing.py`, and `git diff --check`. No Django settings, database, Docker service, or network access is needed.
 - Dependencies: P3-NAV-2 verified; integration must supply the normalized place record shape at a later wiring boundary. No API or page work is a dependency for implementing this pure helper.
 - Out of scope: Interest personalization, event schedule ranking, accessibility filters, predicted queues, event recommendations, time-window/expiry calculations, destination selection from coordinates, changes to route algorithm, API/page wiring, database/model/migration changes, geometry lookup/rendering, and GPS snapping.
-- Verification record: Planning update only; implementation checks have not run.
+- Verification record: 2026-10-11 03:33 IST — Focused plain-Python fixtures passed route-time ordering, optional wait-adjusted ranking, unchanged returned route duration, missing and malformed waits (`None`, booleans, string, negative, NaN, ±infinity, oversized integer), input-order ties, duplicate-ID exclusion, closed/malformed/inaccessible/unreachable candidates, empty/no-eligible results, zero-edge routes, invalid top-level inputs, generator inputs, no input mutation, stable route contract, and reason/result values. `python -m compileall -q api/venueflow/routing.py` and `git diff --check` passed. No repository routing test runner or test files were found; no Django/database runtime was needed.
 - Commit: Pending.
-- Plan changes: 2026-10-11 — Refined the initial phase outline into an implementation-ready contract after reviewing `find_route`, the shared contract, and actual model fields. Defined normalized place inputs, strict eligibility, optional wait validation and units, deterministic ranking/ties, result shape, integration mapping responsibility, and verification cases before implementation.
+- Plan changes: 2026-10-11 — Refined the initial phase outline into an implementation-ready contract after reviewing `find_route`, the shared contract, and actual model fields. Defined normalized place inputs, strict eligibility, optional wait validation and units, deterministic ranking/ties, result shape, integration mapping responsibility, and verification cases before implementation. Implementation followed this contract; no further plan changes.

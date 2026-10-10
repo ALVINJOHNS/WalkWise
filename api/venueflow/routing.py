@@ -79,6 +79,141 @@ def _route_result(node_path, edge_path, edges_by_id):
     )
 
 
+def _suggestion_failure(reason, message):
+    """Build the stable result shape used when no suggestion can be made."""
+    return {
+        "ok": False,
+        "place": None,
+        "route": None,
+        "travel_time_s": None,
+        "wait_minutes": None,
+        "ranking_time_s": None,
+        "reason": reason,
+        "message": message,
+    }
+
+
+def _wait_seconds(place):
+    """Return (wait minutes, wait seconds), or None for malformed supplied data."""
+    if "waitMinutes" not in place:
+        return None, 0.0
+
+    wait_minutes = place["waitMinutes"]
+    if isinstance(wait_minutes, bool) or not isinstance(wait_minutes, (int, float)):
+        return None
+    try:
+        if not isfinite(wait_minutes) or wait_minutes < 0:
+            return None
+        wait_seconds = wait_minutes * 60
+    except (OverflowError, TypeError):
+        return None
+    if not isfinite(wait_seconds):
+        return None
+    return wait_minutes, wait_seconds
+
+
+def _suggestion_reason(travel_time_s, wait_minutes):
+    """Describe the selected ranking inputs using rounded display values."""
+    travel_minutes = travel_time_s / 60
+    reason = f"Approx. {travel_minutes:.0f} min walking time"
+    if wait_minutes is not None:
+        reason += f"; organizer wait estimate adds {wait_minutes:.0f} min"
+    return reason + "."
+
+
+def suggest_next_place(nodes, edges, places, start_node_id):
+    """Recommend the open, reachable place with the lowest estimated total time.
+
+    ``nodes`` and ``edges`` use the same plain mapping records accepted by
+    :func:`find_route`. Each place mapping must contain non-empty string
+    ``id`` and ``name``, strict boolean ``open``, and a non-empty string
+    ``access_node_id``. Optional ``waitMinutes`` must be a finite,
+    non-negative number; it is converted to seconds and added to route
+    ``duration_s`` for ranking only. Missing wait data adds no penalty.
+
+    Malformed candidates, every occurrence of duplicate place IDs, closed
+    places, invalid routes, and invalid wait estimates are skipped. Equal
+    ranking times preserve input order. Shared graph/place iterables are
+    materialized once so generators work across candidate evaluations.
+
+    Returns a stable success mapping with the selected place, the exact route
+    result, travel/wait/ranking values, and a concise reason. Invalid shared
+    inputs return ``reason="invalid_input"``; valid inputs with no candidate
+    return ``reason="no_eligible_place"``. The function performs no I/O and
+    does not import Django.
+    """
+    if not _identifier(start_node_id):
+        return _suggestion_failure("invalid_input", "Start node ID must be a non-empty string.")
+    if nodes is None or edges is None or places is None:
+        return _suggestion_failure("invalid_input", "Nodes, edges, and places must be iterable records.")
+    try:
+        node_records = list(nodes)
+        edge_records = list(edges)
+        place_records = list(places)
+    except TypeError:
+        return _suggestion_failure("invalid_input", "Nodes, edges, and places must be iterable records.")
+
+    place_id_counts = {}
+    for place in place_records:
+        if isinstance(place, Mapping) and _identifier(place.get("id")):
+            place_id = place["id"]
+            place_id_counts[place_id] = place_id_counts.get(place_id, 0) + 1
+
+    best = None
+    for place in place_records:
+        if not isinstance(place, Mapping):
+            continue
+        place_id = place.get("id")
+        name = place.get("name")
+        access_node_id = place.get("access_node_id")
+        if (
+            not _identifier(place_id)
+            or place_id_counts.get(place_id) != 1
+            or not _identifier(name)
+            or place.get("open") is not True
+            or not _identifier(access_node_id)
+        ):
+            continue
+
+        wait_values = _wait_seconds(place)
+        if wait_values is None:
+            continue
+        wait_minutes, wait_seconds = wait_values
+
+        route = find_route(node_records, edge_records, start_node_id, access_node_id)
+        if not route["ok"]:
+            continue
+        travel_time_s = route["duration_s"]
+        if isinstance(travel_time_s, bool) or not isinstance(travel_time_s, (int, float)):
+            continue
+        try:
+            if not isfinite(travel_time_s) or travel_time_s < 0:
+                continue
+            ranking_time_s = travel_time_s + wait_seconds
+        except (OverflowError, TypeError):
+            continue
+        if not isfinite(ranking_time_s):
+            continue
+
+        if best is None or ranking_time_s < best["ranking_time_s"]:
+            best = {
+                "ok": True,
+                "place": {"id": place_id, "name": name},
+                "route": route,
+                "travel_time_s": travel_time_s,
+                "wait_minutes": wait_minutes,
+                "ranking_time_s": ranking_time_s,
+                "reason": _suggestion_reason(travel_time_s, wait_minutes),
+            }
+
+    if best is None:
+        return _suggestion_failure(
+            "no_eligible_place",
+            "No open place with a valid access node and route is available.",
+        )
+    return best
+
+
 def find_route(nodes, edges, start_node_id, destination_node_id):
     """Find a minimum-hop route through explicitly connected graph records.
 
