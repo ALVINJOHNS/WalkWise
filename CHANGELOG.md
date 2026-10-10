@@ -157,3 +157,9 @@ Replace this sentence with entries as you build:
 - Why: Execute the next phase in `handoff.md` and close gaps found in the declared event contract while verifying the existing ORM/DRF CRUD foundation.
 - Validation: Django system/migration checks; both migrations applied to an empty disposable PostGIS database; API list/detail/create/update/delete for Venue and Event; HTTP 400 for unknown venue, unsupported status, and reversed times; records read after API container restart; demo seed and DB health passed; `git diff --check` passed.
 - Limitations: Organizer-related MapFeature/PathNode/PathEdge API/load/save remains P4-INT-3. Publishing and visitor QR remain P4-INT-4.
+
+## 2026-10-11T04:04:00+05:30 — Hand off to Person 4 map-resource persistence
+- Changed: Pointed `handoff.md` to P4-INT-3 and recorded P4-INT-2 implementation commit `ed5f1a5`.
+- Why: P4-INT-2 acceptance criteria and verification are complete; the next dependency is organizer map-resource persistence.
+- Validation: Confirmed the P4-INT-2 commit and phase status; `git diff --check` passed.
+- Limitations: P4-INT-3 and subsequent publish/QR phase remain pending.
