@@ -42,7 +42,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 ### P4-INT-2 — Venue and event API persistence
 
-- Status: not started
+- Status: complete
 - Scope and acceptance criteria: [phases/P4-INT-2.md](phases/P4-INT-2.md).
 - Dependencies: P4-INT-1.
 - Next: P4-INT-3.
