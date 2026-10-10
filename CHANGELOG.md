@@ -4,6 +4,20 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:24:28+05:30 — Add route distance and walking-time metrics
+
+- Changed: Implemented selected-edge length validation, summed route distance, approximate duration at 1.2 m/s, zero-edge metrics, and `invalid_length` failures in `api/venueflow/routing.py`; recorded P3-NAV-2 verification and next-phase handoff.
+- Why: Give route consumers consistent distance/time values while preserving the deterministic minimum-hop graph route and source edge IDs.
+- Validation: `python -m compileall -q api/venueflow/routing.py`, focused inline fixtures for metric and failure cases, and `git diff --check` passed.
+- Limitations: Duration is approximate and excludes congestion, mobility adjustments, and dwell time. The API wrapper and geometry lookup are not wired in this phase.
+
+## 2026-10-11T03:22:00+05:30 — Detail the Person 3 Phase 2 metrics plan
+
+- Changed: Expanded `docs/person-3-navigation/phases/P3-NAV-2.md` with metric validation rules, stable result/failure semantics, duration formula, route-selection boundary, geometry lookup contract, implementation sequence, and focused acceptance fixtures.
+- Why: Give the next routing implementation a precise, reviewable contract aligned with P3-NAV-1 and the shared integration contract.
+- Validation: Compared the plan with the current routing function, Person 3 brief, shared contract, and phase template; `git diff --check` passed. No code or runtime checks were performed because this change is planning only.
+- Limitations: Plan has not yet been implemented or human-reviewed.
+
 ## 2026-10-11T03:05:00+05:30 — Split Person 3 navigation into implementation phases
 
 - Changed: Reworked `docs/person-3-navigation/BRIEF.md` into an architecture-aligned phase index and added four focused phase documents for graph routing, route metrics/output, next-place suggestions, and optional approximate manual starts. Updated `handoff.md` to point at P3-NAV-1.
