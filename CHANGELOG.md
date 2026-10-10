@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:15:33+05:30 — Rename product branding to Walkwise
+
+- Changed: Replaced the previous product branding with Walkwise in the README, shared header/footer, overview, organizer/visitor page titles, architecture heading, and project history; renamed the npm asset package to `walkwise-assets`.
+- Why: Use the project name selected by the user consistently across the repository and rendered app.
+- Validation: Rendered Django overview returned HTTP 200 with Walkwise title/branding, no old brand, and the stylesheet link. `npm run build:css`, `python3 -m compileall -q api`, JSON parsing of package files, and `git diff --check` passed.
+- Limitations: Internal Django module and static paths remain `venueflow` to avoid an unrelated app-label migration.
+
 ## 2026-10-11T03:13:55+05:30 — Fix API router startup
 
 - Changed: Registered the venue and event DRF viewsets with explicit router basenames in `api/venueflow/urls.py`; updated phase evidence, README, handoff, and AI usage notes.
@@ -25,7 +32,7 @@ Record each meaningful project change during the event, newest first. Update thi
 - Validation: Tailwind installation and `npm run build:css` passed; `docker compose config --quiet`, `python3 -m compileall -q api`, and `git diff --check` passed. `python3 api/manage.py check` could not run because host psycopg is not installed. Docker runtime could not run because the local Docker daemon is unavailable.
 - Limitations: Django/PostGIS/Redis/Celery service startup and rendered page/API responses remain unverified. The host also lacks GDAL required by GeoDjango; the API image installs GDAL/GEOS/PROJ system libraries.
 
-## 2026-10-11T02:23:33+05:30 — Add VenueFlow full-stack team foundation
+## 2026-10-11T02:23:33+05:30 — Add Walkwise full-stack team foundation
 
 - Changed: Added Vite/React/TypeScript/Tailwind app shell and seed, FastAPI health and explicit API stubs, PostgreSQL/PostGIS bootstrap schema, Redis/Celery worker skeleton, Docker Compose services, `.env.example`, architecture/task ownership guide, and updated the integration brief/shared contract/README.
 - Why: Give teammates a runnable structure and stable file ownership/interfaces for parallel feature implementation, including the server and worker infrastructure requested for the build.

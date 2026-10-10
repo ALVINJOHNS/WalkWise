@@ -1,6 +1,6 @@
-# VenueFlow — DevDay Exchange Community Hackathon: Kochi
+# Walkwise — DevDay Exchange Community Hackathon: Kochi
 
-VenueFlow is a hackathon starter for turning venue plans into reusable event maps and visitor navigation.
+Walkwise turns venue plans into clear event maps and visitor navigation.
 
 **[Event and registration on Luma](https://luma.com/z10nz8gp)** · **[Event rules](RULES.md)** · **[Agent instructions](AGENTS.md)**
 
@@ -27,7 +27,7 @@ Project and workflow context lives in [the team execution plan](docs/README.md),
 
 For a four-person, six-hour build, use the [team execution plan](docs/README.md), its [shared contract](docs/SHARED_CONTRACT.md), and the four role briefs. The full product plan remains in [docs/Walkwise_Development_Plan.md](docs/Walkwise_Development_Plan.md).
 
-- **Project name:** VenueFlow
+- **Project name:** Walkwise
 - **Short description:** Turn a venue plan into an editable event map with walkable paths and visitor destinations.
 - **Team:** TODO — participant names and GitHub handles; maximum 4 members.
 - **Working demo:** Local server at `http://localhost:8000`; the responsive overview summarizes venues/events and previews intended flows. Overview flow buttons are presentation-only and do not navigate yet.
