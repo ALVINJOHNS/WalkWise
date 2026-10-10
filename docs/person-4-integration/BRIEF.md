@@ -32,7 +32,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Dependencies: None.
 - Out of scope: Authentication, production deployment, full map editor, routing implementation, GPS calibration, and realtime sync.
 - Verification record: 2026-10-11T02:23+05:30 — `npm install` completed; `npm run build` passed; `docker compose config --quiet` passed; `python3 -m compileall -q api/app` passed; `git diff --check` passed; Vite dev server served the app shell with HTTP 200 using the elevated local-server check. `docker compose up --build -d` could not run because the local Docker daemon socket is absent. Full service integration remains unverified.
-- Commit: Pending.
+- Commit: `0805e41` (`feat: scaffold VenueFlow full-stack foundation`; runtime verification pending Docker daemon availability).
 - Plan changes: 2026-10-11 — expanded the original browser-only shell to the user's explicitly requested Docker/PostgreSQL, server, Celery, and Redis foundation. The architecture brief supplied with the request recommends a single Next.js API and excludes queues; to preserve the existing Vite React team contract and satisfy the more specific latest request, this starter uses a small FastAPI API plus a Celery worker as a modular development stack.
 - Next: P4-INT-2.
 
