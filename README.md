@@ -48,6 +48,8 @@ Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebui
 3. Open `http://localhost:8000`; organizer and visitor pages and the browsable API share this Django server. API health is at `http://localhost:8000/api/health`.
 4. Stop services with `docker compose down`. Remove local database data with `docker compose down -v`.
 
+Open the visitor page at `http://localhost:8000/v/kochi-expo/` after startup. Do not open `api/venueflow/templates/venueflow/visitor.html` directly in a browser: it is a Django template, so its `{% ... %}` and `{{ ... }}` tags only render when Django serves the page.
+
 The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`.
 
 ### Rebuild Tailwind assets
@@ -56,7 +58,7 @@ Templates and the API are served by the same Django process. When changing Tailw
 
 ### Project status
 
-- Implemented: Django SSR landing, organizer and visitor pages; Tailwind static styles and JS; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Backend runtime remains unverified while Docker is unavailable.
+- Implemented: Django SSR landing and organizer pages; visitor snapshot map rendering for venue plan images, saved path edges, destination pins, and supplied open/closed/delayed status; Tailwind static styles and JS; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Visitor search/selection and freshness/location behavior are still pending. Backend runtime remains unverified while Docker is unavailable.
 - Not implemented: Map editing, route calculation (returns 501), publishing, QR, auth, and production deployment.
 - OpenStreetMap and Leaflet have not yet been added; add OSM attribution when the map view is introduced.
 

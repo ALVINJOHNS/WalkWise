@@ -4,6 +4,27 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:57:00+05:30 — Refine visitor map presentation
+
+- Changed: Refined the visitor page hierarchy, map card, destination list, status badges, and responsive spacing in the owned template. Adjusted status lookup so missing optional status data renders as unavailable.
+- Why: Make the visitor snapshot easier to scan on phones and desktop, and address the raw-template confusion by confirming the page is intended to be rendered by Django.
+- Validation: Rendered the Django template with a representative venue context; checked the generated HTML contains no unresolved Django tags and includes map/place/status content. Installed packages declared in `api/requirements.txt`. `git diff --check` passed. `python api/manage.py check` is blocked by missing host GDAL native libraries. Browser preview was blocked because the in-app browser disallows local file URLs.
+- Limitations: Full application route remains unverified. Opening `visitor.html` directly still shows template source; use the Django route when the app is running.
+
+## 2026-10-11T03:31:40+05:30 — Render visitor map from venue snapshot
+
+- Changed: Replaced the visitor placeholder with a responsive venue map surface that renders the plan image or a local fallback, saved path edges, normalized destination pins, status styling, and a read-only destination/status legend. Updated the README and P2-VIS-1 verification record.
+- Why: Implement P2-VIS-1 so the visitor page displays organizer-saved map data independently of the editor.
+- Validation: `git diff --check` passed. `python api/manage.py check` could not run because the configured Python launcher cannot resolve its Python 3.14 install and the bundled Python has no Django. A rendered/manual check remains pending.
+- Limitations: Django page rendering and seeded database runtime remain unverified; absent feature status is labeled “Status unavailable.”
+
+## 2026-10-11T03:23:43+05:30 — Split visitor work into three implementation phases
+
+- Changed: Expanded the visitor brief into P2-VIS-1 snapshot map rendering, P2-VIS-2 destination discovery/details, and P2-VIS-3 freshness/location/mobile orientation. Added per-phase goals, acceptance criteria, checks, dependencies, ownership boundaries, and verification placeholders.
+- Why: Make each visitor increment independently reviewable and clarify that routing, QR, and cache work remain outside the visitor owner's scope.
+- Validation: Reviewed phase ordering against `docs/SHARED_CONTRACT.md` and `docs/PHASE_TEMPLATE.md`; documentation links and whitespace checked.
+- Limitations: Planning only; no visitor implementation or runtime check was performed.
+
 ## 2026-10-11T02:55:26+05:30 — Merge default branch and resolve documentation conflicts
 
 - Changed: Integrated `main` into the integration branch and reconciled the README, AI usage record, changelog, and handoff while preserving independent changes from both branches.
