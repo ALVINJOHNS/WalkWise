@@ -83,6 +83,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Verification record: 2026-10-11 04:08 IST — After the reported 403, configured Leaflet’s OSM tile `referrerPolicy`; JavaScript syntax and diff whitespace passed, Compose rebuilt and started, organizer returned HTTP 200, and served JavaScript contained the updated policy. Browser-side OSM tile success is not directly verified.
 - Verification record: 2026-10-11 04:14 IST — Added map-click placement for local-only destinations/path points and selectable/highlighted Leaflet markers. JavaScript syntax and diff whitespace passed; Compose rebuilt, organizer returned HTTP 200, and served JS contained the placement action. Manual browser interaction remains pending.
 - Verification record: 2026-10-11 04:20 IST — Add destination/Add path point now create at the next street-map click and the live GPS marker has a pulsing icon and permanent label. JavaScript syntax and diff whitespace passed; Compose rebuilt, organizer returned HTTP 200, and served JS includes the direct-add handler and live-location label. Manual map-click/GPS interaction remains pending.
+- Commit: `fd68ec0` — `feat: add organizer points on street map`.
 - Commit: `2627ad9` — `fix: place organizer items on street map`.
 - Commit: `3fcdea5` — `feat: add OSM map and GPS distances`.
 - Plan changes: 2026-10-11 — User requested Leaflet and OpenStreetMap as the location background with path distance; added this phase after GPS capture.

@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:21:00+05:30 — Record direct map-add checkpoint
+
+- Changed: Recorded commit `fd68ec0` in the organizer phase and handoff.
+- Why: Keep the phase record tied to the directly placeable map items and GPS icon.
+- Validation: `git diff --check` passed.
+- Limitations: Manual map interaction remains pending.
+
 ## 2026-10-11T04:20:00+05:30 — Add items directly on the street map
 
 - Changed: Add destination and Add path point now enter placement mode in street view; the next map click creates the record at that geographic coordinate. Added a pulsing, labeled live GPS map icon.
