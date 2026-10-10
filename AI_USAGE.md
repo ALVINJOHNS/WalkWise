@@ -4,6 +4,8 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, following the user's clarification, Codex made Add destination and Add path point arm a one-click creation directly on the street map and replaced the subtle GPS dot with a prominent pulsing “Live GPS location” map icon. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; Compose rebuilt, organizer returned HTTP 200, and the served script included the direct-add handler and live-location label. Manual click interaction remains unverified.
+
 On 11 October 2026, after the user reported that destinations and path points disappeared in street-map view, Codex added selection-aware Leaflet markers and a click-to-place action for selected items that do not yet have geographic coordinates. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; browser interaction remains unverified.
 
 On 11 October 2026, after the user shared the OpenStreetMap 403 tile, Codex configured Leaflet tile images to send a valid cross-origin `Referer` under OSM’s policy. Human review: pending. Validation: rebuild completed, organizer returned HTTP 200, served JavaScript contained the policy, and JavaScript syntax/diff whitespace checks passed; browser-visible tile loading still needs confirmation.

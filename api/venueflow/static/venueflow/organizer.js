@@ -7,7 +7,7 @@
   const venuePicker = $ ("[data-venue]");
   if (!canvas || !venuePicker) return;
 
-  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, selected: null, dirty: false, drag: null };
+  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
@@ -153,6 +153,17 @@
     }
     state.leafletMap = window.L.map(controls.leafletMap, { zoomControl: true, scrollWheelZoom: true });
     state.leafletMap.on("click", (event) => {
+      if (state.mapAddType) {
+        const type = state.mapAddType;
+        state.mapAddType = null;
+        state.mapPlacement = false;
+        state.leafletMap.getContainer().style.cursor = "";
+        const geolocation = { latitude: event.latlng.lat, longitude: event.latlng.lng, accuracy: 0, timestamp: new Date().toISOString() };
+        if (type === "place") addPlace({ x: .5, y: .5, geolocation });
+        else addNode({ x: .5, y: .5, geolocation });
+        controls.mapStatus.textContent = `Added ${type === "place" ? "destination" : "path point"} at the selected map location.`;
+        return;
+      }
       if (!state.mapPlacement) return;
       const item = selectedItem();
       if (!item || !state.selected) return;
@@ -198,6 +209,7 @@
       const label = document.createElement("span"); label.textContent = place.name || "Destination";
       marker.bindTooltip(label);
       marker.on("click", (event) => {
+        if (state.mapAddType) return;
         window.L.DomEvent.stopPropagation(event);
         state.selected = { type: "place", id: place.id }; state.mapPlacement = false; render();
       });
@@ -211,6 +223,7 @@
       }).addTo(state.leafletLayers);
       marker.bindTooltip(node.name || "Path point");
       marker.on("click", (event) => {
+        if (state.mapAddType) return;
         window.L.DomEvent.stopPropagation(event);
         state.selected = { type: "node", id: node.id }; state.mapPlacement = false; render();
       });
@@ -228,10 +241,12 @@
       window.L.circle([state.currentLocation.latitude, state.currentLocation.longitude], {
         radius: accuracy, color: "#2563eb", weight: 1, fillColor: "#2563eb", fillOpacity: .1,
       }).addTo(state.leafletLayers);
-      const pointer = window.L.circleMarker([state.currentLocation.latitude, state.currentLocation.longitude], {
-        radius: 9, color: "#ffffff", weight: 3, fillColor: "#2563eb", fillOpacity: 1, className: "leaflet-current-pointer",
+      const pointer = window.L.marker([state.currentLocation.latitude, state.currentLocation.longitude], {
+        icon: window.L.divIcon({ className: "gps-location-icon", html: '<span class="gps-location-dot" aria-hidden="true"></span>', iconSize: [30, 30], iconAnchor: [15, 15] }),
+        keyboard: false,
       }).addTo(state.leafletLayers);
-      pointer.bindTooltip("Current GPS position");
+      pointer.bindTooltip("Live GPS location", { permanent: true, direction: "top", offset: [0, -12], className: "gps-location-label" });
+      pointer.on("click", (event) => window.L.DomEvent.stopPropagation(event));
       if (state.geoRecording) state.leafletMap.panInside(pointer.getLatLng(), { padding: [60, 60] });
     }
     if (state.mapMode === "street") window.setTimeout(() => state.leafletMap?.invalidateSize(), 0);
@@ -259,7 +274,7 @@
       const button = document.createElement("button"); button.type = "button";
       button.textContent = type === "place" ? (item.name || `Destination ${index + 1}`) : item.name;
       button.addEventListener("click", () => {
-        state.selected = { type, id: item.id }; state.mapPlacement = false;
+        state.selected = { type, id: item.id }; state.mapPlacement = false; state.mapAddType = null;
         if (state.leafletMap) state.leafletMap.getContainer().style.cursor = "";
         render();
       });
@@ -425,16 +440,19 @@
     node.geolocation = fix; state.mapMode = "street"; setDirty(); render();
   }));
   controls.placeOnMap.addEventListener("click", () => {
+    state.mapAddType = null;
     state.mapPlacement = true; controls.mapStatus.textContent = "Click the street map to place the selected destination.";
     state.leafletMap?.getContainer().style.setProperty("cursor", "crosshair");
   });
   controls.nodeOnMap.addEventListener("click", () => {
+    state.mapAddType = null;
     state.mapPlacement = true; controls.mapStatus.textContent = "Click the street map to place the selected path point.";
     state.leafletMap?.getContainer().style.setProperty("cursor", "crosshair");
   });
   root.querySelectorAll("[data-map-view]").forEach((button) => button.addEventListener("click", () => {
     state.mapMode = button.dataset.mapView;
     state.mapPlacement = false;
+    state.mapAddType = null;
     if (state.leafletMap) state.leafletMap.getContainer().style.cursor = "";
     render();
     window.setTimeout(() => state.leafletMap?.invalidateSize(), 0);
@@ -467,8 +485,18 @@
     if (!file) { controls.errors.textContent = "Drop a PNG or JPG floor plan."; return; }
     loadImageFile(file);
   });
-  $("[data-add-place]").addEventListener("click", () => addPlace());
-  $("[data-add-node]").addEventListener("click", () => addNode());
+  function beginMapAddition(type) {
+    if (state.mapMode !== "street" || !state.leafletMap) {
+      if (type === "place") addPlace(); else addNode();
+      return;
+    }
+    state.mapPlacement = false;
+    state.mapAddType = type;
+    state.leafletMap.getContainer().style.cursor = "crosshair";
+    controls.mapStatus.textContent = `Click the street map to add a ${type === "place" ? "destination" : "path point"}.`;
+  }
+  $("[data-add-place]").addEventListener("click", () => beginMapAddition("place"));
+  $("[data-add-node]").addEventListener("click", () => beginMapAddition("node"));
   $("[data-connect]").addEventListener("click", () => {
     if (state.selected?.type === "node") {
       const first = state.nodes.find((node) => node.id === state.selected.id);

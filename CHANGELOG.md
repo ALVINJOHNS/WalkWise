@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:20:00+05:30 — Add items directly on the street map
+
+- Changed: Add destination and Add path point now enter placement mode in street view; the next map click creates the record at that geographic coordinate. Added a pulsing, labeled live GPS map icon.
+- Why: Let organizers create geographic items on the OpenStreetMap canvas itself and spot their live position.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed; Compose rebuilt, organizer returned HTTP 200, and the served script contained the direct-add handler and live-location label.
+- Limitations: Browser interaction remains unverified.
+
 ## 2026-10-11T04:15:00+05:30 — Record street-map placement fix checkpoint
 
 - Changed: Recorded commit `2627ad9` in the organizer phase and handoff.
