@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T04:24:00+05:30 — Allow the provided ngrok tunnel host
+
+- Changed: Added environment-configurable Django allowed hosts and CSRF trusted origins, configured forwarded HTTPS detection, and included the provided ngrok host in Compose defaults and `.env.example`.
+- Why: Let Django accept tunneled requests to the organizer and accept same-origin HTTPS draft saves through ngrok.
+- Validation: `python3 -m py_compile api/config/settings.py`, `docker compose config`, and `git diff --check` passed; API container recreated; Django reported the expected allowed-host/CSRF/proxy settings; local and ngrok organizer routes returned HTTP 200.
+- Limitations: The hostname is specific to this tunnel; update the environment values when ngrok assigns a different one.
+
 ## 2026-10-11T04:21:00+05:30 — Record direct map-add checkpoint
 
 - Changed: Recorded commit `fd68ec0` in the organizer phase and handoff.
