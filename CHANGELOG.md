@@ -4,6 +4,14 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T03:27:00+05:30 — Build organizer venue editor
+
+- Changed: Added a server-rendered organizer map editor with PNG/JPG preview, destination details and statuses, movable pins, path points/edges, validation, and venue draft save; updated organizer phase evidence and project status.
+- Why: Deliver the organizer authoring workflow defined by P1-ORG-1 and P1-ORG-2 while keeping changes within the organizer-owned template and JavaScript.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Docker Compose access failed because the local Docker socket returned permission denied, so the rendered page and API save round-trip were not verified.
+- Limitations: Current venue API has no related-feature/node/edge endpoints. The editor saves its draft in `Venue.calibration.organizer_draft`; image files are stored as data URLs there and existing ORM feature rows are not loaded. Integration work is needed for scalable image upload and native related-model persistence.
+
+
 ## 2026-10-11T03:21:35+05:30 — Merge main and resolve documentation conflicts
 
 - Changed: Merged `main` into `overview`; reconciled README, handoff, changelog, and AI usage records while retaining the latest Walkwise branding and overview details.

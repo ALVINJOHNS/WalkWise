@@ -36,14 +36,14 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 ### P1-ORG-1 — Editor foundation
 
-- Status: not started
+- Status: in progress (implementation complete; rendered runtime check pending)
 - Scope: Organizer template, image selection/backdrop, place pins and basic place fields/status.
 - Exit checks: PNG/JPG selection displays; add/select/edit three places; page renders against the seeded ORM venue.
 - Next: P1-ORG-2.
 
 ### P1-ORG-2 — Walk graph and validation
 
-- Status: not started
+- Status: in progress (implementation complete; Django/API runtime check pending)
 - Scope: Add/connect nodes and edges; validate blank/duplicate names and dangling references; expose save callback and unsaved state.
 - Exit checks: Author connected three-edge path; invalid data shows useful messages without crash; saved venue contains edited status; focused Django check passes.
 - Next: integration review; do not add calibration or storage.
@@ -55,3 +55,11 @@ Calibration, zones, schedules/hours, undo/redo, mobile walk-and-plot, advanced d
 ## Short Codex prompt
 
 “Implement only the organizer template and JavaScript paths in `docs/person-1-organizer/BRIEF.md`. Follow `docs/SHARED_CONTRACT.md`; use the Django ORM/DRF contract and do not edit other owners' files. Return changed files and the check you ran.”
+
+
+### Implementation record — 2026-10-11
+
+The organizer page now provides venue selection, a PNG/JPG backdrop preview, destination editing (name, category, description, status), movable map markers, path points, edge creation, validation, and a save action. The current API exposes venue CRUD but not related feature/node/edge endpoints, so the editor stores its `organizer_draft` envelope in the venue's existing `calibration` JSON field. The selected image is saved as a data URL in that draft. This keeps the feature within its owned template/JavaScript paths, but large plans may exceed practical API/database request limits and existing `MapFeature`/`PathNode`/`PathEdge` rows are not loaded into the editor. Integration should provide related-resource APIs or server-rendered bootstrap data before treating this as production persistence.
+
+- Checks run: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Runtime limitation: Docker Compose cannot reach the local Docker socket (`permission denied`); Django page/API rendering and save round-trip were not verified in this environment.
