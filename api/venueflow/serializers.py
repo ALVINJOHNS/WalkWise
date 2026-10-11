@@ -139,6 +139,12 @@ class MapDraftSerializer(serializers.Serializer):
             if len(ids) != len(set(ids)):
                 errors[key] = "IDs must be unique within this collection."
         node_ids = {item["id"] for item in attrs["nodes"]}
+        for index, feature in enumerate(attrs["features"]):
+            access_node_id = feature["properties"].get("access_node_id")
+            if access_node_id is not None and access_node_id not in node_ids:
+                errors.setdefault("features", {})[index] = {
+                    "access_node_id": "The route entry must reference a path point in this venue snapshot."
+                }
         for index, edge in enumerate(attrs["edges"]):
             if edge["from_id"] not in node_ids or edge["to_id"] not in node_ids:
                 errors.setdefault("edges", {})[index] = {

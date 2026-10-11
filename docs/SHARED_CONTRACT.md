@@ -26,9 +26,9 @@ Keep plan coordinates (`plan_x`, `plan_y`) separate from latitude/longitude geom
 
 ## Feature boundaries
 
-- Organizer page: `templates/venueflow/organizer.html`, `static/venueflow/organizer.js`. Load and save through `/api/venues/` and related DRF endpoints; integration owns shared model/API changes.
-- Visitor page: `templates/venueflow/visitor.html`, `static/venueflow/visitor.js`. Read a venue or published version; do not alter snapshots from visitor actions.
-- Routing: pure functions in `api/venueflow/routing.py`; consume node/edge records or plain dictionaries and return ordered node/edge IDs, distance, ETA, or a no-route result. The API wrapper is `POST /api/route`.
+- Organizer page: `templates/venueflow/organizer.html`, `static/venueflow/organizer.js`. Load and save through `/api/venues/` and related DRF endpoints; integration owns shared model/API changes. Optional AI floor-plan analysis uses the existing `/organizer/` page via a same-origin POST and `venueflow/organizer_ai.py`; it adds no API URL or browser-visible API link.
+- Visitor page: `templates/venueflow/visitor.html`, `static/venueflow/visitor.js`. Read a venue or published version; do not alter snapshots from visitor actions. The visitor page context provides `freshness_state` (`current` for a published event, `paused` for a paused event, otherwise `saved`) and `freshness_updated_at` from the venue record. These props describe server-side publication/record state; do not infer freshness or offline availability from browser connectivity. Interactive navigation requires georeferenced `PathNode` and `MapFeature` locations. Each routeable feature must carry an explicit `properties.access_node_id` referencing a node in the same map; never infer a path connection by nearest-coordinate matching.
+- Routing: pure functions in `api/venueflow/routing.py`; consume node/edge records or plain dictionaries and return ordered node/edge IDs, distance, ETA, or a no-route result. Visitor map navigation renders only routes through explicit organizer graph edges. `POST /api/route` remains a future integration boundary; until it is implemented, the visitor can route over its supplied read-only graph data.
 - Venue/event persistence: `api/venueflow/models.py`, `serializers.py`, `views.py`, `migrations/**`.
 - Publishing and shared shell: integration-owned page views, shared base template, and publishing API. Publish creates immutable `MapVersion` snapshots and visitor URLs.
 

@@ -1,110 +1,95 @@
 {% extends "venueflow/base.html" %}
 {% load static %}
-{% block title %}{{ venue.name }} — VenueFlow{% endblock %}
+{% block title %}{{ venue.name }} map — Walkwise{% endblock %}
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
 <style>
-  .visitor-shell { max-width: 76rem; margin: 0 auto; padding: 1.25rem 1rem 3.5rem; }
-  .visitor-nav { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1rem; border-bottom: 1px solid #dce8e6; }
-  .visitor-back { color: #0f766e; font-size: .875rem; font-weight: 700; }
-  .visitor-nav-label { display: inline-flex; align-items: center; gap: .45rem; color: #64748b; font-size: .75rem; font-weight: 600; }
-  .visitor-nav-label::before { width: .45rem; height: .45rem; border-radius: 50%; background: #14b8a6; content: ""; }
-  .visitor-heading { max-width: 42rem; margin: 2rem 0 1.5rem; }
-  .visitor-eyebrow { color: #0f766e; font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-  .visitor-title { margin-top: .45rem; font-size: clamp(1.8rem, 5vw, 2.75rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.1; }
-  .visitor-subtitle { margin-top: .65rem; color: #526477; font-size: 1rem; line-height: 1.6; }
-  .visitor-layout { display: grid; gap: 1.25rem; }
-  .visitor-map-card, .visitor-place-card { overflow: hidden; border: 1px solid #dce8e6; border-radius: 1.15rem; background: #fff; box-shadow: 0 12px 35px #0f766e0b; }
-  .visitor-map-card { padding: .75rem; }
-  .visitor-map-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .35rem .35rem .85rem; }
-  .visitor-map-heading { font-size: .9rem; font-weight: 750; }
-  .visitor-map-hint { color: #64748b; font-size: .75rem; }
-  .visitor-map { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border: 1px solid #d9e7e3; border-radius: .8rem; background-color: #e8f1ef; background-image: linear-gradient(30deg, #d8e8e3 12%, transparent 12.5%, transparent 87%, #d8e8e3 87.5%, #d8e8e3), linear-gradient(150deg, #d8e8e3 12%, transparent 12.5%, transparent 87%, #d8e8e3 87.5%, #d8e8e3), linear-gradient(30deg, #d8e8e3 12%, transparent 12.5%, transparent 87%, #d8e8e3 87.5%, #d8e8e3), linear-gradient(150deg, #d8e8e3 12%, transparent 12.5%, transparent 87%, #d8e8e3 87.5%, #d8e8e3), linear-gradient(60deg, #c8ddd6 25%, transparent 25.5%, transparent 75%, #c8ddd6 75%, #c8ddd6), linear-gradient(60deg, #c8ddd6 25%, transparent 25.5%, transparent 75%, #c8ddd6 75%, #c8ddd6); background-position: 0 0, 0 0, 22px 39px, 22px 39px, 0 0, 22px 39px; background-size: 44px 78px; }
-  .visitor-plan { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
-  .visitor-paths { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-  .visitor-path { stroke: #0f766e; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-  .visitor-pin { position: absolute; z-index: 1; display: flex; max-width: 45%; align-items: center; gap: .35rem; transform: translate(-50%, -50%); }
-  .visitor-pin-dot { flex: 0 0 auto; width: .9rem; height: .9rem; border: 2px solid white; border-radius: 50%; background: #0f766e; box-shadow: 0 1px 5px #0f172a66; }
-  .visitor-pin-label { max-width: 100%; padding: .2rem .45rem; overflow-wrap: anywhere; border: 1px solid #dbe3e9; border-radius: 999px; background: #fff; color: #0f172a; font-size: clamp(.65rem, 2.4vw, .8rem); font-weight: 650; line-height: 1.2; box-shadow: 0 1px 4px #0f172a22; }
-  .visitor-pin-closed .visitor-pin-dot { background: #b91c1c; }
-  .visitor-pin-delayed .visitor-pin-dot { background: #b45309; }
-  .visitor-map-empty { position: absolute; inset: auto .75rem .75rem; z-index: 2; width: fit-content; padding: .3rem .5rem; border-radius: .4rem; background: #ffffffdf; color: #334155; font-size: .7rem; }
-  .visitor-map-empty.top { inset: .75rem auto auto .75rem; }
-  .visitor-map-caption { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: .75rem; padding: .75rem .35rem .15rem; border-top: 1px solid #edf2f1; color: #475569; font-size: .78rem; }
-  .visitor-legend { display: inline-flex; align-items: center; gap: .4rem; }
-  .visitor-legend-dot { width: .65rem; height: .65rem; border-radius: 50%; background: #0f766e; }
-  .visitor-legend-dot.closed { background: #b91c1c; }
-  .visitor-legend-dot.delayed { background: #b45309; }
-  .visitor-place-card { padding: 1rem; }
-  .visitor-place-card h2 { font-size: 1rem; font-weight: 750; }
-  .visitor-place-intro { margin-top: .25rem; color: #64748b; font-size: .8rem; }
-  .visitor-place-list { display: grid; gap: .6rem; margin-top: .85rem; }
-  .visitor-place { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; padding: .75rem; border: 1px solid #edf2f1; border-radius: .8rem; background: #fbfdfd; }
-  .visitor-place-name { font-weight: 650; }
-  .visitor-place-kind { margin-top: .15rem; color: #64748b; font-size: .8rem; }
-  .visitor-status { flex: 0 0 auto; padding: .25rem .55rem; border: 1px solid transparent; border-radius: 999px; background: #f1f5f9; color: #334155; font-size: .7rem; font-weight: 750; }
-  .visitor-status-open { background: #dcfce7; color: #166534; }
-  .visitor-status-closed { background: #fee2e2; color: #991b1b; }
-  .visitor-status-delayed { background: #fef3c7; color: #92400e; }
-  .visitor-empty { padding: 1rem 0 0; color: #475569; font-size: .9rem; }
-  @media (min-width: 48rem) { .visitor-shell { padding: 1.75rem 1.25rem 4rem; } .visitor-heading { margin: 2.5rem 0 1.75rem; } .visitor-layout { grid-template-columns: minmax(0, 1.65fr) minmax(17rem, .85fr); align-items: start; } .visitor-map-card { padding: 1rem; } .visitor-place-card { padding: 1.25rem; } }
+  .visitor-app { position: relative; height: min(820px, calc(100dvh - 104px)); min-height: 580px; margin: 0 auto; overflow: hidden; background: #e9eee9; isolation: isolate; }
+  .visitor-app *, .visitor-app *::before, .visitor-app *::after { box-sizing: border-box; }
+  .visitor-map { position: absolute; inset: 0; z-index: 0; background: #e9eee9; }
+  .visitor-map-message { position: absolute; z-index: 500; bottom: 1rem; left: 1rem; width: min(20rem, calc(100% - 2rem)); padding: .75rem 1rem; border: 1px solid #d4ded8; border-radius: .8rem; background: #ffffffed; color: #334155; box-shadow: 0 8px 30px #0f172a22; text-align: left; pointer-events: none; }
+  .visitor-map-message[hidden] { display: none; }
+  .visitor-panel { position: absolute; z-index: 600; top: 1rem; left: 1rem; display: flex; width: min(22rem, calc(100% - 2rem)); max-height: calc(100% - 2rem); flex-direction: column; overflow: hidden; border: 1px solid #dbe4df; border-radius: 1rem; background: #fff; box-shadow: 0 8px 30px #0f172a2b; }
+  .visitor-panel-head { padding: 1rem 1rem .8rem; border-bottom: 1px solid #edf1ee; }
+  .visitor-back { color: #0f766e; font-size: .75rem; font-weight: 700; text-decoration: none; }
+  .visitor-title { margin-top: .45rem; color: #17212b; font-size: 1.25rem; font-weight: 800; line-height: 1.2; }
+  .visitor-freshness { margin-top: .4rem; color: #64748b; font-size: .7rem; }
+  .visitor-search { width: 100%; min-height: 2.75rem; margin-top: .8rem; padding: .65rem .75rem; border: 1px solid #cbd5e1; border-radius: .65rem; background: #fff; color: #0f172a; font: inherit; font-size: .85rem; }
+  .visitor-search:focus-visible, .visitor-place:focus-visible, .visitor-control:focus-visible, .visitor-path-node:focus-visible { outline: 3px solid #5eead4; outline-offset: 2px; }
+  .visitor-list { display: grid; gap: .3rem; padding: .45rem; overflow: auto; overscroll-behavior: contain; }
+  .visitor-place { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: .7rem; padding: .65rem .7rem; border: 0; border-radius: .6rem; background: #fff; color: #17212b; cursor: pointer; text-align: left; }
+  .visitor-place:hover, .visitor-place[aria-pressed="true"] { background: #eff8f5; }
+  .visitor-place[hidden] { display: none; }
+  .visitor-place-name { font-size: .85rem; font-weight: 700; }
+  .visitor-place-kind { margin-top: .15rem; color: #64748b; font-size: .7rem; }
+  .visitor-status { flex: none; color: #475569; font-size: .68rem; font-weight: 700; }
+  .visitor-status[data-status="closed"] { color: #b91c1c; }
+  .visitor-status[data-status="delayed"] { color: #b45309; }
+  .visitor-empty { padding: .8rem; color: #64748b; font-size: .8rem; }
+  .visitor-place-icon { display: grid; width: 2rem; height: 2rem; place-items: center; border: 2px solid white; border-radius: 50% 50% 50% 0; background: #0f766e; color: white; box-shadow: 0 2px 8px #0f172a55; font-size: .75rem; font-weight: 800; transform: rotate(-45deg); }
+  .visitor-place-icon span { transform: rotate(45deg); }
+  .visitor-current-icon { width: 1.15rem; height: 1.15rem; border: 3px solid white; border-radius: 50%; background: #2563eb; box-shadow: 0 0 0 7px #2563eb30, 0 1px 5px #0f172a77; }
+  .visitor-path-node { width: .7rem; height: .7rem; border: 2px solid white; border-radius: 50%; background: #6d45c7; box-shadow: 0 1px 5px #0f172a77; }
+  .visitor-controls { position: absolute; z-index: 600; right: 1rem; bottom: 1rem; display: grid; gap: .5rem; justify-items: end; }
+  .visitor-control { min-height: 2.8rem; padding: .65rem .9rem; border: 1px solid #d1d9d4; border-radius: .7rem; background: #fff; color: #17212b; box-shadow: 0 2px 10px #0f172a22; cursor: pointer; font: inherit; font-size: .8rem; font-weight: 750; }
+  .visitor-control-primary { border-color: #0f766e; background: #0f766e; color: #fff; }
+  .visitor-route-card { display: grid; width: min(22rem, calc(100vw - 2rem)); gap: .3rem; padding: .75rem .85rem; border: 1px solid #d1d9d4; border-radius: .8rem; background: #fff; box-shadow: 0 2px 10px #0f172a22; color: #334155; font-size: .75rem; }
+  .visitor-route-card[hidden] { display: none; }
+  .visitor-route-button { width: 100%; }
+  .visitor-route-button-wrap { padding: 0 .9rem .85rem; }
+  .visitor-route-title { color: #17212b; font-size: .85rem; font-weight: 800; }
+  .visitor-message { max-width: 16rem; color: #475569; font-size: .72rem; text-align: right; text-shadow: 0 1px 5px white; }
+  .visitor-app .leaflet-container { width: 100%; height: 100%; font: inherit; }
+  .visitor-app .leaflet-control-attribution { font-size: 9px; }
+  @media (max-width: 640px) {
+    .visitor-app { height: calc(100dvh - 64px); min-height: 460px; margin: 0; }
+    .visitor-panel { top: .65rem; left: .65rem; width: min(19rem, calc(100% - 1.3rem)); max-height: min(45%, 26rem); }
+    .visitor-map-message { bottom: .65rem; left: .65rem; width: min(18rem, calc(100% - 1.3rem)); }
+    .visitor-controls { right: .65rem; bottom: .65rem; }
+    .visitor-control { min-height: 2.65rem; }
+  }
 </style>
-<main class="visitor-shell">
-  <nav class="visitor-nav" aria-label="Visitor navigation">
-    <a href="/" class="visitor-back">← VenueFlow</a>
-    <span class="visitor-nav-label">Visitor guide</span>
-  </nav>
-  <header class="visitor-heading">
-    <p class="visitor-eyebrow">Visitor map</p>
-    <h1 class="visitor-title">{{ venue.name }}</h1>
-    <p class="visitor-subtitle">Explore the venue layout and find organizer-marked destinations.</p>
-  </header>
-
-  <div class="visitor-layout">
-    <section class="visitor-map-card" aria-label="Map of {{ venue.name }}">
-      <div class="visitor-map-header"><h2 class="visitor-map-heading">Venue overview</h2><span class="visitor-map-hint">Organizer-mapped paths and places</span></div>
-      <div class="visitor-map" role="img" aria-label="Venue plan with walking paths and destination pins">
-        {% if venue.plan_image_url %}<img class="visitor-plan" src="{{ venue.plan_image_url }}" alt="" loading="eager">{% endif %}
-        {% if venue.path_edges.all %}
-          <svg class="visitor-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
-            {% for edge in venue.path_edges.all %}
-              <line class="visitor-path" x1="{% widthratio edge.from_node.plan_x 1 1000 %}" y1="{% widthratio edge.from_node.plan_y 1 1000 %}" x2="{% widthratio edge.to_node.plan_x 1 1000 %}" y2="{% widthratio edge.to_node.plan_y 1 1000 %}" />
-            {% endfor %}
-          </svg>
-        {% endif %}
-        {% for feature in venue.features.all %}
-          {% with state=feature.properties.status|default:""|lower %}
-          <div class="visitor-pin{% if state == 'closed' %} visitor-pin-closed{% elif state == 'delayed' %} visitor-pin-delayed{% endif %}" style="left:{% widthratio feature.plan_x 1 100 %}%;top:{% widthratio feature.plan_y 1 100 %}%;" aria-label="{{ feature.name }}: {% if state == 'open' %}Open{% elif state == 'closed' %}Closed{% elif state == 'delayed' %}Delayed{% else %}Status unavailable{% endif %}">
-            <span class="visitor-pin-dot"></span><span class="visitor-pin-label">{{ feature.name }}</span>
-          </div>
-          {% endwith %}
-        {% empty %}
-          <p class="visitor-map-empty">No destinations have been added to this venue yet.</p>
-        {% endfor %}
-        {% if not venue.plan_image_url %}<span class="visitor-map-empty top">Venue plan image unavailable · showing saved coordinates</span>{% endif %}
-      </div>
-      <div class="visitor-map-caption" aria-label="Map legend">
-        <span class="visitor-legend"><i class="visitor-legend-dot"></i> Place</span>
-        <span class="visitor-legend"><i class="visitor-legend-dot closed"></i> Closed</span>
-        <span class="visitor-legend"><i class="visitor-legend-dot delayed"></i> Delayed</span>
-        <span class="visitor-legend">Line · mapped path</span>
-      </div>
-    </section>
-
-    <aside class="visitor-place-card" aria-labelledby="visitor-places-title">
-      <h2 id="visitor-places-title">Places on this map</h2>
-      <p class="visitor-place-intro">Place status is shown when it is available in the venue data.</p>
+<main class="visitor-app" data-visitor-app aria-label="{{ venue.name }} interactive map">
+  <div class="visitor-map" data-visitor-map role="application" aria-label="Interactive venue map"></div>
+  <p class="visitor-map-message" data-map-message role="status">Loading map data…</p>
+  <section class="visitor-panel" aria-label="Destinations">
+    <div class="visitor-panel-head">
+      <a href="/" class="visitor-back">← Walkwise</a>
+      <h1 class="visitor-title">{{ venue.name }}</h1>
+      <p class="visitor-freshness" data-state="{{ freshness_state }}">{% if freshness_state == 'current' %}Published venue map{% elif freshness_state == 'paused' %}Updates paused{% else %}Saved venue map{% endif %} · {{ freshness_updated_at|date:"M j, Y g:i A" }}</p>
+      <label class="sr-only" for="visitor-search">Search destinations</label>
+      <input class="visitor-search" id="visitor-search" type="search" placeholder="Search destinations" autocomplete="off" data-place-search>
+    </div>
+    <div class="visitor-list" data-place-list>
       {% for feature in venue.features.all %}
-        {% with state=feature.properties.status|default:""|lower %}
-        <div class="visitor-place">
-          <div><p class="visitor-place-name">{{ feature.name }}</p><p class="visitor-place-kind">{{ feature.kind|title }}</p></div>
-          <span class="visitor-status{% if state == 'open' %} visitor-status-open{% elif state == 'closed' %} visitor-status-closed{% elif state == 'delayed' %} visitor-status-delayed{% endif %}">{% if state == 'open' %}Open{% elif state == 'closed' %}Closed{% elif state == 'delayed' %}Delayed{% else %}Status unavailable{% endif %}</span>
-        </div>
-        {% endwith %}
-        {% empty %}
-        <p class="visitor-empty">No destination details are available yet.</p>
-      {% endfor %}
-    </aside>
+      {% with state=feature.properties.status|default:"unavailable"|lower %}
+      <button class="visitor-place" type="button" data-place-item data-place-id="{{ feature.pk }}" data-place-name="{{ feature.name }}" data-place-kind="{{ feature.kind|title }}" data-place-status="{{ state }}" aria-pressed="false">
+        <span><span class="visitor-place-name">{{ feature.name }}</span><br><span class="visitor-place-kind">{{ feature.kind|title }}</span></span>
+        <span class="visitor-status" data-status="{{ state }}">{% if state == 'open' %}Open{% elif state == 'closed' %}Closed{% elif state == 'delayed' %}Delayed{% else %}Status unavailable{% endif %}</span>
+      </button>
+      {% endwith %}
+      {% empty %}<p class="visitor-empty">No destinations have been added to this venue.</p>{% endfor %}
+      <p class="visitor-empty" data-no-mapped-destinations hidden>No destinations are positioned on this map yet.</p>
+      <p class="visitor-empty" data-no-results hidden>No destinations match your search.</p>
+    </div>
+    <div class="visitor-route-button-wrap"><button class="visitor-control visitor-control-primary visitor-route-button" type="button" data-route-destination disabled>Route to selected place</button></div>
+  </section>
+  <div class="visitor-controls">
+    <section class="visitor-route-card" data-route-card hidden aria-live="polite">
+      <h2 class="visitor-route-title" data-route-title>Route</h2>
+      <p data-route-next></p>
+      <p data-route-distance></p>
+      <button class="visitor-control" type="button" data-stop-route>Stop route</button>
+    </section>
+    <p class="visitor-message" data-location-message aria-live="polite">Choose a destination, then tap Locate me to start from your current location.</p>
+    <button class="visitor-control visitor-control-primary" type="button" data-locate-me>Locate me</button>
+    <button class="visitor-control" type="button" data-stop-locating hidden>Stop locating</button>
+    <button class="visitor-control" type="button" data-recenter hidden>Center on me</button>
+    <button class="visitor-control" type="button" data-manual-start hidden>Choose path start</button>
+    <button class="visitor-control" type="button" data-map-mode hidden>Show venue plan</button>
   </div>
 </main>
+{{ visitor_map_data|json_script:"visitor-map-data" }}
+<script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
 <script defer src="{% static 'venueflow/visitor.js' %}"></script>
 {% endblock %}

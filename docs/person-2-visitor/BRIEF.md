@@ -11,11 +11,11 @@ Build the visitor experience for a read-only venue snapshot. Make it easy to fin
 
 ## Build now
 
-1. Render a visitor template from a published `Venue` snapshot and freshness context supplied by the Django view.
-2. Render the map image/backdrop, graph paths, labeled destination pins, and status styling using normalized coordinates.
+1. Render a visitor template from the published or current venue snapshot and freshness context supplied by the Django view.
+2. Render an interactive map with real geospatial coordinates when available, plus the organizer's venue plan and graph where applicable.
 3. Add a searchable/filterable destination list and a selected-place detail panel/card.
 4. Show clear open, closed, or delayed state and truthful saved/current status supplied by the server.
-5. Add a prominent “Locate me” entry point. If GPS is unavailable, show a useful map-tap/manual-start prompt; do not request location on page load.
+5. Add a prominent “Locate me” entry point. If GPS is unavailable, offer a useful manual starting-point option; do not request location on page load.
 6. Keep the layout mobile-first and suitable for QR entry. Do not own QR generation, app shell, cache implementation, or route computation.
 
 ## Independent development
@@ -31,6 +31,22 @@ Use the seeded venue or ORM-backed view context. Do not block on routing APIs; l
 - Visitor route renders from Django and is ready for integration by elapsed hour 2.
 
 ## Phases
+
+### P2-VIS-5 — Show saved floor paths without a plan image
+
+- Status: verified
+- Goal: Make persisted organizer path points and edges visible to visitors when the venue has no uploaded floor-plan image or GPS positions.
+- Scope: In the visitor map, render saved normalized plan coordinates on a neutral, explicitly labeled canvas when there is no image; keep real image and street-map modes unchanged. Keep the empty state only when there is no usable map data at all.
+- Acceptance criteria:
+  - [x] A venue with saved plan-coordinate nodes/edges but no image or GPS coordinates displays its path graph and destinations on a neutral canvas.
+  - [x] The visitor UI clearly states that the canvas is not a floor-plan image and coordinates are not georeferenced.
+  - [x] A saved floor-plan image remains the background when present; street mode remains dependent on real GPS coordinates.
+- Checks: `node --check api/venueflow/static/venueflow/visitor.js`, `git diff --check`, and focused source/logic verification for image-only, plan-graph-only, GPS-only, and empty venue states.
+- Dependencies: P4-INT-3 map-draft persistence; P2-VIS-1 through P2-VIS-4.
+- Out of scope: Inferring street coordinates, fabricating a floor plan, route behavior changes, and server/API persistence changes.
+- Verification record: 2026-10-11 06:48 IST — `node --check api/venueflow/static/venueflow/visitor.js` and `git diff --check` passed. Reviewed image-backed plan, plan-coordinate-only, GPS, and empty-data branches; plan-coordinate-only data now initializes the plan-coordinate map without an image overlay, and displays an explicit neutral-canvas notice. Docker runtime/browser check was unavailable because Docker Desktop pipe access was denied.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — User reported that organizer-authored paths saved without appearing in visitor view. Source review showed the visitor required an image or GPS location to enter a map mode, so plan-coordinate-only data was hidden.
 
 Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with the [phase template](../PHASE_TEMPLATE.md). Keep this feature's owned paths intact.
 
@@ -53,7 +69,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 
 ### P2-VIS-2 — Find and inspect a destination
 
-- Status: `not started`
+- Status: `in progress`
 - Goal: Let visitors search or filter destinations, select one, and inspect its details and status.
 - Scope: Add search/filter controls, selection behavior, and a selected-place detail panel/card using the supplied snapshot props and the owned visitor JavaScript/template paths.
 - Acceptance criteria:
@@ -64,29 +80,54 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Checks: Run the focused Django/page check and manually exercise search, filters, selection changes, empty results, and status consistency on the seeded venue.
 - Dependencies: P2-VIS-1; visitor view data must expose the fields needed to search and display place details.
 - Out of scope: Route calculation and publishing/model/API changes.
-- Verification record: Not run; phase not started.
-- Commit: Pending.
+- Verification record: 2026-10-11 IST — `node --check api/venueflow/static/venueflow/visitor.js` passed. Django template rendering with representative names, statuses, and descriptions passed; rendered HTML contains the search/status controls, place data, and detail panel with no unrendered Django tags. `git diff --check` passed. Live click/filter interaction remains unverified in the app browser.
+- Follow-up verification: 2026-10-11 IST — Isolated Compose app built successfully; migrations and seed exited 0, API became healthy, and `/v/kochi-expo/` returned HTTP 200 with visitor controls and seeded places in rendered HTML and no unresolved `{%` tags. Browser interaction remains unverified because the CUA browser runtime could not initialize.
+- Commit: `535489d` — `feat: add visitor discovery and orientation` (implementation; live interaction verification pending).
 - Plan changes: 2026-10-11 — Isolated discovery and selected-place details from the base map outcome for focused review.
 
 ### P2-VIS-3 — Show freshness and offer manual orientation
 
-- Status: `not started`
+- Status: `in progress`
 - Goal: Communicate server-supplied snapshot freshness and provide an accessible starting point for navigation.
-- Scope: Render a truthful saved/current/paused freshness cue from explicit view props; add a prominent “Locate me” entry point with a useful map-tap/manual-start prompt when GPS is unavailable or denied; ensure narrow mobile layout; reserve a visible route-overlay slot for the navigation workstream.
+- Scope: Render a truthful saved/current/paused freshness cue from explicit view props; add a prominent “Locate me” entry point with a useful map-tap/manual-start prompt when GPS is unavailable or denied; ensure narrow mobile layout; reserve a visible route-overlay slot for the navigation workstream. A context-only change to the visitor function in integration-owned `api/venueflow/pages.py` is in scope because the current view provides no freshness prop; preserve URL, model, and API contracts and flag the change for integration review.
 - Acceptance criteria:
   - [ ] Freshness wording is derived only from explicit server props and does not infer live/offline status from connectivity.
   - [ ] The page does not request location on load; location is requested only after the visitor activates “Locate me”.
   - [ ] Unavailable/denied GPS presents a usable map-tap or manual-start prompt.
   - [ ] At narrow phone width, search/list, map, details, freshness, and locate entry remain usable without horizontal overflow.
-  - [ ] A route overlay placeholder is present and does not claim to calculate or display a route before routing integration.
+  - [x] A route overlay placeholder is present and does not claim to calculate or display a route before routing integration.
 - Checks: Run the focused Django/page check; manually verify each freshness prop state, no location prompt on initial load, the locate fallback, and narrow-width layout.
-- Dependencies: P2-VIS-1 and P2-VIS-2; freshness context must be supplied by the Django visitor view. Route placeholder is an integration point only.
+- Dependencies: P2-VIS-1 and P2-VIS-2; visitor page view supplies explicit publication state and last-saved timestamp. Route placeholder is an integration point only.
 - Out of scope: GPS snapping, route computation, spoken directions, QR generation, cache/offline implementation, and external map tiles.
-- Verification record: Not run; phase not started.
-- Commit: Pending.
-- Plan changes: 2026-10-11 — Made freshness/location/mobile behavior a separate final visitor phase, keeping navigation integration and QR/cache ownership explicit.
+- Verification record: 2026-10-11 IST — `python -m py_compile api/venueflow/pages.py` and `node --check api/venueflow/static/venueflow/visitor.js` passed. Django template rendering for `saved`, `current`, and `paused` props passed with expected labels and no unrendered tags. Code inspection confirms `getCurrentPosition` is registered on the explicit button click only; manual map click and keyboard start markers are wired. `git diff --check` passed. Actual GPS permission/fallback and narrow-screen browser behavior remain unverified.
+- Follow-up verification: 2026-10-11 IST — The isolated Compose app built; migration and seed exited 0; Django health check passed; `/v/kochi-expo/` returned HTTP 200 and rendered the Locate me control without unresolved Django tags. Browser automation failed to initialize, so GPS permission/fallback and narrow-screen behavior remain unverified.
+- Follow-up fix: 2026-10-11 IST — Changed manual map placement from click-only handling to pointer tap handling with a small movement threshold, preserving map-pin selection and ignoring drags/cancelled touches. `node --check` and live static-asset verification passed after collecting the updated file. Actual phone touch interaction still needs user confirmation.
+- Commit: `535489d` — `feat: add visitor discovery and orientation` (implementation; GPS/mobile verification pending).
+- Plan changes: 2026-10-11 — Made freshness/location/mobile behavior a separate final visitor phase, keeping navigation integration and QR/cache ownership explicit. Added a narrow visitor-view context exception because the existing Django view supplies no freshness props required by this phase.
 
-After P2-VIS-3, hand off for integration review. QR and cache remain integration-owned.
+### P2-VIS-4 — Interactive map and organizer-path navigation
+
+- Status: `in progress`
+- Goal: Replace the static illustration with an interactive, coordinate-aware visitor map that locates the visitor and guides them along paths explicitly authored by the organizer.
+- Scope: Use the project's existing Leaflet/OpenStreetMap approach for the outdoor map; render the real venue plan only when one is saved; show georeferenced destination pins, organizer path graph, and current position without decorative/sample map graphics. Let visitors search/select a destination, calculate a route over the authored graph, see the route and next path point, and stop/clear the route. Request GPS only after the visitor activates Locate me. Expose saved graph and geolocation data from the server. Add an explicit organizer-selected `access_node_id` for destinations because the current data contract has no safe place-to-path connection; do not infer it from proximity. Keep visitor visual/CSS/JS changes under a visitor root so they cannot affect other pages. Remove the overview's decorative mock map and summary tiles at the user's request while keeping real venue listing/actions. If map coordinates are missing, explain that the venue has not been georeferenced and offer the saved floor plan only when it exists; never draw a fabricated street-map background or dummy chart.
+- Acceptance criteria:
+  - [ ] Visitor gets a pannable/zoomable OSM map, or the actual saved floor plan where outdoor georeferencing is absent; no patterned/fake map fallback is displayed.
+  - [ ] Locate me asks for permission only on click, updates a visible position marker as the device moves, supports recenter/stop controls, and reports denial/unsupported/accuracy states usefully.
+  - [ ] Destinations are selectable from search/list or map markers; selecting a destination offers navigation.
+  - [ ] A route starts from the visitor's nearest explicitly georeferenced path node (or an explicitly selected manual start node), follows only organizer-authored open edges, and ends at the destination's explicitly assigned access node.
+  - [ ] Route geometry is drawn on the map and the visitor can see the next graph point and remaining distance; closed/disconnected/unmapped routes show clear errors instead of fabricated guidance.
+  - [ ] Organizer can assign a destination's access node explicitly and persist it with the existing map-draft API.
+  - [x] Visitor-only controls and overlays do not style or cover the overview or organizer pages.
+  - [x] Decorative sample maps and summary tiles are removed from the overview and visitor view; real venue data and actions remain.
+- Checks: JavaScript syntax and Django checks; focused route fixtures for direction/closures/missing mappings; local page rendering; manual browser verification of pan/zoom, destination selection, GPS/manual start, route draw/stop, error states, and another non-visitor page to confirm styling isolation.
+- Dependencies: P2-VIS-1 through P2-VIS-3; P3-NAV-1/P3-NAV-2 graph contract; P4-INT-3 map-draft API. Requires explicit place-to-node mapping in organizer-authored feature properties.
+- Out of scope: Offline routing, voice guidance, external commercial Google Maps API, automatic routing inference from coordinates, live sync, and QR/publishing.
+- Verification record: 2026-10-11T06:37+05:30 — `node --check` passed for visitor, organizer, and shared page JavaScript; `python -m py_compile` passed for `pages.py` and `serializers.py`; `git diff --check` passed. Opened the visitor route in the app browser and confirmed unpositioned seed places are omitted, the fabricated patterned fallback is gone, and a truthful map-data empty state is shown. Opened overview and organizer routes and confirmed visitor overlay styling does not cover either page; the overview mock illustration, summary tiles, and toast-only buttons are removed and navigation links work. `npm run build:css` could not run because npm is not installed in the shell; Django `manage.py check`/migration checks could not run because Docker Desktop pipe access was denied. The current venue has no GPS coordinates or saved plan, so actual OSM tiles, geolocation permission, destination markers, and route behavior could not be manually verified without authoring real venue data or granting browser location.
+- Commit: `d4ec508` — `wip: add interactive visitor map navigation`.
+- Plan changes: 2026-10-11T06:16:48+05:30 — User clarified that the visitor experience must behave like an interactive map, show the visitor's location, route to selected destinations along organizer-defined paths, and avoid dummy visualizations. Added this phase and explicit mapping/geodata requirements; existing static coordinate illustration does not satisfy that goal.
+- Plan changes: 2026-10-11T06:34:00+05:30 — Expanded the visual cleanup to the overview after inspection found a decorative mock map and redundant summary tiles; preserve its real venue list and actions.
+
+After P2-VIS-5, hand off for integration review. QR and cache remain integration-owned.
 
 ## Cut first
 

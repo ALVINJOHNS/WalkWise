@@ -13,6 +13,10 @@ CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv(
     "https://roving-whiny-underpay.ngrok-free.dev",
 ).split(",") if origin.strip()]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# The organizer posts a base64 data URL as JSON (about 4/3 the image size).
+# Keep this just above the organizer's 15 MiB body guard so valid 10 MiB plans
+# reach that handler and oversized requests receive its JSON error response.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 16 * 1024 * 1024
 
 INSTALLED_APPS = [
     "django.contrib.auth",

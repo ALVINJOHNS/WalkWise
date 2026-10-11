@@ -71,6 +71,8 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Next: submission and demo rehearsal.
 ## Then build
 
+For local phone demos, allow the host's exact Wi-Fi IP through the `DJANGO_ALLOWED_HOSTS` environment variable on the API service; do not use a wildcard host list. The development server must bind to `0.0.0.0`, and the phone must be on the same LAN.
+
 1. Integrate organizer and visitor templates/JS from the feature-owned paths in `docs/architecture.md`; avoid editing feature files.
 2. Complete P4-INT-3 related-resource persistence before connecting publishing.
 3. Complete P4-INT-4 publishing, visitor snapshot, URL, and QR flow.

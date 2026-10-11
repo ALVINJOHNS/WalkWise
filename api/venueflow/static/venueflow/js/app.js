@@ -9,23 +9,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const toast = document.querySelector("[data-flow-toast]");
-  let toastTimer;
-  document.querySelectorAll("[data-flow-target]").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (!toast) return;
-      const destination = button.dataset.flowName || button.dataset.flowTarget;
-      toast.textContent = `${destination} is mapped as the next step. Navigation will be connected soon.`;
-      toast.hidden = false;
-      toast.classList.add("flow-toast--visible");
-      window.clearTimeout(toastTimer);
-      toastTimer = window.setTimeout(() => {
-        toast.classList.remove("flow-toast--visible");
-        window.setTimeout(() => { toast.hidden = true; }, 200);
-      }, 2800);
-    });
-  });
-
   const search = document.querySelector("[data-venue-search]");
   if (search) {
     const cards = [...document.querySelectorAll("[data-venue-card]")];
