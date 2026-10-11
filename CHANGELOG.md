@@ -1,5 +1,11 @@
 # Change log
 
+## 2026-10-11T06:59:00+05:30 — Improve organizer street-map path editing
+- Changed: Added an explicit Draw path mode that connects successive path-point marker clicks, made street-map path points draggable, and added straight/curved controls with a draggable Bezier handle. Curve control coordinates are retained in the existing edge `access_rules` JSON. Updated Organizer Studio instructions, P1-ORG-10, and README behavior notes.
+- Why: The prior connection flow required selecting a point, pressing Connect, selecting another point, and pressing Connect again; every street-map edge rendered as a fixed straight segment.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Source review confirmed the map-draft serializer stores and returns `access_rules`. Live browser interaction/save-reload could not be checked because Docker Desktop pipe access and localhost socket access are unavailable.
+- Limitations: Browser verification remains pending. Curves are quadratic geographic-coordinate curves and are organizer-authored geometry; they are not snapped to roads or sidewalks.
+
 ## 2026-10-11T06:48:00+05:30 — Show saved organizer paths in visitor map
 - Changed: The visitor now renders persisted normalized plan coordinates on a neutral canvas when a saved path exists without a floor-plan image or GPS positions. It labels the view so visitors do not mistake it for an uploaded plan or georeferenced map. Added P2-VIS-5 verification and updated the README behavior description.
 - Why: Organizer map-draft saves path nodes and edges to venue ORM rows, but the visitor previously entered only street mode for GPS coordinates or plan mode when an image was available, hiding path-only drafts.

@@ -34,6 +34,24 @@ Use the seeded database venue while API persistence is being finalized. Keep int
 
 ## Phases
 
+### P1-ORG-10 — Map-first path drawing and editable curves
+
+- Status: in progress
+- Goal: Let organizers place destination/path points on the visible street map, connect points directly from the map, and adjust a connection into a curved path.
+- Scope: Make map-point placement and connection mode explicit; make each street-map node selectable for a two-click connection flow; draw existing connections on the map; add a draggable curve handle and straight/curved toggle per connection. Persist the street-map control point through the existing `map-draft` edge `access_rules` field so no schema/API changes are needed. Retain normalized plan coordinates and the existing floor-plan editor.
+- Acceptance criteria:
+  - [ ] With the street map open, organizer can add destinations and path points at map clicks and see the corresponding draggable/selectable markers.
+  - [ ] Connection mode prompts for a start point and endpoint and creates one edge between those stable node IDs.
+  - [ ] Existing edges are visible over the map; each can be set straight or curved and its curve handle can be dragged to reshape it.
+  - [ ] Edge curve state survives save/reload using the existing map-draft API and does not alter other points or edges.
+  - [ ] Floor-plan editing, validation, and existing destination/path-point data remain usable.
+- Checks: `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, inspect existing map-draft `access_rules` round-trip behavior, and browser interaction/save-reload if runtime is available.
+- Dependencies: P1-ORG-2, P1-ORG-4, P1-ORG-8, P4-INT-3 map-draft persistence.
+- Out of scope: Road snapping, multi-segment routing, changing database/API schemas, and inferring paths.
+- Verification record: 2026-10-11 06:59 IST — `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Source review confirms edge `access_rules` is accepted and returned by the existing map-draft API, and that the editor now has click-to-connect, draggable path nodes, a straight/curve toggle, and a draggable quadratic-curve control handle. Live map interaction and save/reload could not be checked: Docker Desktop pipe access is denied and localhost socket access is forbidden in this environment.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — User clarified the desired location-based workflow: open the map, place destination/path points, connect them, and edit straight or curved path geometry against the map background.
+
 Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with the [phase template](../PHASE_TEMPLATE.md). Keep this feature's owned paths intact.
 
 ### P1-ORG-1 — Editor foundation

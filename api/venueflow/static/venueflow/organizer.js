@@ -9,7 +9,7 @@
   const eventPickerWrap = $("[data-event-picker-wrap]");
   if (!canvas || !venuePicker) return;
 
-  const state = { venue: null, events: [], eventId: null, mapDraft: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], aiPathPoints: [], aiPathSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
+  const state = { venue: null, events: [], eventId: null, mapDraft: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], aiPathPoints: [], aiPathSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, connectMode: false, connectFrom: null, selected: null, dirty: false, drag: null };
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
@@ -33,6 +33,35 @@
     if (!state.selected) return null;
     const collection = state.selected.type === "place" ? state.places : state.nodes;
     return collection.find((item) => item.id === state.selected.id) || null;
+  }
+
+  function choosePathPoint(node) {
+    state.selected = { type: "node", id: node.id };
+    state.mapPlacement = false;
+    if (!state.connectMode) { render(); return; }
+    if (!state.connectFrom) {
+      state.connectFrom = node.id;
+      controls.mapStatus.textContent = `Start point: ${node.name}. Click another path point to connect.`;
+      render();
+      return;
+    }
+    if (state.connectFrom === node.id) {
+      controls.mapStatus.textContent = `${node.name} is already the start point. Choose a different point.`;
+      render();
+      return;
+    }
+    const duplicate = state.edges.some((edge) => (edge.from === state.connectFrom && edge.to === node.id)
+      || (edge.from === node.id && edge.to === state.connectFrom));
+    if (!duplicate) {
+      state.edges.push({ id: makeId("edge"), from: state.connectFrom, to: node.id, access_rules: {} });
+      setDirty();
+      controls.errors.textContent = "";
+    }
+    state.connectFrom = node.id;
+    controls.mapStatus.textContent = duplicate
+      ? `Those points are already connected. ${node.name} is the new start point; choose another point or turn off Draw path.`
+      : `Connected to ${node.name}. Choose another point to continue the path, or turn off Draw path.`;
+    render();
   }
 
   function render() {
@@ -135,10 +164,15 @@
       const li = document.createElement("li"); li.className = "item-row";
       const distance = a?.geolocation && b?.geolocation ? ` · ${formatDistance(distanceMeters(a.geolocation, b.geolocation))}` : "";
       const label = document.createElement("span"); label.textContent = `${a?.name || edge.from} ↔ ${b?.name || edge.to}${distance}${edge.proposal ? " · AI proposal — verify on-site" : ""}`;
+      const curve = document.createElement("button"); curve.type = "button";
+      curve.textContent = edge.access_rules?.curve_control ? "Make straight" : "Curve";
+      curve.disabled = !a?.geolocation || !b?.geolocation;
+      curve.title = curve.disabled ? "Place both points on the street map first" : "Toggle a draggable curved path handle";
+      curve.addEventListener("click", () => toggleEdgeCurve(edge));
       const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Remove";
       remove.setAttribute("aria-label", `Remove connection ${a?.name || edge.from} to ${b?.name || edge.to}`);
       remove.addEventListener("click", () => { state.edges = state.edges.filter((item) => item.id !== edge.id); setDirty(); render(); });
-      li.append(label, remove);
+      li.append(label, curve, remove);
       controls.edgeList.append(li);
     });
     const place = state.selected?.type === "place" ? selectedItem() : null;
@@ -250,25 +284,53 @@
     });
     state.nodes.forEach((node) => {
       if (!node.geolocation) return;
-      const marker = window.L.circleMarker([node.geolocation.latitude, node.geolocation.longitude], {
-        radius: state.selected?.type === "node" && state.selected.id === node.id ? 9 : 6,
-        color: state.selected?.type === "node" && state.selected.id === node.id ? "#f59e0b" : "#ffffff",
-        weight: 3, fillColor: "#6d45c7", fillOpacity: 1,
+      const selected = state.selected?.type === "node" && state.selected.id === node.id;
+      const marker = window.L.marker([node.geolocation.latitude, node.geolocation.longitude], {
+        draggable: true,
+        icon: window.L.divIcon({ className: "path-node-icon", html: `<span class="path-node-marker${selected ? " selected" : ""}"></span>`, iconSize: [20, 20], iconAnchor: [10, 10] }),
+        title: `${node.name || "Path point"} · drag to reposition`,
+        keyboard: true,
       }).addTo(state.leafletLayers);
       marker.bindTooltip(node.name || "Path point");
+      marker.on("dragend", (event) => {
+        const position = event.target.getLatLng();
+        node.geolocation = { ...node.geolocation, latitude: position.lat, longitude: position.lng, accuracy: 0, timestamp: new Date().toISOString() };
+        state.selected = { type: "node", id: node.id };
+        setDirty(); render();
+      });
       marker.on("click", (event) => {
         if (state.mapAddType) return;
         window.L.DomEvent.stopPropagation(event);
-        state.selected = { type: "node", id: node.id }; state.mapPlacement = false; render();
+        choosePathPoint(node);
       });
     });
     state.edges.forEach((edge) => {
       const from = state.nodes.find((node) => node.id === edge.from);
       const to = state.nodes.find((node) => node.id === edge.to);
       if (!from?.geolocation || !to?.geolocation) return;
-      window.L.polyline([[from.geolocation.latitude, from.geolocation.longitude], [to.geolocation.latitude, to.geolocation.longitude]], {
-        color: "#6d45c7", weight: 4, dashArray: "7 6",
+      const controlPoint = edge.access_rules?.curve_control;
+      const start = window.L.latLng(from.geolocation.latitude, from.geolocation.longitude);
+      const end = window.L.latLng(to.geolocation.latitude, to.geolocation.longitude);
+      const control = controlPoint && Number.isFinite(Number(controlPoint.latitude)) && Number.isFinite(Number(controlPoint.longitude))
+        ? window.L.latLng(Number(controlPoint.latitude), Number(controlPoint.longitude)) : null;
+      const linePoints = control ? quadraticCurve(start, control, end) : [start, end];
+      window.L.polyline(linePoints, {
+        color: "#6d45c7", weight: 5, opacity: .9, dashArray: edge.proposal ? "7 6" : null,
       }).addTo(state.leafletLayers);
+      if (control) {
+        const handle = window.L.marker(control, {
+          draggable: true,
+          icon: window.L.divIcon({ className: "path-curve-handle", html: "↕", iconSize: [24, 24], iconAnchor: [12, 12] }),
+          title: "Drag to reshape this path",
+          keyboard: true,
+        }).addTo(state.leafletLayers);
+        handle.on("dragend", (event) => {
+          const position = event.target.getLatLng();
+          edge.access_rules = { ...(edge.access_rules || {}), curve_control: { latitude: position.lat, longitude: position.lng } };
+          setDirty(); render();
+        });
+        handle.on("click", (event) => window.L.DomEvent.stopPropagation(event));
+      }
     });
     if (state.currentLocation) {
       const accuracy = Number(state.currentLocation.accuracy) || 0;
@@ -284,6 +346,49 @@
       if (state.geoRecording) state.leafletMap.panInside(pointer.getLatLng(), { padding: [60, 60] });
     }
     if (state.mapMode === "street") window.setTimeout(() => state.leafletMap?.invalidateSize(), 0);
+  }
+
+  function quadraticCurve(start, control, end) {
+    const points = [];
+    for (let step = 0; step <= 24; step += 1) {
+      const t = step / 24;
+      const inverse = 1 - t;
+      points.push(window.L.latLng(
+        inverse * inverse * start.lat + 2 * inverse * t * control.lat + t * t * end.lat,
+        inverse * inverse * start.lng + 2 * inverse * t * control.lng + t * t * end.lng,
+      ));
+    }
+    return points;
+  }
+
+  function initialCurveControl(start, end) {
+    const zoom = state.leafletMap.getZoom();
+    const a = state.leafletMap.project(start, zoom);
+    const b = state.leafletMap.project(end, zoom);
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const length = Math.hypot(dx, dy) || 1;
+    return state.leafletMap.unproject(window.L.point((a.x + b.x) / 2 - dy / length * 28, (a.y + b.y) / 2 + dx / length * 28), zoom);
+  }
+
+  function toggleEdgeCurve(edge) {
+    const from = state.nodes.find((node) => node.id === edge.from);
+    const to = state.nodes.find((node) => node.id === edge.to);
+    if (!from?.geolocation || !to?.geolocation) {
+      controls.errors.textContent = "Place both path points on the street map before editing a curve.";
+      return;
+    }
+    const accessRules = { ...(edge.access_rules || {}) };
+    if (accessRules.curve_control) delete accessRules.curve_control;
+    else {
+      const start = window.L.latLng(from.geolocation.latitude, from.geolocation.longitude);
+      const end = window.L.latLng(to.geolocation.latitude, to.geolocation.longitude);
+      const point = initialCurveControl(start, end);
+      accessRules.curve_control = { latitude: point.lat, longitude: point.lng };
+    }
+    edge.access_rules = accessRules;
+    setDirty();
+    controls.errors.textContent = "";
+    render();
   }
 
   function distanceMeters(a, b) {
@@ -309,6 +414,7 @@
       button.textContent = type === "place" ? `#${Number(item.pin_number) || index + 1} ${item.name || `Destination ${index + 1}`}` : item.name;
       button.setAttribute("aria-label", type === "place" ? `Destination ${Number(item.pin_number) || index + 1}: ${item.name || `Destination ${index + 1}`}` : item.name);
       button.addEventListener("click", () => {
+        if (type === "node" && state.connectMode) { choosePathPoint(item); return; }
         state.selected = { type, id: item.id }; state.mapPlacement = false; state.mapAddType = null;
         if (state.leafletMap) state.leafletMap.getContainer().style.cursor = "";
         render();
@@ -762,13 +868,16 @@
     }
   });
   $("[data-dismiss-suggestions]").addEventListener("click", () => { state.aiSuggestions = []; state.aiPathPoints = []; state.aiPathSuggestions = []; controls.aiStatus.textContent = ""; render(); });
-  $("[data-connect]").addEventListener("click", () => {
-    if (state.selected?.type === "node") {
-      const first = state.nodes.find((node) => node.id === state.selected.id);
-      if (!state.connectFrom) { state.connectFrom = first.id; controls.errors.textContent = "Choose another path point to complete the connection."; return; }
-      if (state.connectFrom !== first.id) { state.edges.push({ id: makeId("edge"), from: state.connectFrom, to: first.id }); state.connectFrom = null; setDirty(); controls.errors.textContent = ""; render(); return; }
-    }
-    controls.errors.textContent = "Select a path point, click Connect, select a second point, then click Connect again.";
+  $("[data-connect]").addEventListener("click", (event) => {
+    state.connectMode = !state.connectMode;
+    state.connectFrom = null;
+    event.currentTarget.setAttribute("aria-pressed", String(state.connectMode));
+    event.currentTarget.textContent = state.connectMode ? "Finish drawing path" : "Draw path: click two points";
+    controls.mapStatus.textContent = state.connectMode
+      ? "Path drawing is on. Click a start point, then click each next point to connect them."
+      : "Path drawing finished.";
+    controls.errors.textContent = "";
+    render();
   });
   $("[data-save]").addEventListener("click", save);
   $("[data-delete-place]").addEventListener("click", () => {
