@@ -1,5 +1,11 @@
 # Change log
 
+## 2026-10-11T07:51:00+05:30 — Make organizer path connections visible and confirm creation
+- Changed: Added an accessible, prominent connection confirmation beside the path controls and a white outline under street-map paths; refreshed the organizer script cache version.
+- Why: Organizers reported that creating a path gave only an easy-to-miss general status message and the line was hard to distinguish over the map.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Browser interaction remains pending.
+- Limitations: Connections remain unsaved until the existing Save map action is used; live browser visibility has not been verified in this turn.
+
 ## 2026-10-11T07:09:00+05:30 — Ensure Organizer Studio reload gets path editor update
 - Changed: Versioned the organizer JavaScript URL so a fresh page load bypasses a stale cached script. Verified the running API serves the new button text and updated script content.
 - Why: The user's open browser tab still displayed the old `Connect selected points` UI although the running container had the new template and JavaScript mounted. This confirmed the tab had not loaded the updated page.

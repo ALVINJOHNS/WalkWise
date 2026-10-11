@@ -13,6 +13,7 @@
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
+    connectionNotice: $("[data-connection-notice]"),
     fields: $("[data-place-fields]"), errors: $("[data-errors]"), saveState: $("[data-save-state]"),
     gpsStatus: $("[data-gps-status]"), startOutline: $("[data-start-outline]"), stopOutline: $("[data-stop-outline]"),
     placeLocation: $("[data-place-location]"), setPlaceLocation: $("[data-set-place-location]"), placeOnMap: $("[data-place-on-map]"), accessNode: $("[data-access-node]"),
@@ -56,6 +57,11 @@
       state.edges.push({ id: makeId("edge"), from: state.connectFrom, to: node.id, access_rules: {} });
       setDirty();
       controls.errors.textContent = "";
+      controls.connectionNotice.textContent = `Path connection added: ${state.nodes.find((item) => item.id === state.connectFrom)?.name || "Path point"} → ${node.name || "Path point"}. Save map to keep this change.`;
+      controls.connectionNotice.hidden = false;
+    } else {
+      controls.connectionNotice.textContent = `These points are already connected: ${state.nodes.find((item) => item.id === state.connectFrom)?.name || "Path point"} ↔ ${node.name || "Path point"}.`;
+      controls.connectionNotice.hidden = false;
     }
     state.connectFrom = node.id;
     controls.mapStatus.textContent = duplicate
@@ -315,7 +321,10 @@
         ? window.L.latLng(Number(controlPoint.latitude), Number(controlPoint.longitude)) : null;
       const linePoints = control ? quadraticCurve(start, control, end) : [start, end];
       window.L.polyline(linePoints, {
-        color: "#6d45c7", weight: 5, opacity: .9, dashArray: edge.proposal ? "7 6" : null,
+        color: "#ffffff", weight: 10, opacity: .95, lineCap: "round", lineJoin: "round",
+      }).addTo(state.leafletLayers);
+      window.L.polyline(linePoints, {
+        color: "#6d45c7", weight: 6, opacity: 1, lineCap: "round", lineJoin: "round", dashArray: edge.proposal ? "7 6" : null,
       }).addTo(state.leafletLayers);
       if (control) {
         const handle = window.L.marker(control, {
@@ -871,6 +880,7 @@
   $("[data-connect]").addEventListener("click", (event) => {
     state.connectMode = !state.connectMode;
     state.connectFrom = null;
+    controls.connectionNotice.hidden = true;
     event.currentTarget.setAttribute("aria-pressed", String(state.connectMode));
     event.currentTarget.textContent = state.connectMode ? "Finish drawing path" : "Draw path: click two points";
     controls.mapStatus.textContent = state.connectMode
