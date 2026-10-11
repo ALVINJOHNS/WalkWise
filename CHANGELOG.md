@@ -1,5 +1,11 @@
 # Change log
 
+## 2026-10-11T07:09:00+05:30 — Ensure Organizer Studio reload gets path editor update
+- Changed: Versioned the organizer JavaScript URL so a fresh page load bypasses a stale cached script. Verified the running API serves the new button text and updated script content.
+- Why: The user's open browser tab still displayed the old `Connect selected points` UI although the running container had the new template and JavaScript mounted. This confirmed the tab had not loaded the updated page.
+- Validation: Read-only in-container request confirmed the organizer HTML has the Draw path control and versioned script URL, and the served JS includes the path connection/curve handlers; `node --check` and `git diff --check` passed.
+- Limitations: The existing browser tab contains an active outline recording and unsaved edits. It was left untouched; the user must preserve that draft before reloading to see the new UI. Marker clicks and save/reload still need interaction testing.
+
 ## 2026-10-11T06:59:00+05:30 — Improve organizer street-map path editing
 - Changed: Added an explicit Draw path mode that connects successive path-point marker clicks, made street-map path points draggable, and added straight/curved controls with a draggable Bezier handle. Curve control coordinates are retained in the existing edge `access_rules` JSON. Updated Organizer Studio instructions, P1-ORG-10, and README behavior notes.
 - Why: The prior connection flow required selecting a point, pressing Connect, selecting another point, and pressing Connect again; every street-map edge rendered as a fixed straight segment.
