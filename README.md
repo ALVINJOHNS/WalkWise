@@ -1,74 +1,117 @@
-# Walkwise — DevDay Exchange Community Hackathon: Kochi
+# Walkwise
 
-Walkwise turns venue plans into clear event maps and visitor navigation.
+**Walkwise helps event teams turn a venue layout into an editable map with destinations and visitor routes.** Organizers can maintain venue information and walkable connections; visitors can explore mapped destinations, check their status, and follow a route where the map has the required location data.
 
-**[Event and registration on Luma](https://luma.com/z10nz8gp)** · **[Event rules](RULES.md)** · **[Agent instructions](AGENTS.md)**
+Walkwise is being built for temporary, changing venues such as college festivals, fairs, conferences, and pop-up events. Its goal is to make venue information easier to prepare, update, and use on site.
 
-## Event details
+## Why Walkwise
 
-| Detail | Information |
+Visitors at temporary events often have to interpret static floor plans, ask for directions, or guess whether a place is open. Walkwise gives organizers one place to prepare venue information and gives visitors an interactive map to consult. Clear destination status and routes based on organizer-authored connections can reduce confusion and help people find facilities and event locations.
+
+## Features
+
+### Organizer Studio
+
+- Choose a venue and event, then edit that event's saved map draft.
+- Load a PNG or JPG floor plan as a backdrop, or work with the interactive street map.
+- Add and edit destinations, including names, categories, descriptions, and open, closed, or delayed status.
+- Place and move path points; connect them into a walkable graph.
+- Set map locations with explicit browser GPS actions. Location permission is requested only after the organizer starts a location action.
+- Draw street-map connections and adjust them as straight or curved lines. Curves are organizer-authored geometry and are not snapped to roads or sidewalks.
+- Optionally ask AI to suggest destinations, path points, and connections from a floor-plan image. Suggestions are approximate and must be reviewed by the organizer.
+- Save and reload drafts for individual events.
+
+### Visitor Map
+
+- Open an event's visitor page and explore destinations on an interactive map when usable location data is available, or view saved plan coordinates on a neutral canvas.
+- See destination details and availability status.
+- Request the visitor's current location with the **Locate me** action.
+- Follow routes through the organizer's explicitly connected, georeferenced path graph when the required data exists.
+
+## Use cases
+
+- A college festival team maps stages, registration, food, restrooms, and help points.
+- A conference organizer prepares room and facility locations and updates a destination's status.
+- A fair or pop-up team lays out temporary stalls and connects visitor routes.
+- An event crew captures on-site locations and adjusts paths as the venue is prepared.
+
+## Benefits
+
+- **For visitors:** find destinations and check their status without relying only on a static image or asking staff for every direction.
+- **For organizers:** keep places and connections together in an editable event draft and correct information as plans change.
+- **For event teams:** share a consistent map-based view of the venue and its intended walkable connections.
+
+Routing depends on organizer-authored graph links and georeferenced path points; Walkwise does not infer missing connections. AI-generated plan interpretations are suggestions, not verified measurements.
+
+## Technology
+
+Walkwise uses a single Django application for its server-rendered pages and JSON API; it does not run a separate frontend server.
+
+- **Backend and pages:** Python 3.14, Django 6.x, Django REST Framework, Django templates, and progressive JavaScript.
+- **Data:** Django ORM / GeoDjango with PostgreSQL and PostGIS for venue, event, destination, and path data.
+- **Background jobs:** Celery with Redis as the broker.
+- **Styles:** Tailwind CSS compiled into Django static files with Node.js 22 and npm.
+- **Map:** Leaflet 1.9.4 and OpenStreetMap tiles, with visible attribution.
+- **Local services:** Docker Compose.
+- **Optional AI assistance:** OpenAI Responses API for organizer-requested floor-plan analysis.
+
+## Run locally
+
+The recommended setup uses Docker Compose v2. Install Docker Desktop or Docker Engine with the Compose plugin. Node.js 22+ and npm are only needed if you rebuild the Tailwind assets outside the image build.
+
+1. Copy `.env.example` to `.env`. Change local credentials and ports if they conflict with services on your machine. Set `OPENAI_API_KEY` only if you want to use floor-plan analysis; `OPENAI_MODEL` is optional.
+2. Start the app and its services:
+
+   ```sh
+   docker compose up --build
+   ```
+
+   Compose starts PostGIS and Redis, runs database migrations and demo seeding, then starts Django and the Celery worker.
+3. Open [http://localhost:8000](http://localhost:8000), or use the port configured by `API_PORT` in `.env`. The overview links to the Organizer Studio. The visitor demo is available at [`/v/kochi-expo/`](http://localhost:8000/v/kochi-expo/).
+4. Stop the services with `docker compose down`. To remove the local database volume as well, use `docker compose down -v`.
+
+The API health check is at `/api/health`. Django serves the pages, static files, and API from the same host. Do not open Django template files directly in a browser.
+
+### Optional floor-plan analysis
+
+Set `OPENAI_API_KEY` in `.env`, restart Compose, then choose a PNG/JPG under 10 MB in Organizer Studio and select **Find components with AI**. The selected image is sent for analysis only after that action. Review, edit, and accept any proposed components; their positions are estimates. Never commit `.env` or place a live key in `.env.example`.
+
+### Optional phone GPS demo
+
+Browser geolocation requires HTTPS (or localhost during local development) and the visitor's or organizer's permission. For a temporary phone demo, run `cloudflared tunnel --url http://localhost:8000` in another terminal and open the generated HTTPS address on the phone. The temporary tunnel is public to anyone who has its URL and ends when the process stops. Keep the terminal open during the demo and stop it afterward.
+
+### Rebuild Tailwind CSS
+
+After changing Tailwind classes, run:
+
+```sh
+npm install
+npm run build:css
+```
+
+The Docker image also builds the CSS asset. For Django model changes, create migrations with `docker compose run --rm api python manage.py makemigrations venueflow`, then rebuild/restart the services.
+
+## Current implementation and limitations
+
+Implemented: responsive overview, Organizer Studio, event-scoped draft persistence, destination and path editing, GPS capture controls, optional AI plan suggestions, ORM-backed map-draft API, visitor map, and graph-based client-side route display when required location data is present.
+
+Still incomplete or not fully verified: publishing immutable map snapshots and QR generation; offline packages and service-worker support; production deployment and authentication; a server-side `/api/route` implementation; complete phone GPS/route-following verification against a real georeferenced venue; and durable image hosting. A saved floor-plan selection remains in calibration metadata. Visitor navigation needs georeferenced nodes and explicit destination-to-path-point assignments. Browser location requires permission and a secure context.
+
+OpenStreetMap tiles require internet access and are subject to the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/); they are not an offline map source. The local demo uses seeded venue data and is not a production deployment.
+
+
 | --- | --- |
-| Venue | JAIN University, Kochi |
-| Location | [Open the venue map](https://maps.app.goo.gl/Eme7gR7NDXSNRANu5) |
-| Rooms | 2008 and 2009 |
-| Check-in | 10 October 2026, 6:00 PM IST |
-| Kick-off | 10 October 2026, 6:30 PM IST |
-| Wrap-up | 11 October 2026, by 10:00 AM IST |
-| Participation | Solo or a team of up to 4 participants |
-| Theme | Open — build anything you like |
 
-Keep your approved Luma QR code ready for entry, and bring your laptop and charger. Eligible checked-in participants will receive Codex credits and OpenAI API credits.
+## Project records
 
-## Use this template
+- [Team execution plan](docs/README.md)
+- [Shared implementation contract](docs/SHARED_CONTRACT.md)
+- [Architecture](docs/architecture.md)
+- [Submission details](SUBMISSION.md)
+- [AI usage](AI_USAGE.md)
+- [Change log](CHANGELOG.md)
+- [Event rules](RULES.md)
 
-Project and workflow context lives in [the team execution plan](docs/README.md), [the shared contract](docs/SHARED_CONTRACT.md), and the four role briefs. Follow [RULES.md](RULES.md) and [AGENTS.md](AGENTS.md) for event and contribution guidance.
+## Event
 
-## Project overview
-
-For a four-person, six-hour build, use the [team execution plan](docs/README.md), its [shared contract](docs/SHARED_CONTRACT.md), and the four role briefs. The full product plan remains in [docs/Walkwise_Development_Plan.md](docs/Walkwise_Development_Plan.md).
-
-- **Project name:** Walkwise
-- **Short description:** Turn a venue plan into an editable event map with walkable paths and visitor destinations.
-- **Team:** TODO — participant names and GitHub handles; maximum 4 members.
-- **Working demo:** Local server at `http://localhost:8001` in this checkout; the responsive overview summarizes venues/events and previews intended flows. Overview flow buttons are presentation-only and do not navigate yet.
-- **Technology stack:** Django server-rendered templates, Django REST Framework, Django ORM/GeoDjango, PostgreSQL/PostGIS, Tailwind CSS, Redis, Celery, Docker Compose.
-
-### What we are building
-
-Temporary events such as college fests, fairs, and pop-up venues often rely on static maps that cannot show an updated route or whether a destination is open. Walkwise will let organizers publish a venue layout, paths, and place updates through a QR-accessible visitor map. The hackathon MVP focuses on one realistic venue, organizer-defined routes, clear destination status, and honest saved/offline state rather than claiming live or cross-device updates that have not been verified.
-
-### Run the project
-
-Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebuilding Tailwind CSS assets.
-
-### Docker Compose (recommended)
-
-1. Copy `.env.example` to `.env` and adjust local ports/credentials if needed.
-   To enable organizer floor-plan analysis, set `OPENAI_API_KEY` in `.env` (and optionally `OPENAI_MODEL`). The key is passed only to Django. The selected PNG/JPG must be smaller than 10 MB and is sent to OpenAI only after the organizer clicks **Find components with AI**. The organizer sees an analysis animation and approximate, selectable SVG component boxes over the source plan. Review and add detections, then pin exact GPS positions and confirm walkable connections on-site.
-2. Start the database, migration/seed jobs, Django SSR/API server, Redis, and worker: `docker compose up --build`.
-3. Open `http://localhost:8000` (or the configured `API_PORT`; this checkout uses `http://localhost:8001` because port 8000 is occupied) and use the Organizer Studio. Choose a venue and event, then save to keep that event's floor plan, destinations, path graph, GPS fixes, and recorded outline across refreshes. Organizer and visitor pages and the browsable API share this Django server; API health is at `/api/health` on the same host/port. Venue data requests stay same-origin; API endpoints are not linked from the organizer interface.
-4. Stop services with `docker compose down`. Remove local database data with `docker compose down -v`.
-
-Open the visitor map at `http://localhost:8001/v/kochi-expo/` in this checkout (or use your configured host port). It uses an interactive OpenStreetMap view when organizer-authored GPS coordinates exist, or the saved venue plan when one exists. The visitor asks for location only after **Locate me** is pressed. Destinations without map coordinates are omitted from the map list; the page explains when the venue is not yet mapped. Do not open `api/venueflow/templates/venueflow/visitor.html` directly; Django must render its template tags.
-
-The organizer loads places and walk paths from the venue-scoped `/api/venues/{id}/map-draft/` endpoint and saves them as ORM rows with full-snapshot replacement semantics. Removing an item and saving deletes its row. Existing legacy organizer drafts are shown for migration and moved into the ORM on the next save. The selected floor-plan image and GPS outline remain in calibration metadata until image hosting and boundary geometry work are implemented.
-
-The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`.
-
-For a phone GPS demo, start Docker Compose and run `cloudflared tunnel --url http://localhost:8001` in a separate terminal (replace `8001` with your configured `API_PORT`). Open the generated `https://…trycloudflare.com` URL on the phone and allow location access when prompted. Django accepts the Quick Tunnel host suffix and HTTPS CSRF origins. Quick Tunnel URLs are temporary and public to anyone who obtains the URL; stop the tunnel with Ctrl+C when the demo ends. Keep the tunnel terminal open while testing. Geolocation requires HTTPS and a user grant, and GPS access also depends on the phone's location settings.
-
-Sample labeled floor plan for the AI organizer flow: [Team room floor plan (PNG)](api/venueflow/static/venueflow/images/team-room-floorplan.png). It labels ten developer tables Team 1 through Team 10.
-
-### Rebuild Tailwind assets
-
-Templates and the API are served by the same Django process. When changing Tailwind classes, run `npm install` and `npm run build:css` (or rebuild the Docker image). To run Django on the host, install system GDAL/GEOS libraries and Python requirements with `python -m pip install -r api/requirements.txt`, set `POSTGRES_HOST=localhost`, start the Compose database and Redis, run `python api/manage.py migrate` and `python api/manage.py seed_demo`, then `python api/manage.py runserver`.
-
-### Project status
-
-- Implemented: Responsive Django SSR overview; organizer image/plan editor, place and graph editing, explicit destination-to-path-point assignment, GPS capture, Leaflet/OpenStreetMap editing, AI-assisted plan suggestions, per-event draft persistence, and ORM-backed `map-draft` API. In Organizer Studio, street-map path points can be connected by clicking markers in Draw path mode, repositioned by dragging, and connected with straight or draggable curved segments. The visitor map uses the persisted venue graph and explicit place access-node mapping; routes require georeferenced path nodes and do not snap to roads or infer missing graph links. Saved plan-coordinate paths also appear on a neutral canvas when no floor-plan image or GPS positions exist; that view is explicitly not represented as a floor plan. Venue/event CRUD, health endpoint, Tailwind assets, and Celery worker registration are implemented. AI plan coordinates and path proposals remain estimates requiring review; OSM tiles and Leaflet require internet access.
-- Not implemented or verified: immutable publish workflow and QR; offline package/service worker; production deployment and auth; REST `/api/route` (visitor routing is currently performed client-side); GPS permission/route-following browser verification against a venue with real georeferenced paths; reliable image hosting (the selected plan currently remains in calibration metadata).
-- OpenStreetMap tiles include visible attribution. The public tile service has usage limits and is not an offline tile source; see the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
-
-For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). The organizer uses public Leaflet assets and OpenStreetMap tiles.
-
-See [AI_USAGE.md](AI_USAGE.md) for AI assistance and [CHANGELOG.md](CHANGELOG.md) for the development record. Leaflet 1.9.4 is loaded from its pinned CDN release with integrity metadata.
+Walkwise was built for the DevDay Exchange Community Hackathon: Kochi, held 10–11 October 2026 at JAIN University, Kochi. See the [event page](https://luma.com/z10nz8gp) for event information.

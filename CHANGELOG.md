@@ -605,3 +605,9 @@ Replace this sentence with entries as you build:
 - Why: Mobile browser geolocation requires a secure HTTPS context; the user asked to use phone location for the project demo and authorized restarting/recreating containers.
 - Validation: `docker compose up -d --build`; Compose reported DB/Redis healthy, API healthy, worker running. `docker compose exec -T api python manage.py check` passed. `/api/health` passed locally; overview, `/organizer/`, and `/api/health` each returned HTTP 200 through HTTPS. `docker compose config --quiet` and `git diff --check` passed.
 - Limitations: No phone GPS prompt/permission test was performed. Quick Tunnel is publicly reachable by anyone with the URL and is temporary; stop session 79467 with Ctrl+C when demo ends.
+
+## 2026-10-11T08:13:15+05:30 — Rewrite the project README
+- Changed: Reorganized `README.md` around the Walkwise product description, motivation, features, use cases, benefits, technology stack, run/demo instructions, current limitations, contributor roles, and project references.
+- Why: The README mixed event/template material with product information and did not explain the implemented app clearly for users or reviewers.
+- Validation: Reviewed stack and feature claims against the active project docs, Compose configuration, requirements, models, and page behavior; `git diff --check` passed.
+- Limitations: Contributor names and GitHub handles were not available, so the README identifies the four planned contribution areas and marks identities for confirmation. Submission metadata remains in `SUBMISSION.md`.
