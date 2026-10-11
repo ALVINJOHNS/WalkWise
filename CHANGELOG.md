@@ -1,5 +1,11 @@
 # Change log
 
+## 2026-10-11T07:55:00+05:30 — Keep organizer routes above street-map tiles
+- Changed: Rendered organizer connection strokes in a dedicated Leaflet pane above the tile and overlay panes, below markers; refreshed the organizer script URL version.
+- Why: The user still could not see the path while creating connections, so the line layer's ordering needed to be explicit relative to the basemap.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Browser-side rendering is still unverified.
+- Limitations: Street-map paths require both endpoint path points to have GPS coordinates; manual browser confirmation remains outstanding.
+
 ## 2026-10-11T07:51:00+05:30 — Make organizer path connections visible and confirm creation
 - Changed: Added an accessible, prominent connection confirmation beside the path controls and a white outline under street-map paths; refreshed the organizer script cache version.
 - Why: Organizers reported that creating a path gave only an easy-to-miss general status message and the line was hard to distinguish over the map.

@@ -4,6 +4,8 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026 at 07:55 IST, after the user reported that organizer paths still did not appear during creation, Codex added a dedicated Leaflet pane for path strokes above street-map tiles and overlay layers and bumped the organizer script cache version. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; browser interaction remains pending.
+
 On 11 October 2026 at 07:51 IST, Codex improved P1-ORG-10 path feedback in `organizer.html` and `organizer.js`: a connection now triggers a dedicated accessible confirmation beside the drawing controls, and street-map path lines have a white contrast casing. The organizer script URL was versioned for cache refresh. Human review: pending. Validation: JavaScript syntax and `git diff --check` passed; interactive browser verification remains pending.
 
 On 11 October 2026 at 07:32 IST, Codex configured Django host/CSRF handling for Cloudflare Quick Tunnels, documented the mobile HTTPS demo, restarted Compose after Docker Desktop pipe access was restored through elevated execution, and started a temporary tunnel at `https://heath-portable-biodiversity-cube.trycloudflare.com`. Human review: pending. Validation: Compose services healthy, Django system check passed, and overview, organizer, and API health endpoints returned HTTP 200 over HTTPS. Phone geolocation prompt/permission remains untested; the public tunnel is temporary and should be stopped after the demo.

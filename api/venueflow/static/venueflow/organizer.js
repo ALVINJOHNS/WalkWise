@@ -211,6 +211,9 @@
       return false;
     }
     state.leafletMap = window.L.map(controls.leafletMap, { zoomControl: true, scrollWheelZoom: true });
+    state.leafletMap.createPane("organizerPaths");
+    state.leafletMap.getPane("organizerPaths").style.zIndex = "450";
+    state.leafletMap.getPane("organizerPaths").style.pointerEvents = "none";
     state.leafletMap.on("click", (event) => {
       if (state.mapAddType) {
         const type = state.mapAddType;
@@ -322,9 +325,11 @@
       const linePoints = control ? quadraticCurve(start, control, end) : [start, end];
       window.L.polyline(linePoints, {
         color: "#ffffff", weight: 10, opacity: .95, lineCap: "round", lineJoin: "round",
+        pane: "organizerPaths",
       }).addTo(state.leafletLayers);
       window.L.polyline(linePoints, {
         color: "#6d45c7", weight: 6, opacity: 1, lineCap: "round", lineJoin: "round", dashArray: edge.proposal ? "7 6" : null,
+        pane: "organizerPaths",
       }).addTo(state.leafletLayers);
       if (control) {
         const handle = window.L.marker(control, {
