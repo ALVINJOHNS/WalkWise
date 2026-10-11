@@ -1,9 +1,9 @@
 # Development handoff
 
-Updated: 2026-10-11 04:37 IST
+Updated: 2026-10-11 06:20 IST
 
-- Completed: P4-INT-2 venue/event ORM and DRF persistence (`ed5f1a5`); P2-VIS-1 visitor snapshot map is implemented and its seeded route was verified. Organizer OSM/GPS placement and ngrok configuration are also present in the integrated branch.
-- Current: PostGIS schema/migrations, integrated Compose app, organizer venue/event CRUD, and `/v/kochi-expo/` HTTP 200 rendering have been verified. Visitor map shows the saved plan or fallback, paths, destination pins, and available status. Organizer-authored map resources still need native related-row persistence.
-- Next: Read and execute `docs/person-4-integration/phases/P4-INT-3.md` — persist organizer map resources through `MapFeature`, `PathNode`, and `PathEdge`; then proceed to P4-INT-4 publishing/visitor QR.
-- Checks: Django system/migration checks; live Venue/Event CRUD and validation; data read-back after API restart; seed/database health; local and ngrok organizer HTTP 200; visitor route HTTP 200 with expected map markup and visual inspection; Python syntax, Compose config, JS syntax, and `git diff --check` passed.
-- Limitations: Phone GPS save/load and browser-visible OSM tiles remain unverified. Organizer map entities and GPS outline still use venue calibration JSON until P4-INT-3; distance samples are geographic/straight-line rather than road routing. Seed data has no plan image or explicit status values.
+- Completed: P4-INT-3 map-resource persistence (`6737b32`); P2-VIS-1 through P2-VIS-3 visitor map, discovery, freshness, and orientation work; P1-ORG-4/5/6/9 organizer editing, AI proposals, and per-event drafts.
+- Current: The organizer combines per-event calibration drafts with venue `map-draft` ORM persistence. P3-NAV-5 source review is documented but blocked pending integration agreement on the published route wrapper and feature access-node mapping.
+- Next: Continue `docs/person-3-navigation/BRIEF.md` with `P3-NAV-1`; integration should review the proposed route contract in `docs/person-3-navigation/phases/P3-NAV-5.md` before route wiring.
+- Checks: Existing phase evidence includes Django system/migration checks, API round trips, JavaScript syntax, Python compilation, Compose configuration, and whitespace checks. This conflict resolution is being checked with a marker scan, organizer JavaScript syntax, and `git diff --check`.
+- Limitations: Merged organizer event switching/save-reload remains unverified. Route API is still a 501 stub; map features lack access-node mapping and edges lack geometry. Phone GPS and browser-visible OSM tiles need confirmation.

@@ -4,6 +4,41 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T06:05:00+05:30 — Merge main into person1-organisor
+
+- Changed: Merged `origin/main` into `person1-organisor` and resolved conflicts in `api/venueflow/static/venueflow/organizer.js`, `README.md`, `CHANGELOG.md`, `AI_USAGE.md`, and `handoff.md`. The organizer now loads and saves the venue `map-draft` API alongside per-event calibration drafts, legacy venue-level drafts still merge with persisted ORM records, and the connection list keeps both the AI-proposal label and the Remove control.
+- Why: The organizer per-event draft work and the integration map-resource persistence work changed the same editor load/save paths and project records.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed; a conflict-marker scan found none. Interactive save/reload against the merged persistence is unverified.
+- Limitation: Per-event drafts remain the authoritative source for pins; the venue-level `map-draft` rows hold the most recently saved event's snapshot.
+
+## 2026-10-11T05:32:00+05:30 — Review Person 3 map API contract
+
+- Changed: Completed source-level mapping of map-draft nodes, edges, and features to pure routing inputs; documented a proposed published-snapshot `/api/route` request/response boundary and integration handoff in P3-NAV-5.
+- Why: Connect verified routing helpers to persisted map data without inferring graph links from coordinates or routing visitor requests against mutable drafts.
+- Validation: Inspected the map-draft view/serializer, ORM models, seed, and routing code. `git diff --check` and local Markdown target checks passed. Docker API probe could not run because access to the Docker Desktop named pipe was denied.
+- Limitations: The integration route is still a 501 stub; map features have no access-node field and PathEdge has no geometry field. Wrapper contract awaits Person 4 agreement; no application code changed.
+
+## 2026-10-11T05:18:41+05:30 — Plan Person 3 map API contract review
+
+- Changed: Added P3-NAV-5 to review the persisted map-draft response, map its records to Person 3 routing inputs, and agree the integration-owned route wrapper boundary. Updated the Person 3 phase sequence.
+- Why: P4-INT-3 now persists native map rows, but the API contract does not yet document place access-node, strict open-status, or wait-estimate mapping required by `suggest_next_place`.
+- Validation: Compared Person 3 helpers, P4-INT-3 and shared contract; `git diff --check` passed; local Markdown targets in the changed brief, phase document, and handoff resolved.
+- Limitations: Planning only; no endpoint probe or application code changes.
+
+## 2026-10-11T05:11:00+05:30 — Verify organizer map-resource persistence
+
+- Changed: Added `PathNode.properties` with a migration; added venue-scoped `GET`/full-snapshot `PUT /api/venues/{id}/map-draft/`; validate finite normalized coordinates, duplicate IDs, edge endpoints and supported route direction; replace features/nodes/edges atomically and remove legacy collection arrays from calibration. Updated the organizer to load/save through this API, merge legacy drafts by stable ID for migration, retain image/GPS metadata, and expose removal controls for path points/connections. Documented the API contract and behavior.
+- Why: Complete P4-INT-3 so organizer authored map data persists in its declared ORM tables and deletes do not return from stale JSON.
+- Validation: Django system check, migration check, and `makemigrations --check --dry-run venueflow` passed. An isolated API round trip verified create, reload, update, deletion, invalid cross-venue edge rejection without partial writes, and preservation of unrelated calibration/image/GPS metadata; disposable fixtures were removed. The running organizer loaded, saved, and reloaded the seeded map. JavaScript syntax, Python compilation, and `git diff --check` passed.
+- Limitations: Person 1/3 have not confirmed the API boundary in this chat. No runtime limitations remain for this phase.
+
+## 2026-10-11T05:03:00+05:30 — Plan Person 4 map-resource persistence
+
+- Changed: Expanded P4-INT-3 into an execution sequence covering the venue-scoped snapshot API, editor-to-ORM mapping, atomic replacement, validation, metadata compatibility, and verification. Identified the need for a small `PathNode.properties` migration to preserve the organizer's node names.
+- Why: Person 4 is starting integration after the Person 1/2 merges; the existing editor stores the map collections in calibration JSON while their ORM models lack API wiring.
+- Validation: Reviewed the plan against the current organizer editor payload, Django models/serializers/views/URLs, shared contract, and P4-INT-3 criteria; `git diff --check` passed.
+- Limitations: Endpoint shape is proposed for confirmation with Person 1 and Person 3 before implementation. No application code or runtime checks were run.
+
 ## 2026-10-11T05:30:00+05:30 — Make manual map start placement touch-friendly
 
 - Changed: Replaced click-only map start placement with pointer down/up handling, a small movement threshold, and pointer-cancel cleanup in `api/venueflow/static/venueflow/visitor.js`.
@@ -132,6 +167,104 @@ Replace this sentence with entries as you build:
 - Why: Give participants a consistent starting point for event rules, basic coding patterns, documented changes, and regular commits.
 - Validation: Checked local Markdown links, event detail consistency, required documents, and diff whitespace before publishing.
 - Limitations: Documentation scaffolding only; no participant project, application, or working demo is included. GitHub publication and template status are verified separately after creation.
+## 2026-10-11T05:18:00+05:30 — Persist organizer drafts per event
+
+- Changed: Added an event picker scoped to the selected venue. The organizer now saves its complete authored draft (plan image, destinations and GPS metadata, path points/connections, current location, and outline track) in `Venue.calibration.organizer_drafts[event_id]`; legacy venue drafts still load and can be migrated by saving to an event. Updated the organizer phase record and demo instructions.
+- Why: Organizer data was stored as one venue-level draft, so event maps could overwrite one another and users could not select an event-specific saved draft after refresh.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed; reviewed event/venue serializers and the event-keyed save/load path.
+- Limitations: Browser interaction and live database save/reload were not exercised to avoid overwriting existing organizer/GPS data; concurrent edits still use the existing venue JSON update path.
+
+## 2026-10-11T05:14:03+05:30 — Record independent destination pin commit
+
+- Changed: Recorded P1-ORG-8 commit `6783821` in the phase brief and handoff.
+- Why: Keep the organizer phase record aligned with the committed pin behavior.
+- Validation: `git diff --check` passed.
+- Limitations: Manual drag and draft save/reload behavior remain unverified.
+
+## 2026-10-11T05:13:00+05:30 — Add independent destination pins
+
+- Changed: Added persistent pin numbers to each destination, displayed the pin number on floor-plan markers and labeled Leaflet markers, made each street-map pin independently draggable, and updated only that destination's geolocation on drag. Updated organizer phase, README, and AI usage record.
+- Why: Selecting or moving a destination should not make the organizer think every destination shares one moving point.
+- Validation: JavaScript syntax and `git diff --check` passed; restarted Django and verified the ngrok organizer page and static JS both returned HTTP 200 and contain the new pin/drag UI.
+- Limitations: Pin dragging and draft save/reload were not manually exercised in the browser.
+
+## 2026-10-11T05:08:00+05:30 — Record ngrok analysis fix commit
+
+- Changed: Recorded request-size fix commit `7ca2f3c` in P1-ORG-7 and the handoff.
+- Why: Keep the organizer phase evidence aligned with the committed tunnel fix.
+- Validation: `git diff --check` passed.
+- Limitations: Interactive SVG click/checkbox behavior remains unverified in a browser.
+
+## 2026-10-11T05:06:00+05:30 — Fix ngrok AI analysis request size limit
+
+- Changed: Set Django's `DATA_UPLOAD_MAX_MEMORY_SIZE` to 16 MiB, just above the organizer's existing 15 MiB JSON body guard. Updated P1-ORG-7 evidence and AI usage record.
+- Why: Django's default 2.5 MiB limit raised `RequestDataTooBig` before the organizer handler could accept a base64-encoded plan; the ngrok page loaded but analysis returned HTTP 400.
+- Validation: Python compilation and `git diff --check` passed; the running API loaded the 16 MiB setting. A 3 MB CSRF-protected JSON probe reached the organizer view and received its expected JSON 400 for an unknown action, confirming it passed Django's former size threshold. A separate CSRF-protected request through the provided tunnel with the generated Team 1–10 PNG returned HTTP 200 with 10 destinations, 12 path points, and 10 path connections.
+- Limitations: The interactive SVG click/checkbox selection has not been manually exercised in the browser. Image bounds/path proposals remain AI estimates.
+
+## 2026-10-11T05:00:00+05:30 — Record selectable AI component overlay commit
+
+- Changed: Recorded P1-ORG-7 commit `23db024` in its phase evidence and handoff.
+- Why: Keep the phase record and continuation pointer aligned with the committed implementation.
+- Validation: `git diff --check` passed.
+- Limitations: The commit includes implementation and served-page verification; live AI output and SVG selection interaction remain unverified.
+
+## 2026-10-11T04:59:00+05:30 — Add animated AI component overlay workflow
+
+- Changed: Added estimated normalized component bounds to the structured image extraction, corrected the existing same-origin organizer POST response shape, displayed an accessible loading animation, and rendered detected components as selectable SVG bounds/labels that synchronize with the review checkboxes. Updated organizer guidance and documentation.
+- Why: Complete the requested flow from rough uploaded image to AI-detected, selectable layout components, then organizer-controlled exact GPS pinning.
+- Validation: `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started; organizer HTML and static JS returned HTTP 200 with the SVG overlay/loading UI present.
+- Limitations: Component bounds are visual estimates, not segmentation or GPS coordinates. No live OpenAI request was sent during this verification, and SVG selection still needs a browser interaction check.
+
+## 2026-10-11T04:55:21+05:30 — Record named team-plan asset commit
+
+- Changed: Recorded `5de080a` in P1-ORG-5 and handoff for the Team 1–10 sample image and extraction prompt update.
+- Why: Preserve the committed sample asset and its matching AI recognition behavior in the current phase record.
+- Validation: `git diff --check` passed.
+- Limitations: OpenAI image recognition still awaits a configured API key and an organizer-triggered analysis.
+
+## 2026-10-11T04:55:00+05:30 — Label team tables for AI extraction
+
+- Changed: Added the sample rectangular room PNG with exactly ten named developer tables, Team 1 through Team 10; updated the AI prompt to preserve each label as its own `team table` destination; documented the sample asset.
+- Why: Let organizers see the intended component labels in the plan and have AI return a distinct, pin-ready destination for each team.
+- Validation: Python compilation, JavaScript syntax, Compose configuration, and `git diff --check` passed. The running local app returned HTTP 200 for `/organizer/` and for the sample PNG static asset.
+- Limitations: No OpenAI key is configured, so model recognition of the image labels has not been live-verified. AI positions remain approximate until pinned on-site.
+
+## 2026-10-11T04:44:00+05:30 — Record AI path-proposal phase commit
+
+- Changed: Recorded P1-ORG-6 implementation commit `fa132e8` in the organizer phase brief and handoff.
+- Why: Keep the phase evidence and continuation pointer aligned with the committed graph-proposal implementation.
+- Validation: `git diff --check` passed.
+- Limitations: No OpenAI key was available for actual plan analysis; UI edge-selection/import still needs a browser interaction check.
+
+## 2026-10-11T04:43:00+05:30 — Add AI walk-connection proposals
+
+- Changed: Extended the structured floor-plan analysis to propose candidate path nodes and connections, added per-connection review/import in the organizer, and marked imported nodes/edges as AI proposals requiring on-site verification. Added P1-ORG-6 and updated README/AI usage records.
+- Why: Continue the requested floor-plan workflow from destination discovery into a draft walkable graph while preserving organizer control and separate GPS verification.
+- Validation: Python compilation, JavaScript syntax, Compose configuration, and `git diff --check` passed. Docker Compose rebuilt and started; local organizer GET returned HTTP 200 with path proposal controls, static organizer JS returned HTTP 200 with the path import handler, and the CSRF-protected missing-key response matched the setup message.
+- Limitations: No OpenAI key is available for live image inference; checkbox/import interaction has not been manually exercised. A proposed walk connection is an estimate, not a confirmed route.
+
+## 2026-10-11T04:41:20+05:30 — Verify organizer AI endpoint setup behavior
+
+- Changed: Updated P1-ORG-5, AI usage, and handoff records with the successful Docker rebuild and local page/CSRF response check.
+- Why: The initial sandbox could not access Docker; after approved local Docker access, the changed application could be brought up and its no-key branch verified.
+- Validation: Organizer GET returned HTTP 200 and included the AI button. A CSRF-protected same-origin analysis POST returned HTTP 503 with the expected `OPENAI_API_KEY` setup message. No model request was sent.
+- Limitations: Actual model response and browser selection/edit/GPS interactions await an OpenAI key and manual browser verification.
+
+## 2026-10-11T04:40:00+05:30 — Record AI suggestion phase commit
+
+- Changed: Recorded organizer phase commit `a13568a` in the handoff and P1-ORG-5 evidence.
+- Why: Keep the continuation pointer and phase brief tied to the committed implementation.
+- Validation: `git diff --check` passed.
+- Limitations: Docker rebuild and OpenAI runtime validation remain unavailable for the reasons recorded in the preceding entry.
+
+## 2026-10-11T04:38:00+05:30 — Add AI floor-plan destination suggestions
+
+- Changed: Added a server-side OpenAI Responses API request for the selected PNG/JPG plan; structured results include destination names, categories, descriptions, approximate normalized floor-plan positions, and confidence. Added a review/select/add panel in the organizer and exposed optional `OPENAI_API_KEY` / `OPENAI_MODEL` settings only to the Django container. The request uses the existing organizer page POST handler; no API URL or UI API link was added. Updated the organizer phase, shared contract, README, and AI usage record.
+- Why: Let the organizer extract and stage destination candidates from a plan image, then verify exact positions on-site with GPS before constructing confirmed path connections.
+- Validation: `python3 -m py_compile api/venueflow/organizer_ai.py api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/organizer.js`, `docker compose config`, and `git diff --check` passed. Docker Compose rebuilt and started the app; local organizer GET returned HTTP 200 with the AI action, and a CSRF-protected POST returned the expected missing-key setup message.
+- Limitations: No OpenAI API key is configured, so no live model call was made. Full browser interactions remain unverified. Image-derived positions are estimates; the model cannot determine real-world GPS coordinates or trustworthy walkable paths from a floor plan.
+
 ## 2026-10-11T04:26:00+05:30 — Record ngrok tunnel configuration checkpoint
 
 - Changed: Recorded commit `374c853` in the handoff.

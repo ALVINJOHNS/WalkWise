@@ -5,9 +5,11 @@
   const $ = (selector) => root.querySelector(selector);
   const canvas = $("[data-canvas]");
   const venuePicker = $ ("[data-venue]");
+  const eventPicker = $("[data-event]");
+  const eventPickerWrap = $("[data-event-picker-wrap]");
   if (!canvas || !venuePicker) return;
 
-  const state = { venue: null, imageData: "", places: [], nodes: [], edges: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
+  const state = { venue: null, events: [], eventId: null, mapDraft: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], aiPathPoints: [], aiPathSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
@@ -17,10 +19,15 @@
     leafletMap: $("[data-leaflet-map]"), mapStatus: $("[data-map-status]"), gpsDistance: $("[data-gps-distance]"),
     mapViewTools: $("[data-map-view-tools]"), floorplanView: $("[data-map-view='floorplan']"), nodeFields: $("[data-node-fields]"),
     nodeLocation: $("[data-node-location]"), setNodeLocation: $("[data-set-node-location]"), nodeOnMap: $("[data-node-on-map]"),
+    analyze: $("[data-analyze]"), aiReview: $("[data-ai-review]"), aiSuggestions: $("[data-ai-suggestions]"),
+    aiOverlay: $("[data-ai-overlay]"), aiLoading: $("[data-ai-loading]"),
+    addSuggestions: $("[data-add-suggestions]"), aiPathSuggestions: $("[data-ai-path-suggestions]"),
+    addPathSuggestions: $("[data-add-path-suggestions]"), aiStatus: $("[data-ai-status]"),
   };
   const makeId = (prefix) => `${prefix}-${crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10)}`;
   const setDirty = () => { state.dirty = true; controls.saveState.textContent = "Unsaved changes"; };
   const esc = (value) => String(value ?? "");
+  const nextPlacePinNumber = () => Math.max(0, ...state.places.map((place) => Number(place.pin_number) || 0)) + 1;
 
   function selectedItem() {
     if (!state.selected) return null;
@@ -53,6 +60,7 @@
     controls.lines.replaceChildren();
     controls.lines.setAttribute("viewBox", "0 0 1000 1000");
     controls.lines.setAttribute("preserveAspectRatio", "none");
+    renderAiOverlay();
     if (!window.L && state.geoOutline.length) {
       const gpsPoints = state.geoOutline;
       const lats = gpsPoints.map((point) => point.latitude);
@@ -99,13 +107,16 @@
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       line.setAttribute("x1", from.x * 1000); line.setAttribute("y1", from.y * 1000);
       line.setAttribute("x2", to.x * 1000); line.setAttribute("y2", to.y * 1000); line.setAttribute("class", "path-line");
+      if (edge.proposal) line.setAttribute("stroke-dasharray", "7 6");
       controls.lines.append(line);
     }
-    [...state.places.map((item) => ({ ...item, type: "place" })), ...state.nodes.map((item) => ({ ...item, type: "node" }))].forEach((item) => {
+    [...state.places.map((item, index) => ({ ...item, type: "place", pinNumber: Number(item.pin_number) || index + 1 })), ...state.nodes.map((item) => ({ ...item, type: "node" }))].forEach((item) => {
       const marker = document.createElement("button");
       marker.type = "button"; marker.className = `map-marker ${item.type === "node" ? "node" : ""} ${state.selected?.id === item.id ? "selected" : ""}`;
+      marker.textContent = item.type === "place" ? String(item.pinNumber) : "";
       marker.style.left = `${item.x * 100}%`; marker.style.top = `${item.y * 100}%`;
-      marker.setAttribute("aria-label", `${item.type === "node" ? "Path point" : item.name || "Unnamed destination"}`);
+      marker.setAttribute("aria-label", item.type === "node" ? `Path point: ${item.name}` : `Destination ${item.pinNumber}: ${item.name || "Unnamed destination"}`);
+      if (item.type === "place") marker.title = `Destination ${item.pinNumber}: ${item.name || "Unnamed destination"}`;
       marker.dataset.type = item.type; marker.dataset.id = item.id;
       marker.addEventListener("pointerdown", (event) => {
         event.stopPropagation(); state.selected = { type: item.type, id: item.id }; state.drag = item.id;
@@ -116,13 +127,18 @@
     });
     renderList(controls.placeList, state.places, "place");
     renderList(controls.nodeList, state.nodes, "node");
+    renderSuggestions();
     controls.edgeList.replaceChildren();
     state.edges.forEach((edge) => {
       const a = state.nodes.find((node) => node.id === edge.from);
       const b = state.nodes.find((node) => node.id === edge.to);
       const li = document.createElement("li"); li.className = "item-row";
       const distance = a?.geolocation && b?.geolocation ? ` · ${formatDistance(distanceMeters(a.geolocation, b.geolocation))}` : "";
-      li.textContent = `${a?.name || edge.from} ↔ ${b?.name || edge.to}${distance}`;
+      const label = document.createElement("span"); label.textContent = `${a?.name || edge.from} ↔ ${b?.name || edge.to}${distance}${edge.proposal ? " · AI proposal — verify on-site" : ""}`;
+      const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Remove";
+      remove.setAttribute("aria-label", `Remove connection ${a?.name || edge.from} to ${b?.name || edge.to}`);
+      remove.addEventListener("click", () => { state.edges = state.edges.filter((item) => item.id !== edge.id); setDirty(); render(); });
+      li.append(label, remove);
       controls.edgeList.append(li);
     });
     const place = state.selected?.type === "place" ? selectedItem() : null;
@@ -199,15 +215,30 @@
         color: "#087f79", weight: 5, opacity: .9,
       }).addTo(state.leafletLayers);
     }
-    state.places.forEach((place) => {
+    state.places.forEach((place, index) => {
       if (!place.geolocation) return;
-      const marker = window.L.circleMarker([place.geolocation.latitude, place.geolocation.longitude], {
-        radius: state.selected?.type === "place" && state.selected.id === place.id ? 11 : 8,
-        color: state.selected?.type === "place" && state.selected.id === place.id ? "#f59e0b" : "#ffffff",
-        weight: 3, fillColor: "#0f8b83", fillOpacity: 1,
+      const pinNumber = Number(place.pin_number) || index + 1;
+      const placeName = place.name || `Destination ${pinNumber}`;
+      const isSelected = state.selected?.type === "place" && state.selected.id === place.id;
+      const icon = window.L.divIcon({
+        className: "destination-pin-icon",
+        html: `<span class="destination-pin${isSelected ? " selected" : ""}" aria-hidden="true"><span>${pinNumber}</span></span>`,
+        iconSize: [34, 42], iconAnchor: [17, 40],
+      });
+      const marker = window.L.marker([place.geolocation.latitude, place.geolocation.longitude], {
+        icon, draggable: true, keyboard: true, title: `Destination ${pinNumber}: ${placeName}`,
+        alt: `Destination ${pinNumber}: ${placeName}`,
       }).addTo(state.leafletLayers);
-      const label = document.createElement("span"); label.textContent = place.name || "Destination";
-      marker.bindTooltip(label);
+      marker.bindTooltip(`Destination ${pinNumber}: ${placeName}`, { direction: "top", offset: [0, -34] });
+      marker.on("dragend", (event) => {
+        const position = event.target.getLatLng();
+        place.geolocation = {
+          ...place.geolocation, latitude: position.lat, longitude: position.lng,
+          accuracy: 0, timestamp: new Date().toISOString(),
+        };
+        state.selected = { type: "place", id: place.id };
+        setDirty(); render();
+      });
       marker.on("click", (event) => {
         if (state.mapAddType) return;
         window.L.DomEvent.stopPropagation(event);
@@ -272,7 +303,8 @@
     items.forEach((item, index) => {
       const li = document.createElement("li"); li.className = `item-row ${state.selected?.id === item.id ? "active" : ""}`;
       const button = document.createElement("button"); button.type = "button";
-      button.textContent = type === "place" ? (item.name || `Destination ${index + 1}`) : item.name;
+      button.textContent = type === "place" ? `#${Number(item.pin_number) || index + 1} ${item.name || `Destination ${index + 1}`}` : item.name;
+      button.setAttribute("aria-label", type === "place" ? `Destination ${Number(item.pin_number) || index + 1}: ${item.name || `Destination ${index + 1}`}` : item.name);
       button.addEventListener("click", () => {
         state.selected = { type, id: item.id }; state.mapPlacement = false; state.mapAddType = null;
         if (state.leafletMap) state.leafletMap.getContainer().style.cursor = "";
@@ -280,8 +312,95 @@
       });
       li.append(button);
       if (type === "place") { const status = document.createElement("small"); status.textContent = item.status || "open"; li.append(status); }
+      else if (item.proposal) { const proposed = document.createElement("small"); proposed.textContent = "AI proposal · verify"; li.append(proposed); }
       list.append(li);
     });
+  }
+
+  function renderSuggestions() {
+    controls.aiReview.hidden = !state.aiSuggestions.length && !state.aiPathSuggestions.length && !controls.aiStatus.textContent;
+    controls.aiSuggestions.replaceChildren();
+    state.aiSuggestions.forEach((suggestion, index) => {
+      const li = document.createElement("li"); li.className = "item-row ai-suggestion";
+      const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.checked = Boolean(suggestion.selected);
+      checkbox.dataset.aiIndex = String(index);
+      checkbox.setAttribute("aria-label", `Add ${suggestion.name}`);
+      checkbox.addEventListener("change", () => { suggestion.selected = checkbox.checked; updateSuggestionButton(); renderAiOverlay(); });
+      const text = document.createElement("span");
+      const title = document.createElement("strong"); title.textContent = suggestion.name;
+      const details = document.createElement("small");
+      details.textContent = `${suggestion.category} · approximate plan position ${Math.round(suggestion.plan_x * 100)}%, ${Math.round(suggestion.plan_y * 100)}% · ${Math.round(suggestion.confidence * 100)}% confidence`;
+      text.append(title, details);
+      li.append(checkbox, text); controls.aiSuggestions.append(li);
+    });
+    controls.aiPathSuggestions.replaceChildren();
+    state.aiPathSuggestions.forEach((edge) => {
+      const from = state.aiPathPoints.find((point) => point.index === edge.from_index);
+      const to = state.aiPathPoints.find((point) => point.index === edge.to_index);
+      const li = document.createElement("li"); li.className = "item-row ai-suggestion";
+      const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.checked = Boolean(edge.selected);
+      checkbox.setAttribute("aria-label", `Add connection from ${from?.name || "path point"} to ${to?.name || "path point"}`);
+      checkbox.addEventListener("change", () => { edge.selected = checkbox.checked; updateSuggestionButton(); });
+      const text = document.createElement("span");
+      const title = document.createElement("strong"); title.textContent = `${from?.name || "Path point"} ↔ ${to?.name || "Path point"}`;
+      const details = document.createElement("small");
+      details.textContent = `${edge.rationale} · ${Math.round(edge.confidence * 100)}% confidence · approximate plan route`;
+      text.append(title, details); li.append(checkbox, text); controls.aiPathSuggestions.append(li);
+    });
+    updateSuggestionButton();
+  }
+
+  function renderAiOverlay() {
+    if (!controls.aiOverlay) return;
+    const overlay = controls.aiOverlay;
+    const svg = "http://www.w3.org/2000/svg";
+    overlay.replaceChildren();
+    overlay.setAttribute("viewBox", "0 0 1000 1000");
+    overlay.setAttribute("preserveAspectRatio", "none");
+    const hasPlan = Boolean(state.imageData || state.venue?.plan_image_url);
+    overlay.hidden = !hasPlan || state.mapMode === "street" || !state.aiSuggestions.length;
+    state.aiSuggestions.forEach((suggestion, index) => {
+      const value = (key, fallback) => Number.isFinite(Number(suggestion[key])) ? Number(suggestion[key]) : fallback;
+      const x = Math.min(990, Math.max(0, value("bounds_x", suggestion.plan_x - 0.045) * 1000));
+      const y = Math.min(990, Math.max(0, value("bounds_y", suggestion.plan_y - 0.035) * 1000));
+      const width = Math.max(28, Math.min(1000 - x, value("bounds_width", 0.09) * 1000));
+      const height = Math.max(28, Math.min(1000 - y, value("bounds_height", 0.07) * 1000));
+      const group = document.createElementNS(svg, "g");
+      group.setAttribute("class", `ai-component${suggestion.selected ? " selected" : ""}`);
+      group.setAttribute("role", "button"); group.setAttribute("tabindex", "0");
+      group.setAttribute("aria-label", `${suggestion.name}, approximate detected component`);
+      group.setAttribute("aria-pressed", String(Boolean(suggestion.selected)));
+      const bounds = document.createElementNS(svg, "rect");
+      bounds.setAttribute("class", "component-bounds"); bounds.setAttribute("x", x); bounds.setAttribute("y", y);
+      bounds.setAttribute("width", width); bounds.setAttribute("height", height);
+      const labelWidth = Math.min(500, Math.max(90, suggestion.name.length * 10 + 22));
+      const labelY = Math.max(0, y - 30);
+      const labelBg = document.createElementNS(svg, "rect");
+      labelBg.setAttribute("class", "component-label-bg"); labelBg.setAttribute("x", x); labelBg.setAttribute("y", labelY);
+      labelBg.setAttribute("width", labelWidth); labelBg.setAttribute("height", 26);
+      const label = document.createElementNS(svg, "text");
+      label.setAttribute("x", x + 10); label.setAttribute("y", labelY + 19); label.textContent = suggestion.name;
+      group.append(bounds, labelBg, label);
+      const toggle = () => {
+        suggestion.selected = !suggestion.selected;
+        render();
+        controls.aiSuggestions.querySelector(`[data-ai-index="${index}"]`)?.focus();
+      };
+      group.addEventListener("click", toggle);
+      group.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle(); }
+      });
+      overlay.append(group);
+    });
+  }
+
+  function updateSuggestionButton() {
+    const selectedCount = state.aiSuggestions.filter((item) => item.selected).length;
+    controls.addSuggestions.disabled = selectedCount === 0;
+    controls.addSuggestions.textContent = selectedCount ? `Add ${selectedCount} selected destination${selectedCount === 1 ? "" : "s"}` : "Add selected destinations";
+    const selectedEdges = state.aiPathSuggestions.filter((item) => item.selected).length;
+    controls.addPathSuggestions.disabled = selectedEdges === 0;
+    controls.addPathSuggestions.textContent = selectedEdges ? `Add ${selectedEdges} selected path connection${selectedEdges === 1 ? "" : "s"}` : "Add selected path connections";
   }
 
   function coordinates(event) {
@@ -289,7 +408,7 @@
     return { x: Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width)), y: Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height)) };
   }
   function addPlace(point = { x: .5, y: .5 }) {
-    const place = { id: makeId("place"), name: "", category: "facility", description: "", status: "open", ...(state.mapMode === "street" && state.currentLocation ? { geolocation: state.currentLocation } : {}), ...point };
+    const place = { id: makeId("place"), pin_number: nextPlacePinNumber(), name: "", category: "facility", description: "", status: "open", ...(state.mapMode === "street" && state.currentLocation ? { geolocation: state.currentLocation } : {}), ...point };
     state.places.push(place); state.selected = { type: "place", id: place.id }; setDirty(); render(); root.querySelector('[data-field="name"]').focus();
   }
   function addNode(point = { x: .5, y: .5 }) {
@@ -357,22 +476,65 @@
     }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
   }
 
+  function selectedEvent() { return state.events.find((event) => event.id === state.eventId) || null; }
+
+  function mergeById(persisted, draft) {
+    const records = new Map((Array.isArray(persisted) ? persisted : []).map((item) => [item.id, item]));
+    (Array.isArray(draft) ? draft : []).forEach((item) => records.set(item.id, item));
+    return [...records.values()];
+  }
+
+  function loadDraft(draft = {}, persisted = null) {
+    state.imageData = draft.image_data || "";
+    state.aiSuggestions = [];
+    state.aiPathPoints = [];
+    state.aiPathSuggestions = [];
+    controls.analyze.disabled = !state.imageData;
+    controls.aiStatus.textContent = "";
+    state.places = persisted ? mergeById(persisted.features, draft.places) : (Array.isArray(draft.places) ? draft.places : []);
+    state.places.forEach((place, index) => { place.pin_number = Number(place.pin_number) || index + 1; });
+    state.nodes = persisted ? mergeById(persisted.nodes, draft.nodes) : (Array.isArray(draft.nodes) ? draft.nodes : []);
+    state.edges = persisted ? mergeById(persisted.edges, draft.edges) : (Array.isArray(draft.edges) ? draft.edges : []);
+    state.geoOutline = Array.isArray(draft.geo_outline) ? draft.geo_outline : [];
+    state.currentLocation = draft.current_location || state.geoOutline.at(-1) || state.places.find((place) => place.geolocation)?.geolocation || state.nodes.find((node) => node.geolocation)?.geolocation || null;
+    state.mapMode = draft.map_mode || (state.currentLocation ? "street" : "floorplan");
+    controls.gpsStatus.textContent = state.geoOutline.length ? `Saved outline loaded · ${state.geoOutline.length} GPS samples.` : "GPS is off. Choose a GPS action to request location access.";
+    state.selected = null; state.dirty = false; controls.saveState.textContent = "Saved"; render();
+  }
+
+  function loadSelectedEventDraft() {
+    const calibration = state.venue?.calibration || {};
+    const drafts = calibration.organizer_drafts || {};
+    const hasEventDraft = state.eventId && Object.prototype.hasOwnProperty.call(drafts, state.eventId);
+    const isLegacy = !Object.keys(drafts).length;
+    const draft = hasEventDraft ? drafts[state.eventId] : (isLegacy ? (calibration.organizer_draft || {}) : {});
+    // Legacy venue-level drafts still merge with ORM-persisted map records;
+    // per-event drafts own their own pins so they stay independent.
+    loadDraft(draft, isLegacy ? state.mapDraft : null);
+  }
+
   async function loadVenue(id) {
     controls.saveState.textContent = "Loading…"; controls.errors.textContent = "";
     try {
       const response = await fetch(`/api/venues/${encodeURIComponent(id)}/`, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error(`Could not load venue (${response.status}).`);
       state.venue = await response.json();
-      const draft = state.venue.calibration?.organizer_draft || {};
-      state.imageData = draft.image_data || "";
-      state.places = Array.isArray(draft.places) ? draft.places : [];
-      state.nodes = Array.isArray(draft.nodes) ? draft.nodes : [];
-      state.edges = Array.isArray(draft.edges) ? draft.edges : [];
-      state.geoOutline = Array.isArray(draft.geo_outline) ? draft.geo_outline : [];
-      state.currentLocation = state.geoOutline.at(-1) || state.places.find((place) => place.geolocation)?.geolocation || state.nodes.find((node) => node.geolocation)?.geolocation || null;
-      state.mapMode = draft.map_mode || (state.currentLocation ? "street" : "floorplan");
-      controls.gpsStatus.textContent = state.geoOutline.length ? `Saved outline loaded · ${state.geoOutline.length} GPS samples.` : "GPS is off. Choose a GPS action to request location access.";
-      state.selected = null; state.dirty = false; controls.saveState.textContent = "Saved"; render();
+      const mapResponse = await fetch(`/api/venues/${encodeURIComponent(id)}/map-draft/`, { headers: { Accept: "application/json" } });
+      if (!mapResponse.ok) throw new Error(`Could not load saved map data (${mapResponse.status}).`);
+      state.mapDraft = await mapResponse.json();
+      const eventsResponse = await fetch("/api/events/", { headers: { Accept: "application/json" } });
+      if (!eventsResponse.ok) throw new Error(`Could not load events (${eventsResponse.status}).`);
+      const eventPayload = await eventsResponse.json();
+      const events = Array.isArray(eventPayload) ? eventPayload : (Array.isArray(eventPayload.results) ? eventPayload.results : []);
+      state.events = events.filter((event) => String(event.venue) === String(state.venue.id));
+      eventPicker.replaceChildren();
+      state.events.forEach((event) => {
+        const option = document.createElement("option"); option.value = event.id; option.textContent = event.title; eventPicker.append(option);
+      });
+      eventPickerWrap.hidden = !state.events.length;
+      state.eventId = state.events[0]?.id || null;
+      if (state.eventId) eventPicker.value = state.eventId;
+      loadSelectedEventDraft();
     } catch (error) { controls.errors.textContent = error.message; controls.saveState.textContent = "Load failed"; }
   }
 
@@ -400,10 +562,26 @@
     if (errors.length) { controls.saveState.textContent = "Fix validation issues"; return; }
     controls.saveState.textContent = "Saving…";
     try {
-      const calibration = { ...(state.venue.calibration || {}), organizer_draft: {
-        format: 1, places: state.places, nodes: state.nodes, edges: state.edges, image_data: state.imageData,
-        geo_outline: state.geoOutline, map_mode: state.mapMode,
-      } };
+      const mapResponse = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/map-draft/`, {
+        method: "PUT", headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ features: state.places, nodes: state.nodes, edges: state.edges }),
+      });
+      const mapData = await mapResponse.json().catch(() => ({}));
+      if (!mapResponse.ok) throw new Error(JSON.stringify(mapData) || `Map save failed (${mapResponse.status}).`);
+      state.mapDraft = mapData;
+      const latestResponse = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/`, { headers: { Accept: "application/json" } });
+      if (!latestResponse.ok) throw new Error(`Could not refresh venue data before saving (${latestResponse.status}).`);
+      const latestVenue = await latestResponse.json();
+      const draft = {
+        format: 2, places: state.places, nodes: state.nodes, edges: state.edges, image_data: state.imageData,
+        geo_outline: state.geoOutline, current_location: state.currentLocation, map_mode: state.mapMode,
+      };
+      const calibration = { ...(latestVenue.calibration || {}) };
+      if (state.eventId) {
+        calibration.organizer_drafts = { ...(calibration.organizer_drafts || {}), [state.eventId]: draft };
+      } else {
+        calibration.organizer_draft = draft;
+      }
       const response = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/`, {
         method: "PATCH", headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ calibration }),
@@ -411,7 +589,7 @@
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.detail || JSON.stringify(data) || `Save failed (${response.status}).`);
       state.venue = data; state.dirty = false; controls.saveState.textContent = "Saved";
-      controls.errors.textContent = "Draft saved to this venue.";
+      controls.errors.textContent = state.eventId ? `Draft saved for ${selectedEvent()?.title || "this event"}.` : "Draft saved to this venue.";
     } catch (error) { controls.saveState.textContent = "Save failed"; controls.errors.textContent = error.message; }
   }
 
@@ -422,8 +600,15 @@
     controls.startOutline.disabled = false; controls.stopOutline.hidden = true;
     loadVenue(venuePicker.value);
   });
+  eventPicker.addEventListener("change", () => {
+    if (state.dirty && !window.confirm("Discard unsaved organizer changes?")) { eventPicker.value = state.eventId; return; }
+    state.eventId = eventPicker.value;
+    controls.errors.textContent = "";
+    loadSelectedEventDraft();
+  });
   $("[data-current-location]").addEventListener("click", () => requestLocation((fix) => {
     state.mapMode = "street";
+    state.currentLocation = fix; setDirty();
     controls.gpsStatus.textContent = `Current location: ${fix.latitude.toFixed(6)}, ${fix.longitude.toFixed(6)} · ±${Math.round(fix.accuracy)} m`;
     render();
     window.setTimeout(() => { state.leafletMap?.invalidateSize(); state.leafletMap?.panTo([fix.latitude, fix.longitude]); }, 0);
@@ -469,7 +654,7 @@
     if (!file) return;
     if (!/^image\/(png|jpeg)$/.test(file.type)) { controls.errors.textContent = "Choose a PNG or JPG image."; return; }
     const reader = new FileReader();
-    reader.onload = () => { state.mapMode = "floorplan"; state.imageData = String(reader.result); controls.errors.textContent = ""; setDirty(); render(); };
+    reader.onload = () => { state.mapMode = "floorplan"; state.imageData = String(reader.result); controls.analyze.disabled = false; state.aiSuggestions = []; state.aiPathPoints = []; state.aiPathSuggestions = []; controls.aiStatus.textContent = ""; controls.errors.textContent = ""; setDirty(); render(); };
     reader.onerror = () => { controls.errors.textContent = "The selected image could not be read."; };
     reader.readAsDataURL(file);
   }
@@ -497,6 +682,77 @@
   }
   $("[data-add-place]").addEventListener("click", () => beginMapAddition("place"));
   $("[data-add-node]").addEventListener("click", () => beginMapAddition("node"));
+  controls.analyze.addEventListener("click", async () => {
+    if (!state.imageData) return;
+    state.aiSuggestions = []; state.aiPathPoints = []; state.aiPathSuggestions = [];
+    controls.analyze.disabled = true;
+    controls.aiStatus.textContent = "AI is reading the floor plan and identifying its components…";
+    controls.aiLoading.hidden = false;
+    canvas.setAttribute("aria-busy", "true");
+    controls.analyze.textContent = "Reading plan…";
+    controls.errors.textContent = "";
+    render();
+    try {
+      const csrfToken = root.querySelector("input[name=csrfmiddlewaretoken]")?.value || "";
+      const response = await fetch(window.location.pathname, {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({ action: "analyze_floor_plan", image_data: state.imageData }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || `Analysis failed (${response.status}).`);
+      state.aiSuggestions = (Array.isArray(data.destinations) ? data.destinations : []).map((item) => ({ ...item, selected: false }));
+      state.aiPathPoints = Array.isArray(data.path_points) ? data.path_points : [];
+      state.aiPathSuggestions = (Array.isArray(data.path_edges) ? data.path_edges : []).map((item) => ({ ...item, selected: false }));
+      controls.aiStatus.textContent = `Found ${state.aiSuggestions.length} destination${state.aiSuggestions.length === 1 ? "" : "s"} and ${state.aiPathSuggestions.length} proposed path connection${state.aiPathSuggestions.length === 1 ? "" : "s"}. Review and verify before using.`;
+      render();
+    } catch (error) {
+      controls.aiStatus.textContent = "";
+      controls.errors.textContent = error.message;
+      render();
+    } finally {
+      controls.aiLoading.hidden = true;
+      canvas.removeAttribute("aria-busy");
+      controls.analyze.textContent = "Find components with AI";
+      controls.analyze.disabled = !state.imageData;
+    }
+  });
+  controls.addSuggestions.addEventListener("click", () => {
+    const selected = state.aiSuggestions.filter((item) => item.selected);
+    selected.forEach((item) => state.places.push({
+      id: makeId("place"), pin_number: nextPlacePinNumber(), name: item.name, category: item.category, description: item.description,
+      status: "open", x: item.plan_x, y: item.plan_y,
+    }));
+    state.aiSuggestions = state.aiSuggestions.filter((item) => !item.selected);
+    if (selected.length) {
+      state.selected = { type: "place", id: state.places.at(-selected.length).id };
+      controls.aiStatus.textContent = `Added ${selected.length} destination${selected.length === 1 ? "" : "s"}. Review names and descriptions, then pin their exact locations on-site.`;
+      setDirty(); render();
+    }
+  });
+  controls.addPathSuggestions.addEventListener("click", () => {
+    const selected = state.aiPathSuggestions.filter((item) => item.selected);
+    const pointsByIndex = new Map();
+    selected.forEach((edge) => [edge.from_index, edge.to_index].forEach((index) => {
+      if (pointsByIndex.has(index)) return;
+      const suggestion = state.aiPathPoints.find((point) => point.index === index);
+      if (!suggestion) return;
+      const node = { id: makeId("node"), name: suggestion.name, x: suggestion.plan_x, y: suggestion.plan_y, proposal: true };
+      state.nodes.push(node); pointsByIndex.set(index, node);
+    }));
+    selected.forEach((edge) => {
+      const from = pointsByIndex.get(edge.from_index), to = pointsByIndex.get(edge.to_index);
+      if (from && to) state.edges.push({ id: makeId("edge"), from: from.id, to: to.id, proposal: true });
+    });
+    state.aiPathSuggestions = state.aiPathSuggestions.filter((item) => !item.selected);
+    if (selected.length) {
+      const lastNode = state.nodes.at(-1);
+      if (lastNode) state.selected = { type: "node", id: lastNode.id };
+      controls.aiStatus.textContent = `Added ${selected.length} proposed path connection${selected.length === 1 ? "" : "s"}. Verify the route and set path-point GPS locations on-site before navigation.`;
+      setDirty(); render();
+    }
+  });
+  $("[data-dismiss-suggestions]").addEventListener("click", () => { state.aiSuggestions = []; state.aiPathPoints = []; state.aiPathSuggestions = []; controls.aiStatus.textContent = ""; render(); });
   $("[data-connect]").addEventListener("click", () => {
     if (state.selected?.type === "node") {
       const first = state.nodes.find((node) => node.id === state.selected.id);
@@ -508,6 +764,13 @@
   $("[data-save]").addEventListener("click", save);
   $("[data-delete-place]").addEventListener("click", () => {
     state.places = state.places.filter((place) => place.id !== state.selected?.id); state.selected = null; setDirty(); render();
+  });
+  $("[data-delete-node]").addEventListener("click", () => {
+    const nodeId = state.selected?.type === "node" ? state.selected.id : null;
+    if (!nodeId) return;
+    state.nodes = state.nodes.filter((node) => node.id !== nodeId);
+    state.edges = state.edges.filter((edge) => edge.from !== nodeId && edge.to !== nodeId);
+    state.selected = null; setDirty(); render();
   });
   root.querySelectorAll("[data-field]").forEach((field) => field.addEventListener("input", () => {
     const place = selectedItem(); if (!place || state.selected.type !== "place") return;

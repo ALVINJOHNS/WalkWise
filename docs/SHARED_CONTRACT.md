@@ -26,7 +26,7 @@ Keep plan coordinates (`plan_x`, `plan_y`) separate from latitude/longitude geom
 
 ## Feature boundaries
 
-- Organizer page: `templates/venueflow/organizer.html`, `static/venueflow/organizer.js`. Load and save through `/api/venues/` and related DRF endpoints; integration owns shared model/API changes.
+- Organizer page: `templates/venueflow/organizer.html`, `static/venueflow/organizer.js`. Load and save through `/api/venues/` and related DRF endpoints; integration owns shared model/API changes. Optional AI floor-plan analysis uses the existing `/organizer/` page via a same-origin POST and `venueflow/organizer_ai.py`; it adds no API URL or browser-visible API link.
 - Visitor page: `templates/venueflow/visitor.html`, `static/venueflow/visitor.js`. Read a venue or published version; do not alter snapshots from visitor actions. The visitor page context provides `freshness_state` (`current` for a published event, `paused` for a paused event, otherwise `saved`) and `freshness_updated_at` from the venue record. These props describe server-side publication/record state; do not infer freshness or offline availability from browser connectivity.
 - Routing: pure functions in `api/venueflow/routing.py`; consume node/edge records or plain dictionaries and return ordered node/edge IDs, distance, ETA, or a no-route result. The API wrapper is `POST /api/route`.
 - Venue/event persistence: `api/venueflow/models.py`, `serializers.py`, `views.py`, `migrations/**`.
@@ -36,6 +36,7 @@ Keep plan coordinates (`plan_x`, `plan_y`) separate from latitude/longitude geom
 
 - Health: `GET /api/health` verifies database connectivity.
 - Venues/events: DRF routers provide list, detail, create, update, and delete endpoints under `/api/venues/` and `/api/events/`.
+- Organizer map draft: `GET` and full-snapshot `PUT /api/venues/{venue_id}/map-draft/` return `{features, nodes, edges}`. A `PUT` replaces all three venue-scoped collections atomically; omitted rows are deleted. Edge endpoints must refer to nodes in that snapshot. Editor `x`/`y` map to normalized `plan_x`/`plan_y`; feature category/description/status are represented by `kind`/`properties`, node names by `PathNode.properties.name`, and edge endpoint IDs by their foreign keys. The API retains auxiliary image/GPS calibration data while removing legacy feature/node/edge arrays from `calibration.organizer_draft` during a successful replacement.
 - Route: `POST /api/route`; returns 501 with a clear JSON error until routing is implemented.
 - Use serializers for input validation. Keep the page and API same-origin; do not add CORS without a deliberate external client requirement.
 
