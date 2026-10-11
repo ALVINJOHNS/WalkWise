@@ -15,7 +15,7 @@
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
     fields: $("[data-place-fields]"), errors: $("[data-errors]"), saveState: $("[data-save-state]"),
     gpsStatus: $("[data-gps-status]"), startOutline: $("[data-start-outline]"), stopOutline: $("[data-stop-outline]"),
-    placeLocation: $("[data-place-location]"), setPlaceLocation: $("[data-set-place-location]"), placeOnMap: $("[data-place-on-map]"),
+    placeLocation: $("[data-place-location]"), setPlaceLocation: $("[data-set-place-location]"), placeOnMap: $("[data-place-on-map]"), accessNode: $("[data-access-node]"),
     leafletMap: $("[data-leaflet-map]"), mapStatus: $("[data-map-status]"), gpsDistance: $("[data-gps-distance]"),
     mapViewTools: $("[data-map-view-tools]"), floorplanView: $("[data-map-view='floorplan']"), nodeFields: $("[data-node-fields]"),
     nodeLocation: $("[data-node-location]"), setNodeLocation: $("[data-set-node-location]"), nodeOnMap: $("[data-node-on-map]"),
@@ -151,6 +151,9 @@
     controls.nodeOnMap.hidden = !node || state.mapMode !== "street";
     if (place) {
       root.querySelectorAll("[data-field]").forEach((field) => { if (field.value !== esc(place[field.dataset.field])) field.value = esc(place[field.dataset.field]); });
+      controls.accessNode.replaceChildren(new Option("No path connection", ""));
+      state.nodes.forEach((pathNode) => controls.accessNode.add(new Option(pathNode.name || `Path point ${pathNode.id}`, pathNode.id)));
+      controls.accessNode.value = place.access_node_id || "";
       controls.placeLocation.textContent = place.geolocation ? `GPS: ${place.geolocation.latitude.toFixed(6)}, ${place.geolocation.longitude.toFixed(6)} · ±${Math.round(place.geolocation.accuracy || 0)} m` : "No GPS location saved. Place it on the street map to make it visible there.";
     }
     if (node) controls.nodeLocation.textContent = node.geolocation ? `GPS: ${node.geolocation.latitude.toFixed(6)}, ${node.geolocation.longitude.toFixed(6)} · ±${Math.round(node.geolocation.accuracy || 0)} m` : "No GPS coordinate saved. Place it on the street map to make it visible there.";
@@ -549,6 +552,9 @@
       if (!place.category.trim()) errors.push(`${name || `Destination ${index + 1}`} needs a category.`);
     });
     const nodeIds = new Set(state.nodes.map((node) => node.id));
+    state.places.forEach((place) => {
+      if (place.access_node_id && !nodeIds.has(place.access_node_id)) errors.push(`${place.name || "A destination"} refers to a missing path point.`);
+    });
     state.edges.forEach((edge, index) => {
       if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to)) errors.push(`Connection ${index + 1} refers to a missing path point.`);
       if (edge.from === edge.to) errors.push(`Connection ${index + 1} needs two different path points.`);
@@ -564,7 +570,10 @@
     try {
       const mapResponse = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/map-draft/`, {
         method: "PUT", headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ features: state.places, nodes: state.nodes, edges: state.edges }),
+        body: JSON.stringify({ features: state.places.map((place) => ({
+          ...place,
+          properties: { ...(place.properties || {}), access_node_id: place.access_node_id || null },
+        })), nodes: state.nodes, edges: state.edges }),
       });
       const mapData = await mapResponse.json().catch(() => ({}));
       if (!mapResponse.ok) throw new Error(JSON.stringify(mapData) || `Map save failed (${mapResponse.status}).`);
@@ -770,7 +779,14 @@
     if (!nodeId) return;
     state.nodes = state.nodes.filter((node) => node.id !== nodeId);
     state.edges = state.edges.filter((edge) => edge.from !== nodeId && edge.to !== nodeId);
+    state.places.forEach((place) => { if (place.access_node_id === nodeId) place.access_node_id = null; });
     state.selected = null; setDirty(); render();
+  });
+  controls.accessNode.addEventListener("change", () => {
+    const place = selectedItem();
+    if (!place || state.selected?.type !== "place") return;
+    place.access_node_id = controls.accessNode.value || null;
+    setDirty();
   });
   root.querySelectorAll("[data-field]").forEach((field) => field.addEventListener("input", () => {
     const place = selectedItem(); if (!place || state.selected.type !== "place") return;

@@ -8,17 +8,10 @@
       <h1 class="mt-6 max-w-xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Make every venue easy to find.</h1>
       <p class="mt-4 max-w-xl text-base leading-7 text-teal-50/85 sm:text-lg">One clear map for your team to prepare and every visitor to explore. Start with a venue, then shape the route together.</p>
       <div class="mt-7 flex flex-wrap gap-3">
-        <button class="flow-button rounded-xl bg-white px-5 py-3 text-sm font-bold text-teal-900 shadow-lg shadow-teal-950/10 transition hover:-translate-y-0.5 hover:bg-teal-50" type="button" data-flow-target="/organizer/" data-flow-name="Organizer Studio">Open Organizer Studio <span aria-hidden="true">↗</span></button>
-        <button class="flow-button rounded-xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15" type="button" data-flow-target="/v/" data-flow-name="Visitor preview">Preview visitor experience <span aria-hidden="true">→</span></button>
+        <a class="inline-flex items-center rounded-xl bg-white px-5 py-3 text-sm font-bold text-teal-900 shadow-lg shadow-teal-950/10 transition hover:-translate-y-0.5 hover:bg-teal-50" href="/organizer/">Open Organizer Studio <span aria-hidden="true">↗</span></a>
+        {% if venues %}<a class="inline-flex items-center rounded-xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15" href="/v/{{ venues.0.slug }}/">Open visitor map <span aria-hidden="true">→</span></a>{% endif %}
       </div>
     </div>
-    <div class="hero-orbit" aria-hidden="true"><div class="hero-orbit__ring hero-orbit__ring--outer"></div><div class="hero-orbit__ring hero-orbit__ring--inner"></div><div class="hero-map-line"></div><span class="hero-pin hero-pin--one">⌖</span><span class="hero-pin hero-pin--two">⌖</span><span class="hero-pin hero-pin--three">⌖</span><span class="hero-map-label">YOUR VENUE</span></div>
-  </section>
-
-  <section class="mt-8 grid gap-4 sm:grid-cols-3" aria-label="Workspace summary">
-    <article class="overview-stat"><span class="overview-stat__icon bg-teal-50 text-teal-700">⌂</span><div><p class="text-sm font-medium text-slate-500">Venues</p><p class="mt-1 text-2xl font-bold tracking-tight text-slate-900">{{ venue_count }}</p></div><span class="overview-stat__hint">in your workspace</span></article>
-    <article class="overview-stat"><span class="overview-stat__icon bg-violet-50 text-violet-700">▦</span><div><p class="text-sm font-medium text-slate-500">Events</p><p class="mt-1 text-2xl font-bold tracking-tight text-slate-900">{{ event_count }}</p></div><span class="overview-stat__hint">being planned</span></article>
-    <article class="overview-stat"><span class="overview-stat__icon bg-emerald-50 text-emerald-700">✓</span><div><p class="text-sm font-medium text-slate-500">Published</p><p class="mt-1 text-2xl font-bold tracking-tight text-slate-900">{{ published_count }}</p></div><span class="overview-stat__hint">ready to share</span></article>
   </section>
 
   <section class="mt-12 grid gap-8 lg:grid-cols-[1.35fr_.65fr]">
@@ -31,14 +24,13 @@
       <div class="mt-5 grid gap-4 sm:grid-cols-2" data-venue-list>
         {% for venue in venues %}
         <article class="venue-card" data-venue-card data-search-name="{{ venue.name|lower }} {{ venue.slug|lower }}">
-          <div class="venue-card__art"><div class="mini-map" aria-hidden="true"><span class="mini-map__path"></span><i class="mini-map__dot mini-map__dot--a"></i><i class="mini-map__dot mini-map__dot--b"></i><i class="mini-map__dot mini-map__dot--c"></i></div><span class="venue-card__badge">VENUE</span></div>
-          <div class="p-5"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><h3 class="truncate font-bold text-slate-900">{{ venue.name }}</h3><p class="mt-1 truncate text-sm text-slate-500">/{{ venue.slug }}</p></div><span class="venue-status"><i></i> Workspace</span></div><div class="mt-5 flex gap-2"><button class="flow-button flex-1 rounded-lg bg-slate-900 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800" type="button" data-flow-target="/organizer/" data-flow-name="Edit {{ venue.name }}">Open venue <span aria-hidden="true">→</span></button><button class="flow-button rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-300 hover:bg-teal-50" type="button" data-flow-target="/v/{{ venue.slug }}/" data-flow-name="Preview {{ venue.name }}" aria-label="Preview {{ venue.name }}">Preview</button></div></div>
+          <div class="p-5"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><h3 class="truncate font-bold text-slate-900">{{ venue.name }}</h3><p class="mt-1 truncate text-sm text-slate-500">/{{ venue.slug }}</p></div><span class="venue-status"><i></i> Workspace</span></div><div class="mt-5 flex gap-2"><a class="flex-1 rounded-lg bg-slate-900 px-3 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-teal-800" href="/organizer/">Open organizer <span aria-hidden="true">→</span></a><a class="rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-300 hover:bg-teal-50" href="/v/{{ venue.slug }}/">Visitor map</a></div></div>
         </article>
         {% endfor %}
       </div>
       <p class="mt-4 hidden rounded-xl bg-white p-5 text-sm text-slate-500" data-empty-search>No venues match that search.</p>
       {% else %}
-      <div class="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-10"><span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-2xl text-teal-700">⌂</span><h3 class="mt-4 font-bold text-slate-900">Your first venue starts here</h3><p class="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">Create a venue workspace, then add places and walkable paths for your event.</p><button class="flow-button mt-5 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800" type="button" data-flow-target="/organizer/" data-flow-name="Create a venue">Create a venue <span aria-hidden="true">→</span></button></div>
+      <div class="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-10"><h3 class="font-bold text-slate-900">No venues yet</h3><p class="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">Create a venue workspace, then add places and walkable paths for your event.</p><a class="mt-5 inline-flex rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800" href="/organizer/">Create a venue <span aria-hidden="true">→</span></a></div>
       {% endif %}
     </div>
 
@@ -49,10 +41,9 @@
           <li class="flow-step"><span class="flow-step__number">02</span><div><h3 class="text-sm font-semibold text-slate-800">Add places and paths</h3><p class="mt-0.5 text-xs leading-5 text-slate-500">Mark destinations and connect walkable routes.</p></div></li>
           <li class="flow-step"><span class="flow-step__number">03</span><div><h3 class="text-sm font-semibold text-slate-800">Share the visitor map</h3><p class="mt-0.5 text-xs leading-5 text-slate-500">Preview the experience before it goes live.</p></div></li>
         </ol>
-        <button class="flow-button mt-6 w-full rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-800 transition hover:bg-teal-100" type="button" data-flow-target="/organizer/" data-flow-name="Setup guide">Start setup <span aria-hidden="true">→</span></button>
+        <a class="mt-6 block w-full rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-center text-sm font-semibold text-teal-800 transition hover:bg-teal-100" href="/organizer/">Start setup <span aria-hidden="true">→</span></a>
       </div>
     </aside>
   </section>
-  <div class="flow-toast" role="status" aria-live="polite" data-flow-toast hidden></div>
 </main>
 {% endblock %}

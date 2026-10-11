@@ -4,6 +4,27 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T06:16:48+05:30 — Plan interactive visitor navigation
+
+- Changed: Added P2-VIS-4 to replace the static visitor illustration with a coordinate-aware interactive map, explicit GPS/manual start, destination navigation over organizer-authored open paths, and scoped visitor UI. Updated the shared contract to require explicit feature-to-node access mapping and prohibit proximity inference.
+- Why: The user clarified that visitors must see their location, choose destinations, and follow the organizer's actual paths; decorative/fake maps and sample visualizations do not meet that goal.
+- Validation: Compared the new scope with P2-VIS-1–3, P3 routing behavior, P4 map-draft persistence, and existing organizer/visitor code. No runtime checks apply to this planning-only change.
+- Limitations: Current map data stores plan coordinates and optional GPS values but does not expose visitor graph context or a destination access-node control; those integration gaps are included in P2-VIS-4.
+
+## 2026-10-11T06:34:00+05:30 — Extend visual cleanup to the overview
+
+- Changed: Expanded P2-VIS-4 to remove the overview's decorative mock-map art and redundant summary tiles while keeping its live venue list and actions.
+- Why: The user asked to remove waste sample/dummy visualizations; source review found decorative dashboard elements in addition to the visitor page's fake patterned map.
+- Validation: Inspected the currently served overview; confirmed those visuals were present. Planning change only; no checks run.
+- Limitations: The real seeded venue record remains in the workspace; visitor rendering will omit it until it has real map coordinates or a saved floor plan.
+
+## 2026-10-11T06:37:00+05:30 — Build interactive visitor map navigation
+
+- Changed: Replaced the patterned static visitor canvas with a scoped Leaflet map that uses OpenStreetMap for georeferenced data and the saved plan image for local-coordinate data. Added opt-in high-accuracy location watching, current-position accuracy display, route selection over explicit open organizer edges, manual path-node starts, route progress details, and clear map-data errors. Added explicit destination-to-path-node selection in the organizer and validation that access-node IDs belong to the submitted map snapshot. Removed non-map-ready destinations from the visitor list, deleted the fake map fallback, and removed mock overview art/summary tiles and toast-only navigation buttons. Updated README and phase evidence.
+- Why: The user asked for a detailed interactive map experience, visible location, destination routing along organizer paths, no fake/sample visuals, and no visitor overlay across pages.
+- Validation: `node --check` on visitor, organizer, and shared app JS; `python -m py_compile` for page and serializer modules; `git diff --check`; app-browser screenshots of visitor, overview, and organizer routes. The visitor screenshot confirmed the honest empty state for the unmapped seed venue; the other two pages rendered without visitor overlays. `npm run build:css` failed because npm is unavailable in the shell. Django management checks could not run because Docker Desktop named-pipe access was denied.
+- Limitations: Current venue data has no GPS coordinates or saved plan, so no genuine basemap, visitor location, mapped destination, or route could be manually exercised. Browser location permission was not requested. Route integration is client-side; the REST `/api/route` endpoint remains a 501 stub.
+
 ## 2026-10-11T06:05:00+05:30 — Merge main into person1-organisor
 
 - Changed: Merged `origin/main` into `person1-organisor` and resolved conflicts in `api/venueflow/static/venueflow/organizer.js`, `README.md`, `CHANGELOG.md`, `AI_USAGE.md`, and `handoff.md`. The organizer now loads and saves the venue `map-draft` API alongside per-event calibration drafts, legacy venue-level drafts still merge with persisted ORM records, and the connection list keeps both the AI-proposal label and the Remove control.
