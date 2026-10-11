@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:50:24+05:30 — Close Person 3 route contract handoff
+
+- Changed: Marked P3-NAV-5 verified after reviewing the implemented route serializer/view, published snapshot selection, helper boundary, and shared contract. Updated its mapping and handoff notes to match P4-INT-6, and recorded geometry and visitor suggestion data as follow-on dependencies.
+- Why: The published-snapshot route wrapper is now implemented and its request, response, and error mapping match the proposed Person 3 boundary; the phase was still marked blocked against the earlier stub.
+- Validation: Browser opened `/api/health` (HTTP 200/database ok), `/api/venues/venue-kochi-01/map-draft/` (HTTP 200 with map records), and submitted a route request to `/api/route`; the expected HTTP 404 identified that the seeded event has no published snapshot. Existing P4-INT-6 runtime fixtures in `bef8b55` cover successful routes, invalid-length/unreachable outcomes, snapshot immutability, and reference errors. `git diff --check` and local Markdown link checks passed. Docker CLI was unavailable because access to the Docker Desktop named pipe was denied.
+- Limitations: This browser session could not verify a successful route against a published snapshot without creating a new snapshot in the shared demo database. Separate human peer sign-off was not available; contract alignment was assessed from the implementation and shared documents. Visitor edge geometry and destination access-node authoring remain follow-on work.
+
 ## 2026-10-11T05:34:00+05:30 — Implement published-snapshot route API seam
 
 - Changed: Added nullable `MapFeature.access_node` with migration and same-snapshot validation; map-draft GET/PUT now carries the explicit link. Added event publish API to create incrementing immutable `MapVersion` snapshots and replaced the route 501 with request validation and routing against the latest published snapshot only. Updated the shared contract, README, P4-INT-6 evidence, and handoff.

@@ -4,6 +4,8 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026, Codex completed the Person 3 review of P3-NAV-5 against the implemented P4-INT-6 route API and shared contract. It reconciled the map field table, documented the published-snapshot request/response and error mapping, and marked the phase verified without changing integration-owned code or the pure routing helper. Human peer sign-off: not available; alignment was reviewed from implementation and documentation. Browser checks: health and map-draft returned HTTP 200; a route request returned the expected 404 because the seeded event has no published snapshot. Existing P4-INT-6 fixtures provide success/no-route and snapshot evidence. Docker CLI access was denied; no new published snapshot was created.
+
 On 11 October 2026, Codex reviewed the source contract for Person 3 routing integration and completed the P3-NAV-5 mapping/handoff. It confirmed node/edge adaptation, status and optional wait sources, identified missing feature access-node and PathEdge geometry fields, and proposed a published-snapshot `/api/route` request shape for Person 4 review. Human review: pending. `git diff --check` and Markdown link checks passed. Docker API probing was unavailable because Docker Desktop named-pipe access was denied; no app code changed.
 
 On 11 October 2026, Codex created P3-NAV-5 to review the new venue map-draft API contract and coordinate the Person 3 routing-to-integration boundary. The plan identifies unmapped `access_node_id`, strict `open`, and optional `waitMinutes` inputs and assigns DRF wrapper changes to integration. Human review: pending. Planning only; no endpoint probe or runtime checks were run.
