@@ -4,6 +4,10 @@ Use Codex during the hackathon and briefly document its actual contribution here
 
 ## Event build log
 
+On 11 October 2026 at 08:06 IST, Codex inspected the live Organizer Studio and found the broad canvas SVG CSS rule was overriding Leaflet's internal route SVG. It scoped the rule to the editor's own overlay SVGs, added map focus for existing/new connections, and visually confirmed purple paths rendered between markers after reload. Human review: pending. Validation: JavaScript syntax, `git diff --check`, and live browser inspection passed; new-connection/curve interaction was not exercised to avoid changing saved map data.
+
+On 11 October 2026 at 08:01 IST, Codex inspected the live Organizer Studio and found six saved GPS connections outside the visible map viewport. Codex updated `organizer.js` to center new connections and added a Show control for saved GPS connections, then versioned the script in `organizer.html`. Human review: pending. Validation: JavaScript syntax and `git diff --check` passed; browser interaction remains pending.
+
 On 11 October 2026 at 07:55 IST, after the user reported that organizer paths still did not appear during creation, Codex added a dedicated Leaflet pane for path strokes above street-map tiles and overlay layers and bumped the organizer script cache version. Human review: pending. Validation: JavaScript syntax and diff whitespace passed; browser interaction remains pending.
 
 On 11 October 2026 at 07:51 IST, Codex improved P1-ORG-10 path feedback in `organizer.html` and `organizer.js`: a connection now triggers a dedicated accessible confirmation beside the drawing controls, and street-map path lines have a white contrast casing. The organizer script URL was versioned for cache refresh. Human review: pending. Validation: JavaScript syntax and `git diff --check` passed; interactive browser verification remains pending.

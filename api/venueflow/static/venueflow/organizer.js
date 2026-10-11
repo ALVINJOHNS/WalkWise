@@ -53,6 +53,7 @@
     }
     const duplicate = state.edges.some((edge) => (edge.from === state.connectFrom && edge.to === node.id)
       || (edge.from === node.id && edge.to === state.connectFrom));
+    const previousStart = state.connectFrom;
     if (!duplicate) {
       state.edges.push({ id: makeId("edge"), from: state.connectFrom, to: node.id, access_rules: {} });
       setDirty();
@@ -68,6 +69,30 @@
       ? `Those points are already connected. ${node.name} is the new start point; choose another point or turn off Draw path.`
       : `Connected to ${node.name}. Choose another point to continue the path, or turn off Draw path.`;
     render();
+    const from = state.nodes.find((item) => item.id === previousStart);
+    if (state.mapMode === "street" && from?.geolocation && node.geolocation) focusPathPoints(from, node);
+  }
+
+  function focusPathPoints(from, to) {
+    if (!state.leafletMap || !from?.geolocation || !to?.geolocation) return;
+    const bounds = window.L.latLngBounds(
+      [from.geolocation.latitude, from.geolocation.longitude],
+      [to.geolocation.latitude, to.geolocation.longitude],
+    ).pad(.6);
+    state.leafletMap.fitBounds(bounds, { maxZoom: 19, animate: false });
+  }
+
+  function showEdgeOnMap(edge) {
+    const from = state.nodes.find((node) => node.id === edge.from);
+    const to = state.nodes.find((node) => node.id === edge.to);
+    if (!from?.geolocation || !to?.geolocation) return;
+    state.mapMode = "street";
+    render();
+    window.setTimeout(() => {
+      if (!state.leafletMap) return;
+      state.leafletMap.invalidateSize();
+      focusPathPoints(from, to);
+    }, 0);
   }
 
   function render() {
@@ -175,10 +200,14 @@
       curve.disabled = !a?.geolocation || !b?.geolocation;
       curve.title = curve.disabled ? "Place both points on the street map first" : "Toggle a draggable curved path handle";
       curve.addEventListener("click", () => toggleEdgeCurve(edge));
+      const show = document.createElement("button"); show.type = "button"; show.textContent = "Show";
+      show.disabled = !a?.geolocation || !b?.geolocation;
+      show.title = show.disabled ? "Place both path points on the street map first" : "Center this connection on the street map";
+      show.addEventListener("click", () => showEdgeOnMap(edge));
       const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Remove";
       remove.setAttribute("aria-label", `Remove connection ${a?.name || edge.from} to ${b?.name || edge.to}`);
       remove.addEventListener("click", () => { state.edges = state.edges.filter((item) => item.id !== edge.id); setDirty(); render(); });
-      li.append(label, curve, remove);
+      li.append(label, show, curve, remove);
       controls.edgeList.append(li);
     });
     const place = state.selected?.type === "place" ? selectedItem() : null;

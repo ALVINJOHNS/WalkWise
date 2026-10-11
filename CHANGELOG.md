@@ -1,5 +1,17 @@
 # Change log
 
+## 2026-10-11T08:06:00+05:30 — Stop organizer CSS from breaking Leaflet route SVGs
+- Changed: Limited absolute sizing/z-index rules to the editor's own `[data-lines]` and `[data-ai-overlay]` SVGs, leaving Leaflet's internal route renderer untouched. Reloaded the live Organizer Studio and confirmed purple paths now appear between path-point markers. Kept the new map-focus action for saved connections.
+- Why: The previous selector matched every SVG inside the canvas, including Leaflet's internal SVG renderer, so GPS markers appeared while route strokes did not.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, and live HTTPS browser inspection; screenshot showed connected purple routes on the map.
+- Limitations: Creating a fresh connection and curve dragging were not exercised in the live map to avoid changing the saved venue draft.
+
+## 2026-10-11T08:01:00+05:30 — Bring organizer connections into the map view
+- Changed: New street-map connections now fit both endpoint points into view. Each saved GPS connection also has a Show control that switches to the street map and centers the selected route.
+- Why: Live inspection showed saved GPS connections and their endpoint markers were outside the current map viewport, so rendered paths could not be seen.
+- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
+- Limitations: Live interaction verification remains pending. Show is unavailable until both endpoints have GPS coordinates.
+
 ## 2026-10-11T07:55:00+05:30 — Keep organizer routes above street-map tiles
 - Changed: Rendered organizer connection strokes in a dedicated Leaflet pane above the tile and overlay panes, below markers; refreshed the organizer script URL version.
 - Why: The user still could not see the path while creating connections, so the line layer's ordering needed to be explicit relative to the basemap.
