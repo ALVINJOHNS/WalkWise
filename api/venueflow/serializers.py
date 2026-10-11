@@ -80,6 +80,7 @@ class MapDraftFeatureSerializer(serializers.Serializer):
     y = FinitePlanCoordinateField()
     description = serializers.CharField(required=False, allow_blank=True, default="")
     status = serializers.ChoiceField(choices=("open", "closed", "delayed"), required=False, default="open")
+    access_node_id = serializers.CharField(max_length=80, required=False, allow_null=True, allow_blank=False)
     properties = serializers.DictField(required=False, default=dict)
     geolocation = serializers.JSONField(required=False, allow_null=True)
 
@@ -139,13 +140,31 @@ class MapDraftSerializer(serializers.Serializer):
             if len(ids) != len(set(ids)):
                 errors[key] = "IDs must be unique within this collection."
         node_ids = {item["id"] for item in attrs["nodes"]}
+        for index, feature in enumerate(attrs["features"]):
+            access_node_id = feature.get("access_node_id")
+            if access_node_id is not None and access_node_id not in node_ids:
+                if isinstance(errors.get("features"), str):
+                    errors["features"] = {"non_field_errors": errors["features"]}
+                errors.setdefault("features", {})[index] = {
+                    "access_node_id": "Must reference a path node in this venue snapshot."
+                }
         for index, edge in enumerate(attrs["edges"]):
             if edge["from_id"] not in node_ids or edge["to_id"] not in node_ids:
+                if isinstance(errors.get("edges"), str):
+                    errors["edges"] = {"non_field_errors": errors["edges"]}
                 errors.setdefault("edges", {})[index] = {
                     "from/to": "Each endpoint must reference a node in this venue snapshot."
                 }
             elif edge["from_id"] == edge["to_id"]:
+                if isinstance(errors.get("edges"), str):
+                    errors["edges"] = {"non_field_errors": errors["edges"]}
                 errors.setdefault("edges", {})[index] = {"to": "An edge must connect two different nodes."}
         if errors:
             raise serializers.ValidationError(errors)
         return attrs
+
+
+class RouteRequestSerializer(serializers.Serializer):
+    venue_id = serializers.CharField(max_length=80, allow_blank=False)
+    start_node_id = serializers.CharField(max_length=80, allow_blank=False)
+    destination_feature_id = serializers.CharField(max_length=80, allow_blank=False)

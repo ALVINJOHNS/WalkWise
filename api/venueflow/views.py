@@ -1,10 +1,14 @@
+import uuid
+
 from django.db import connection, transaction
-from rest_framework import status, viewsets
+from django.http import Http404
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
-from .models import MapFeature, PathEdge, PathNode
-from .serializers import EventSerializer, MapDraftSerializer, VenueSerializer
+from .models import Event, MapFeature, MapVersion, PathEdge, PathNode, Venue
+from .routing import find_route
+from .serializers import EventSerializer, MapDraftSerializer, RouteRequestSerializer, VenueSerializer
 from .selectors import list_events, list_venues
 
 
@@ -77,6 +81,7 @@ class VenueViewSet(viewsets.ModelViewSet):
                     defaults={
                         "name": row.pop("name"), "kind": row.pop("category"),
                         "plan_x": row.pop("x"), "plan_y": row.pop("y"), "properties": properties,
+                        "access_node_id": row.pop("access_node_id", None),
                     },
                 )
 
@@ -115,6 +120,7 @@ def _map_draft_payload(venue):
             "x": feature.plan_x, "y": feature.plan_y,
             "description": properties.get("description", ""),
             "status": properties.get("status", "open"),
+            "access_node_id": feature.access_node_id,
             "geolocation": properties.get("geolocation"),
             "properties": properties,
         })
@@ -145,7 +151,106 @@ class EventViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return list_events()
 
+    @action(detail=True, methods=("post",), url_path="publish")
+    def publish(self, request, pk=None):
+        selected_event = self.get_object()
+        with transaction.atomic():
+            event = Event.objects.select_for_update().get(pk=selected_event.pk)
+            event.status = "published"
+            event.save(update_fields=("status",))
+            previous = MapVersion.objects.filter(event=event).order_by("-version").first()
+            version_number = previous.version + 1 if previous else 1
+            version = MapVersion.objects.create(
+                id=str(uuid.uuid4()),
+                event=event,
+                version=version_number,
+                snapshot=_published_snapshot(event),
+            )
+        return Response({
+            "event_id": event.id,
+            "version": version.version,
+            "published_at": version.published_at,
+            "snapshot": version.snapshot,
+        }, status=status.HTTP_201_CREATED)
+
+
+def _published_snapshot(event):
+    venue = event.venue
+    return {
+        "venue": {"id": venue.id, "slug": venue.slug, "name": venue.name},
+        "event": {
+            "id": event.id, "title": event.title, "status": "published",
+            "starts_at": event.starts_at.isoformat() if event.starts_at else None,
+            "ends_at": event.ends_at.isoformat() if event.ends_at else None,
+        },
+        **_map_draft_payload(venue),
+    }
+
 
 @api_view(["POST"])
 def route_request(request):
-    return Response({"error": "not_implemented", "domain": "routing"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+    serializer = RouteRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    values = serializer.validated_data
+    venue = Venue.objects.filter(pk=values["venue_id"]).first()
+    if venue is None:
+        raise Http404("Venue not found.")
+
+    version = (
+        MapVersion.objects.filter(event__venue=venue, event__status="published")
+        .select_related("event")
+        .order_by("-published_at", "-version", "event_id")
+        .first()
+    )
+    if version is None:
+        raise Http404("Venue has no published map snapshot.")
+
+    snapshot = version.snapshot
+    if not isinstance(snapshot, dict):
+        raise serializers.ValidationError({"snapshot": "Published snapshot is malformed."})
+    nodes = snapshot.get("nodes")
+    edges = snapshot.get("edges")
+    features = snapshot.get("features")
+    if not isinstance(nodes, list) or not isinstance(edges, list) or not isinstance(features, list):
+        raise serializers.ValidationError({"snapshot": "Published snapshot is missing features, nodes, or edges."})
+    if any(
+        not isinstance(node, dict) or not isinstance(node.get("id"), str) or not node["id"].strip()
+        for node in nodes
+    ):
+        raise serializers.ValidationError({"snapshot": "Published snapshot contains an invalid node record."})
+    if any(
+        not isinstance(feature, dict) or not isinstance(feature.get("id"), str) or not feature["id"].strip()
+        for feature in features
+    ):
+        raise serializers.ValidationError({"snapshot": "Published snapshot contains an invalid feature record."})
+
+    start_node_id = values["start_node_id"]
+    if not any(isinstance(node, dict) and node.get("id") == start_node_id for node in nodes):
+        raise serializers.ValidationError({"start_node_id": "Unknown node in the published snapshot."})
+    feature = next((
+        row for row in features
+        if isinstance(row, dict) and row.get("id") == values["destination_feature_id"]
+    ), None)
+    if feature is None:
+        raise serializers.ValidationError({"destination_feature_id": "Unknown feature in the published snapshot."})
+    access_node_id = feature.get("access_node_id")
+    node_ids = {node["id"] for node in nodes}
+    if not isinstance(access_node_id, str) or access_node_id not in node_ids:
+        raise serializers.ValidationError({
+            "destination_feature_id": "Feature has no valid access node in the published snapshot."
+        })
+
+    route = find_route(nodes, edges, start_node_id, access_node_id)
+    if route.get("reason") == "unknown_start":
+        raise serializers.ValidationError({"start_node_id": route["message"]})
+    if route.get("reason") == "unknown_destination":
+        raise serializers.ValidationError({"destination_feature_id": route["message"]})
+    if route.get("reason") in ("invalid_graph", "invalid_input"):
+        raise serializers.ValidationError({"snapshot": route.get("message", "Published graph is invalid.")})
+
+    return Response({
+        "venue_id": venue.id,
+        "event_id": version.event_id,
+        "version": version.version,
+        "route": route,
+    })

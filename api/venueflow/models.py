@@ -35,6 +35,10 @@ class MapFeature(models.Model):
     plan_y = models.FloatField()
     location = models.PointField(srid=4326, null=True, blank=True)
     properties = models.JSONField(default=dict, blank=True)
+    access_node = models.ForeignKey(
+        "PathNode", related_name="accessible_features", on_delete=models.SET_NULL,
+        null=True, blank=True,
+    )
 
 
 class PathNode(models.Model):

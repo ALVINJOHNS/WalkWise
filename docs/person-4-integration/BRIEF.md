@@ -61,7 +61,14 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Status: not started
 - Scope and acceptance criteria: [phases/P4-INT-4.md](phases/P4-INT-4.md).
 - Dependencies: P4-INT-3 and Person 2 visitor page.
-- Next: P4-INT-5 only after core demo is green.
+- Next: P4-INT-6 after publish works; consider optional P4-INT-5 only after core demo and route flow are green.
+
+### P4-INT-6 — Link place features and route published snapshots
+
+- Status: verified
+- Scope and acceptance criteria: [phases/P4-INT-6.md](phases/P4-INT-6.md).
+- Dependencies: P4-INT-3 map-resource persistence, P4-INT-4 immutable published snapshots, and P3-NAV-5 route contract agreement.
+- Next: P4-INT-5 only after core demo and published-snapshot routing are green.
 
 ### P4-INT-5 — Offline shell (stretch gate)
 
@@ -74,9 +81,10 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 1. Integrate organizer and visitor templates/JS from the feature-owned paths in `docs/architecture.md`; avoid editing feature files.
 2. Complete P4-INT-3 related-resource persistence before connecting publishing.
 3. Complete P4-INT-4 publishing, visitor snapshot, URL, and QR flow.
-4. Generate and display a QR code for that URL using a small established dependency. If HTTPS deployment is unavailable, show the short URL and use local QR only for a localhost demo.
-5. Show honest snapshot/freshness state. A local database is not cross-device sync; do not claim realtime status updates.
-6. Try a service worker/offline app shell only after the end-to-end demo is green and time remains. Verify cold reload in airplane mode before claiming it.
+4. Complete P4-INT-6 explicit feature-to-node links and published-snapshot route API.
+5. Generate and display a QR code for that URL using a small established dependency. If HTTPS deployment is unavailable, show the short URL and use local QR only for a localhost demo.
+6. Show honest snapshot/freshness state. A local database is not cross-device sync; do not claim realtime status updates.
+7. Try a service worker/offline app shell only after the end-to-end demo is green and time remains. Verify cold reload in airplane mode before claiming it.
 
 ## Independent development
 

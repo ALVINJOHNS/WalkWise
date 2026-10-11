@@ -15,7 +15,7 @@ The user-selected implementation is a single Django application serving server-r
 Persist venue templates, event-specific layouts, and immutable published versions separately. `api/venueflow/models.py` is the authoritative ORM contract:
 
 - `Venue`: `id`, `slug`, `name`, plan image, optional PostGIS boundary, calibration metadata.
-- `MapFeature`: venue, kind/name, normalized `plan_x`/`plan_y`, optional geographic point, properties.
+- `MapFeature`: venue, kind/name, normalized `plan_x`/`plan_y`, optional geographic point, properties, and nullable explicit `access_node` link to a `PathNode` in that venue.
 - `PathNode`: venue, normalized plan coordinates, optional geographic point.
 - `PathEdge`: venue, from/to nodes, distance, direction, accessibility, closure, access rules.
 - `Event`: venue, title, dates, publication status.
@@ -36,8 +36,9 @@ Keep plan coordinates (`plan_x`, `plan_y`) separate from latitude/longitude geom
 
 - Health: `GET /api/health` verifies database connectivity.
 - Venues/events: DRF routers provide list, detail, create, update, and delete endpoints under `/api/venues/` and `/api/events/`.
-- Organizer map draft: `GET` and full-snapshot `PUT /api/venues/{venue_id}/map-draft/` return `{features, nodes, edges}`. A `PUT` replaces all three venue-scoped collections atomically; omitted rows are deleted. Edge endpoints must refer to nodes in that snapshot. Editor `x`/`y` map to normalized `plan_x`/`plan_y`; feature category/description/status are represented by `kind`/`properties`, node names by `PathNode.properties.name`, and edge endpoint IDs by their foreign keys. The API retains auxiliary image/GPS calibration data while removing legacy feature/node/edge arrays from `calibration.organizer_draft` during a successful replacement.
-- Route: `POST /api/route`; returns 501 with a clear JSON error until routing is implemented.
+- Organizer map draft: `GET` and full-snapshot `PUT /api/venues/{venue_id}/map-draft/` return `{features, nodes, edges}`. A `PUT` replaces all three venue-scoped collections atomically; omitted rows are deleted. Edge endpoints and non-null feature `access_node_id` values must refer to nodes in that snapshot. Editor `x`/`y` map to normalized `plan_x`/`plan_y`; feature category/description/status are represented by `kind`/`properties`, node names by `PathNode.properties.name`, and edge endpoint IDs by their foreign keys. The API retains auxiliary image/GPS calibration data while removing legacy feature/node/edge arrays from `calibration.organizer_draft` during a successful replacement.
+- Publish snapshot: `POST /api/events/{event_id}/publish` marks the event published and atomically creates the next immutable `MapVersion` from its venue and current map draft. This API seam does not provide the organizer publish UI, visitor snapshot rendering, or QR flow.
+- Route: `POST /api/route` accepts `{venue_id, start_node_id, destination_feature_id}` and routes against the latest published `MapVersion` for a published event at that venue. It resolves the feature's explicit `access_node_id`; draft rows and coordinate proximity are never used. Missing venue/snapshot returns 404; malformed or unknown references return field-specific 400; unreachable routes and selected edges with invalid length return a `200` route result with `ok:false` and a reason.
 - Use serializers for input validation. Keep the page and API same-origin; do not add CORS without a deliberate external client requirement.
 
 ## Database, assets, and team merges

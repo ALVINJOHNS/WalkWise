@@ -38,6 +38,10 @@ Codex reviewed `RULES.md` and `docs/Walkwise_Development_Plan.md`, then drafted 
 | --- | --- | --- | --- | --- | --- |
 | TODO | Codex | TODO | TODO | Pending | TODO |
 
+On 11 October 2026, Codex created the integration-owned P4-INT-6 execution plan for explicit feature-to-node links and a `/api/route` adapter bound to the latest immutable published snapshot, using the proposed contract in P3-NAV-5. Human review and Person 3 contract agreement: pending. Validation: source/model/helper contract review only; documentation checks are pending. No application behavior changed.
+
+On 11 October 2026, Codex implemented P4-INT-6's model/API seam: explicit `MapFeature.access_node` persistence and same-snapshot validation, event-scoped immutable map-version creation, and `POST /api/route` against the latest published snapshot. Human review and Person 3 peer review: pending. Validation: migration, Django system and migration-drift checks, temporary PostGIS API round trips, Python compilation, pure routing-helper fixtures, and diff whitespace passed. Host Python lacked GDAL; the API checks used the existing Docker app container.
+
 ## Template preparation
 
 On 10 October 2026, Codex prepared this documentation template from the organizer's supplied rules and checked the linked Luma page for the event name and dates. This covered `README.md`, `RULES.md`, `AGENTS.md`, `CHANGELOG.md`, `AI_USAGE.md`, `SUBMISSION.md`, `.gitignore`, and the pull request checklist. Agent validation covered local links, event consistency, required documents, and diff whitespace; organizer review is pending.

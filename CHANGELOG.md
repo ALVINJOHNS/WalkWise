@@ -4,6 +4,20 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:34:00+05:30 — Implement published-snapshot route API seam
+
+- Changed: Added nullable `MapFeature.access_node` with migration and same-snapshot validation; map-draft GET/PUT now carries the explicit link. Added event publish API to create incrementing immutable `MapVersion` snapshots and replaced the route 501 with request validation and routing against the latest published snapshot only. Updated the shared contract, README, P4-INT-6 evidence, and handoff.
+- Why: P3-NAV-5 requires explicit feature access-node identity and route computation from published graph data; source review showed no snapshot publisher existed yet.
+- Validation: Applied migration `0004_mapfeature_access_node`; Django system check passed and `makemigrations --check --dry-run venueflow` found no drift. Temporary API fixtures verified map-draft link round-trip/invalid-link rejection, immutable versions and route stability after draft mutation, latest-version selection, route success/unreachable/invalid-length outcomes, unknown IDs, and missing venue/snapshot. `python -m compileall -q api/venueflow`, pure routing fixtures, and `git diff --check` passed. Host Python lacked GDAL; checks ran in the existing Docker app container.
+- Limitations: Organizer publish UI, visitor snapshot rendering, and QR flow remain P4-INT-4 work. Person 3 peer review of the agreed wrapper is still pending.
+
+## 2026-10-11T05:30:24+05:30 — Plan published-snapshot route integration
+
+- Changed: Added P4-INT-6 for explicit feature-to-node access links and the `/api/route` adapter against the latest immutable published snapshot; linked it from the Person 4 brief and updated the handoff pointer.
+- Why: P3-NAV-5 found that features have no explicit graph access node and the route endpoint is still a 501 stub. Routing must not guess a node or consume mutable draft data.
+- Validation: Compared the phase scope and proposed request against P3-NAV-5, the routing helper result contract, and current feature/snapshot models. `git diff --check` passed; local Markdown targets in the new phase and brief were checked.
+- Limitations: Planning only; P4-INT-4 publishing is documented but not runtime-verified in this handoff, and Person 3 agreement is still required before route implementation.
+
 ## 2026-10-11T05:32:00+05:30 — Review Person 3 map API contract
 
 - Changed: Completed source-level mapping of map-draft nodes, edges, and features to pure routing inputs; documented a proposed published-snapshot `/api/route` request/response boundary and integration handoff in P3-NAV-5.
