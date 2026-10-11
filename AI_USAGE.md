@@ -30,6 +30,7 @@ Codex reviewed `RULES.md` and `docs/Walkwise_Development_Plan.md`, then drafted 
 
 | Date and time with timezone | Tool / model, if known | Task | Assistance and affected files | Human review / corrections | Validation and result |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-11 05:30 IST | Codex | Fix manual map tap handling | Updated `api/venueflow/static/venueflow/visitor.js` for pointer-based manual start placement and recorded phase evidence. | Pending | JavaScript syntax passed; collected asset returned HTTP 200 and contained pointer handlers; direct phone touch verification remains pending. |
 | 2026-10-11 05:20 IST | Codex | Enable local phone demo access | Added configurable Django allowed hosts and same-Wi-Fi instructions in `api/config/settings.py`, `docker-compose.yml`, `.env.example`, `README.md`, and the integration brief. | Pending | Compose config and diff checks passed; restarted API with the current Wi-Fi IP allowed; visitor route returned HTTP 200 via `10.10.19.157:8000`. |
 | 2026-10-11 05:10 IST | Codex | Verify Person 2 visitor implementation | Started isolated Compose project and documented runtime evidence in `docs/person-2-visitor/BRIEF.md`, `CHANGELOG.md`, and `handoff.md`. | Pending | Build succeeded; migration and seed succeeded; Django healthy; visitor route returned HTTP 200. Browser automation initialization failed, so interaction/GPS/mobile checks remain pending. |
 | TODO | Codex | TODO | TODO | Pending | TODO |

@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+## 2026-10-11T05:30:00+05:30 — Make manual map start placement touch-friendly
+
+- Changed: Replaced click-only map start placement with pointer down/up handling, a small movement threshold, and pointer-cancel cleanup in `api/venueflow/static/venueflow/visitor.js`.
+- Why: A phone tap did not place the manual start marker; pointer events handle touch, mouse, and stylus consistently while avoiding accidental placement during drags.
+- Validation: `node --check` passed; updated JavaScript was collected and served by Django with HTTP 200 and pointer handlers present; `git diff --check` passed.
+- Limitations: Actual phone interaction could not be driven through the unavailable browser automation runtime and needs confirmation on the device.
+
 ## 2026-10-11T04:59:24+05:30 — Add visitor search and destination details
 
 - Changed: Added name search, status filtering, synchronized map/list selection, a selected-place detail card, accessible empty/result states, and no-mutation visitor interactions in the owned visitor template and JavaScript.
