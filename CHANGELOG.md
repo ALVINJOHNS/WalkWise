@@ -1,72 +1,29 @@
 # Change log
 
-## 2026-10-11T08:06:00+05:30 — Stop organizer CSS from breaking Leaflet route SVGs
-- Changed: Limited absolute sizing/z-index rules to the editor's own `[data-lines]` and `[data-ai-overlay]` SVGs, leaving Leaflet's internal route renderer untouched. Reloaded the live Organizer Studio and confirmed purple paths now appear between path-point markers. Kept the new map-focus action for saved connections.
-- Why: The previous selector matched every SVG inside the canvas, including Leaflet's internal SVG renderer, so GPS markers appeared while route strokes did not.
-- Validation: `node --check api/venueflow/static/venueflow/organizer.js`, `git diff --check`, and live HTTPS browser inspection; screenshot showed connected purple routes on the map.
-- Limitations: Creating a fresh connection and curve dragging were not exercised in the live map to avoid changing the saved venue draft.
-
-## 2026-10-11T08:01:00+05:30 — Bring organizer connections into the map view
-- Changed: New street-map connections now fit both endpoint points into view. Each saved GPS connection also has a Show control that switches to the street map and centers the selected route.
-- Why: Live inspection showed saved GPS connections and their endpoint markers were outside the current map viewport, so rendered paths could not be seen.
-- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed.
-- Limitations: Live interaction verification remains pending. Show is unavailable until both endpoints have GPS coordinates.
-
-## 2026-10-11T07:55:00+05:30 — Keep organizer routes above street-map tiles
-- Changed: Rendered organizer connection strokes in a dedicated Leaflet pane above the tile and overlay panes, below markers; refreshed the organizer script URL version.
-- Why: The user still could not see the path while creating connections, so the line layer's ordering needed to be explicit relative to the basemap.
-- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Browser-side rendering is still unverified.
-- Limitations: Street-map paths require both endpoint path points to have GPS coordinates; manual browser confirmation remains outstanding.
-
-## 2026-10-11T07:51:00+05:30 — Make organizer path connections visible and confirm creation
-- Changed: Added an accessible, prominent connection confirmation beside the path controls and a white outline under street-map paths; refreshed the organizer script cache version.
-- Why: Organizers reported that creating a path gave only an easy-to-miss general status message and the line was hard to distinguish over the map.
-- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Browser interaction remains pending.
-- Limitations: Connections remain unsaved until the existing Save map action is used; live browser visibility has not been verified in this turn.
-
-## 2026-10-11T07:09:00+05:30 — Ensure Organizer Studio reload gets path editor update
-- Changed: Versioned the organizer JavaScript URL so a fresh page load bypasses a stale cached script. Verified the running API serves the new button text and updated script content.
-- Why: The user's open browser tab still displayed the old `Connect selected points` UI although the running container had the new template and JavaScript mounted. This confirmed the tab had not loaded the updated page.
-- Validation: Read-only in-container request confirmed the organizer HTML has the Draw path control and versioned script URL, and the served JS includes the path connection/curve handlers; `node --check` and `git diff --check` passed.
-- Limitations: The existing browser tab contains an active outline recording and unsaved edits. It was left untouched; the user must preserve that draft before reloading to see the new UI. Marker clicks and save/reload still need interaction testing.
-
-## 2026-10-11T06:59:00+05:30 — Improve organizer street-map path editing
-- Changed: Added an explicit Draw path mode that connects successive path-point marker clicks, made street-map path points draggable, and added straight/curved controls with a draggable Bezier handle. Curve control coordinates are retained in the existing edge `access_rules` JSON. Updated Organizer Studio instructions, P1-ORG-10, and README behavior notes.
-- Why: The prior connection flow required selecting a point, pressing Connect, selecting another point, and pressing Connect again; every street-map edge rendered as a fixed straight segment.
-- Validation: `node --check api/venueflow/static/venueflow/organizer.js` and `git diff --check` passed. Source review confirmed the map-draft serializer stores and returns `access_rules`. Live browser interaction/save-reload could not be checked because Docker Desktop pipe access and localhost socket access are unavailable.
-- Limitations: Browser verification remains pending. Curves are quadratic geographic-coordinate curves and are organizer-authored geometry; they are not snapped to roads or sidewalks.
-
-## 2026-10-11T06:48:00+05:30 — Show saved organizer paths in visitor map
-- Changed: The visitor now renders persisted normalized plan coordinates on a neutral canvas when a saved path exists without a floor-plan image or GPS positions. It labels the view so visitors do not mistake it for an uploaded plan or georeferenced map. Added P2-VIS-5 verification and updated the README behavior description.
-- Why: Organizer map-draft saves path nodes and edges to venue ORM rows, but the visitor previously entered only street mode for GPS coordinates or plan mode when an image was available, hiding path-only drafts.
-- Validation: `node --check api/venueflow/static/venueflow/visitor.js` and `git diff --check` passed. Reviewed image-backed, coordinate-only, GPS, and empty data branches. Docker/browser verification was unavailable because Docker Desktop pipe access was denied.
-- Limitations: The neutral canvas shows organizer plan coordinates without a floor-plan backdrop; street navigation still requires real GPS positions and explicit destination access-node assignments.
-
 Record each meaningful project change during the event, newest first. Update this file in the same commit as the change. Use a real timestamp with timezone, for example `YYYY-MM-DDTHH:MM:SS+05:30`.
 
 ## Event build log
 
-## 2026-10-11T06:16:48+05:30 — Plan interactive visitor navigation
+## 2026-10-11T05:30:00+05:30 — Make manual map start placement touch-friendly
 
-- Changed: Added P2-VIS-4 to replace the static visitor illustration with a coordinate-aware interactive map, explicit GPS/manual start, destination navigation over organizer-authored open paths, and scoped visitor UI. Updated the shared contract to require explicit feature-to-node access mapping and prohibit proximity inference.
-- Why: The user clarified that visitors must see their location, choose destinations, and follow the organizer's actual paths; decorative/fake maps and sample visualizations do not meet that goal.
-- Validation: Compared the new scope with P2-VIS-1–3, P3 routing behavior, P4 map-draft persistence, and existing organizer/visitor code. No runtime checks apply to this planning-only change.
-- Limitations: Current map data stores plan coordinates and optional GPS values but does not expose visitor graph context or a destination access-node control; those integration gaps are included in P2-VIS-4.
+- Changed: Replaced click-only map start placement with pointer down/up handling, a small movement threshold, and pointer-cancel cleanup in `api/venueflow/static/venueflow/visitor.js`.
+- Why: A phone tap did not place the manual start marker; pointer events handle touch, mouse, and stylus consistently while avoiding accidental placement during drags.
+- Validation: `node --check` passed; updated JavaScript was collected and served by Django with HTTP 200 and pointer handlers present; `git diff --check` passed.
+- Limitations: Actual phone interaction could not be driven through the unavailable browser automation runtime and needs confirmation on the device.
 
-## 2026-10-11T06:34:00+05:30 — Extend visual cleanup to the overview
+## 2026-10-11T04:59:24+05:30 — Add visitor search and destination details
 
-- Changed: Expanded P2-VIS-4 to remove the overview's decorative mock-map art and redundant summary tiles while keeping its live venue list and actions.
-- Why: The user asked to remove waste sample/dummy visualizations; source review found decorative dashboard elements in addition to the visitor page's fake patterned map.
-- Validation: Inspected the currently served overview; confirmed those visuals were present. Planning change only; no checks run.
-- Limitations: The real seeded venue record remains in the workspace; visitor rendering will omit it until it has real map coordinates or a saved floor plan.
+- Changed: Added name search, status filtering, synchronized map/list selection, a selected-place detail card, accessible empty/result states, and no-mutation visitor interactions in the owned visitor template and JavaScript.
+- Why: Complete P2-VIS-2 so visitors can find and inspect organizer-provided places.
+- Validation: `node --check api/venueflow/static/venueflow/visitor.js` passed; Django template render and output assertions passed; `git diff --check` passed.
+- Limitations: Live search/filter and selection interactions were not manually exercised in the app browser.
 
-## 2026-10-11T06:37:00+05:30 — Build interactive visitor map navigation
+## 2026-10-11T04:59:24+05:30 — Add freshness and manual orientation
 
-- Changed: Replaced the patterned static visitor canvas with a scoped Leaflet map that uses OpenStreetMap for georeferenced data and the saved plan image for local-coordinate data. Added opt-in high-accuracy location watching, current-position accuracy display, route selection over explicit open organizer edges, manual path-node starts, route progress details, and clear map-data errors. Added explicit destination-to-path-node selection in the organizer and validation that access-node IDs belong to the submitted map snapshot. Removed non-map-ready destinations from the visitor list, deleted the fake map fallback, and removed mock overview art/summary tiles and toast-only navigation buttons. Updated README and phase evidence.
-- Why: The user asked for a detailed interactive map experience, visible location, destination routing along organizer paths, no fake/sample visuals, and no visitor overlay across pages.
-- Validation: `node --check` on visitor, organizer, and shared app JS; `python -m py_compile` for page and serializer modules; `git diff --check`; app-browser screenshots of visitor, overview, and organizer routes. The visitor screenshot confirmed the honest empty state for the unmapped seed venue; the other two pages rendered without visitor overlays. `npm run build:css` failed because npm is unavailable in the shell. Django management checks could not run because Docker Desktop named-pipe access was denied.
-- Limitations: Current venue data has no GPS coordinates or saved plan, so no genuine basemap, visitor location, mapped destination, or route could be manually exercised. Browser location permission was not requested. Route integration is client-side; the REST `/api/route` endpoint remains a 501 stub.
-
+- Changed: Added explicit visitor freshness context from event publication state and venue save time, a locate button that requests GPS only after activation, map/keyboard manual start markers, and a visible route placeholder. Updated the shared context contract.
+- Why: Complete P2-VIS-3 while keeping location permission and offline claims explicit and user controlled.
+- Validation: `python -m py_compile api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/visitor.js`, representative template renders for all three freshness states, and `git diff --check` passed.
+- Limitations: Actual browser geolocation, manual marker placement, and mobile layout remain unverified in the app browser.
 ## 2026-10-11T06:05:00+05:30 — Merge main into person1-organisor
 
 - Changed: Merged `origin/main` into `person1-organisor` and resolved conflicts in `api/venueflow/static/venueflow/organizer.js`, `README.md`, `CHANGELOG.md`, `AI_USAGE.md`, and `handoff.md`. The organizer now loads and saves the venue `map-draft` API alongside per-event calibration drafts, legacy venue-level drafts still merge with persisted ORM records, and the connection list keeps both the AI-proposal label and the Remove control.
@@ -101,27 +58,6 @@ Record each meaningful project change during the event, newest first. Update thi
 - Why: Person 4 is starting integration after the Person 1/2 merges; the existing editor stores the map collections in calibration JSON while their ORM models lack API wiring.
 - Validation: Reviewed the plan against the current organizer editor payload, Django models/serializers/views/URLs, shared contract, and P4-INT-3 criteria; `git diff --check` passed.
 - Limitations: Endpoint shape is proposed for confirmation with Person 1 and Person 3 before implementation. No application code or runtime checks were run.
-
-## 2026-10-11T05:30:00+05:30 — Make manual map start placement touch-friendly
-
-- Changed: Replaced click-only map start placement with pointer down/up handling, a small movement threshold, and pointer-cancel cleanup in `api/venueflow/static/venueflow/visitor.js`.
-- Why: A phone tap did not place the manual start marker; pointer events handle touch, mouse, and stylus consistently while avoiding accidental placement during drags.
-- Validation: `node --check` passed; updated JavaScript was collected and served by Django with HTTP 200 and pointer handlers present; `git diff --check` passed.
-- Limitations: Actual phone interaction could not be driven through the unavailable browser automation runtime and needs confirmation on the device.
-
-## 2026-10-11T04:59:24+05:30 — Add visitor search and destination details
-
-- Changed: Added name search, status filtering, synchronized map/list selection, a selected-place detail card, accessible empty/result states, and no-mutation visitor interactions in the owned visitor template and JavaScript.
-- Why: Complete P2-VIS-2 so visitors can find and inspect organizer-provided places.
-- Validation: `node --check api/venueflow/static/venueflow/visitor.js` passed; Django template render and output assertions passed; `git diff --check` passed.
-- Limitations: Live search/filter and selection interactions were not manually exercised in the app browser.
-
-## 2026-10-11T04:59:24+05:30 — Add freshness and manual orientation
-
-- Changed: Added explicit visitor freshness context from event publication state and venue save time, a locate button that requests GPS only after activation, map/keyboard manual start markers, and a visible route placeholder. Updated the shared context contract.
-- Why: Complete P2-VIS-3 while keeping location permission and offline claims explicit and user controlled.
-- Validation: `python -m py_compile api/venueflow/pages.py`, `node --check api/venueflow/static/venueflow/visitor.js`, representative template renders for all three freshness states, and `git diff --check` passed.
-- Limitations: Actual browser geolocation, manual marker placement, and mobile layout remain unverified in the app browser.
 
 ## 2026-10-11T04:37:00+05:30 — Start and verify the visitor map
 
@@ -599,15 +535,3 @@ Replace this sentence with entries as you build:
 - Why: P4-INT-2 acceptance criteria and verification are complete; the next dependency is organizer map-resource persistence.
 - Validation: Confirmed the P4-INT-2 commit and phase status; `git diff --check` passed.
 - Limitations: P4-INT-3 and subsequent publish/QR phase remain pending.
-
-## 2026-10-11T07:32:00+05:30 — Enable temporary HTTPS access for phone demo
-- Changed: Added Quick Tunnel hostname/CSRF support in Django/Compose settings, documented mobile HTTPS steps and public/temporary tunnel behavior, and added P4-INT-6 verification and handoff notes. Started a temporary tunnel to the local API at `https://heath-portable-biodiversity-cube.trycloudflare.com`.
-- Why: Mobile browser geolocation requires a secure HTTPS context; the user asked to use phone location for the project demo and authorized restarting/recreating containers.
-- Validation: `docker compose up -d --build`; Compose reported DB/Redis healthy, API healthy, worker running. `docker compose exec -T api python manage.py check` passed. `/api/health` passed locally; overview, `/organizer/`, and `/api/health` each returned HTTP 200 through HTTPS. `docker compose config --quiet` and `git diff --check` passed.
-- Limitations: No phone GPS prompt/permission test was performed. Quick Tunnel is publicly reachable by anyone with the URL and is temporary; stop session 79467 with Ctrl+C when demo ends.
-
-## 2026-10-11T08:13:15+05:30 — Rewrite the project README
-- Changed: Reorganized `README.md` around the Walkwise product description, motivation, features, use cases, benefits, technology stack, run/demo instructions, current limitations, contributor roles, and project references.
-- Why: The README mixed event/template material with product information and did not explain the implemented app clearly for users or reviewers.
-- Validation: Reviewed stack and feature claims against the active project docs, Compose configuration, requirements, models, and page behavior; `git diff --check` passed.
-- Limitations: Contributor names and GitHub handles were not available, so the README identifies the four planned contribution areas and marks identities for confirmation. Submission metadata remains in `SUBMISSION.md`.
