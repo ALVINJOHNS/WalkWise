@@ -575,3 +575,9 @@ Replace this sentence with entries as you build:
 - Why: P4-INT-2 acceptance criteria and verification are complete; the next dependency is organizer map-resource persistence.
 - Validation: Confirmed the P4-INT-2 commit and phase status; `git diff --check` passed.
 - Limitations: P4-INT-3 and subsequent publish/QR phase remain pending.
+
+## 2026-10-11T07:32:00+05:30 — Enable temporary HTTPS access for phone demo
+- Changed: Added Quick Tunnel hostname/CSRF support in Django/Compose settings, documented mobile HTTPS steps and public/temporary tunnel behavior, and added P4-INT-6 verification and handoff notes. Started a temporary tunnel to the local API at `https://heath-portable-biodiversity-cube.trycloudflare.com`.
+- Why: Mobile browser geolocation requires a secure HTTPS context; the user asked to use phone location for the project demo and authorized restarting/recreating containers.
+- Validation: `docker compose up -d --build`; Compose reported DB/Redis healthy, API healthy, worker running. `docker compose exec -T api python manage.py check` passed. `/api/health` passed locally; overview, `/organizer/`, and `/api/health` each returned HTTP 200 through HTTPS. `docker compose config --quiet` and `git diff --check` passed.
+- Limitations: No phone GPS prompt/permission test was performed. Quick Tunnel is publicly reachable by anyone with the URL and is temporary; stop session 79467 with Ctrl+C when demo ends.

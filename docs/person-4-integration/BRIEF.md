@@ -69,9 +69,16 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Scope and acceptance criteria: [phases/P4-INT-5.md](phases/P4-INT-5.md).
 - Dependencies: P4-INT-4.
 - Next: submission and demo rehearsal.
+
+### P4-INT-6 — Temporary HTTPS access for mobile demo
+
+- Status: verified
+- Scope and acceptance criteria: [phases/P4-INT-6.md](phases/P4-INT-6.md).
+- Dependencies: P4-INT-1 runnable local Compose app and an available Docker daemon.
+- Next: Resume P1-ORG-10 browser verification after the mobile demo HTTPS path is available.
 ## Then build
 
-For local phone demos, allow the host's exact Wi-Fi IP through the `DJANGO_ALLOWED_HOSTS` environment variable on the API service; do not use a wildcard host list. The development server must bind to `0.0.0.0`, and the phone must be on the same LAN.
+For LAN-only phone demos, allow the host's exact Wi-Fi IP through `DJANGO_ALLOWED_HOSTS`; do not use a wildcard host list. The development server must bind to `0.0.0.0`, and the phone must be on the same LAN. For public HTTPS demo access, follow P4-INT-6; its Quick Tunnel host suffix is enabled only to support the temporary demo tunnel.
 
 1. Integrate organizer and visitor templates/JS from the feature-owned paths in `docs/architecture.md`; avoid editing feature files.
 2. Complete P4-INT-3 related-resource persistence before connecting publishing.

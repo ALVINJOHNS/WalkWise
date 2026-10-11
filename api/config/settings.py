@@ -6,11 +6,11 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "local-only-venueflow-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = [host.strip() for host in os.getenv(
     "DJANGO_ALLOWED_HOSTS",
-    "localhost,127.0.0.1,api,roving-whiny-underpay.ngrok-free.dev",
+    "localhost,127.0.0.1,api,roving-whiny-underpay.ngrok-free.dev,.trycloudflare.com",
 ).split(",") if host.strip()]
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv(
     "DJANGO_CSRF_TRUSTED_ORIGINS",
-    "https://roving-whiny-underpay.ngrok-free.dev",
+    "https://roving-whiny-underpay.ngrok-free.dev,https://*.trycloudflare.com",
 ).split(",") if origin.strip()]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # The organizer posts a base64 data URL as JSON (about 4/3 the image size).

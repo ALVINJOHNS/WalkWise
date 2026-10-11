@@ -53,7 +53,9 @@ Open the visitor map at `http://localhost:8001/v/kochi-expo/` in this checkout (
 
 The organizer loads places and walk paths from the venue-scoped `/api/venues/{id}/map-draft/` endpoint and saves them as ORM rows with full-snapshot replacement semantics. Removing an item and saving deletes its row. Existing legacy organizer drafts are shown for migration and moved into the ORM on the next save. The selected floor-plan image and GPS outline remain in calibration metadata until image hosting and boundary geometry work are implemented.
 
-The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`. When using the provided ngrok tunnel, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` include its hostname; update these values when the tunnel hostname changes.
+The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`.
+
+For a phone GPS demo, start Docker Compose and run `cloudflared tunnel --url http://localhost:8001` in a separate terminal (replace `8001` with your configured `API_PORT`). Open the generated `https://…trycloudflare.com` URL on the phone and allow location access when prompted. Django accepts the Quick Tunnel host suffix and HTTPS CSRF origins. Quick Tunnel URLs are temporary and public to anyone who obtains the URL; stop the tunnel with Ctrl+C when the demo ends. Keep the tunnel terminal open while testing. Geolocation requires HTTPS and a user grant, and GPS access also depends on the phone's location settings.
 
 Sample labeled floor plan for the AI organizer flow: [Team room floor plan (PNG)](api/venueflow/static/venueflow/images/team-room-floorplan.png). It labels ten developer tables Team 1 through Team 10.
 

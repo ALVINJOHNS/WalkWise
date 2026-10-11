@@ -1,9 +1,10 @@
 # Development handoff
 
-Updated: 2026-10-11 07:09 IST
+Updated: 2026-10-11 07:32 IST
 
 - Completed: P4-INT-3 map-resource persistence (`6737b32`); P2-VIS-1 through P2-VIS-5 visitor map, discovery, freshness, orientation, and plan-coordinate-only path display; P1-ORG-4/5/6/9 organizer editing, AI proposals, and per-event drafts.
-- Current: P1-ORG-10 adds map-first path editing: click-to-connect mode, draggable street-map path points, and editable straight/curved edges. The running API serves the new versioned script, but the user's existing browser tab still contains the previous UI and active unsaved GPS-outline edits.
-- Next: Preserve the organizer's active outline/draft in the open tab, then reload Organizer Studio to load the new versioned script and verify point placement, chained connections, curve drag, and save/reload through `map-draft`.
-- Checks: `node --check`, `git diff --check`, and read-only in-container requests confirming updated HTML/JS responses passed. Source review confirms `access_rules` round-trip through the existing map-draft endpoint.
-- Limitations: Existing tab was not reloaded to avoid discarding its active outline and unsaved changes. Interactive marker/curve behavior remains unverified. Visitor routes still draw straight segments. Organizer event switching/save-reload, phone GPS, and browser-visible OSM tiles need confirmation.
+- Completed: P4-INT-6 temporary HTTPS demo access; Compose services restarted and verified healthy, Django check passed, and overview/organizer/health returned HTTP 200 through HTTPS. See P4-INT-6 for the live temporary URL and stop instructions.
+- Current: P1-ORG-10 path-editor browser verification remains pending. Prior handoff noted the open organizer tab contained unsaved outline edits.
+- Next: Use the HTTPS demo URL on the phone and grant browser location permission; preserve any unsaved organizer work before reloading the earlier tab. Then verify point placement, chained connections, curve drag, and save/reload through `map-draft`.
+- Checks: `docker compose up -d --build`; `docker compose ps` (API/DB/Redis healthy; worker up); `docker compose exec -T api python manage.py check`; `/api/health` and HTTPS tunnel requests for `/`, `/organizer/`, `/api/health` all HTTP 200; `docker compose config --quiet`; `git diff --check`.
+- Limitations: Phone GPS permission/prompt has not been tested. The Quick Tunnel is public and temporary; it stops when its running process exits. Visitor routes still draw straight segments. Interactive path-edit behavior remains unverified.
