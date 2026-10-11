@@ -9,7 +9,7 @@
   const eventPickerWrap = $("[data-event-picker-wrap]");
   if (!canvas || !venuePicker) return;
 
-  const state = { venue: null, events: [], eventId: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], aiPathPoints: [], aiPathSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
+  const state = { venue: null, events: [], eventId: null, mapDraft: null, imageData: "", places: [], nodes: [], edges: [], aiSuggestions: [], aiPathPoints: [], aiPathSuggestions: [], geoOutline: [], currentLocation: null, geoWatchId: null, mapMode: "floorplan", leafletMap: null, leafletLayers: null, mapPlacement: false, mapAddType: null, selected: null, dirty: false, drag: null };
   const controls = {
     backdrop: $("[data-backdrop]"), markers: $("[data-markers]"), lines: $("[data-lines]"), empty: $("[data-empty]"),
     placeList: $("[data-place-list]"), nodeList: $("[data-node-list]"), edgeList: $("[data-edge-list]"),
@@ -134,7 +134,11 @@
       const b = state.nodes.find((node) => node.id === edge.to);
       const li = document.createElement("li"); li.className = "item-row";
       const distance = a?.geolocation && b?.geolocation ? ` · ${formatDistance(distanceMeters(a.geolocation, b.geolocation))}` : "";
-      li.textContent = `${a?.name || edge.from} ↔ ${b?.name || edge.to}${distance}${edge.proposal ? " · AI proposal — verify on-site" : ""}`;
+      const label = document.createElement("span"); label.textContent = `${a?.name || edge.from} ↔ ${b?.name || edge.to}${distance}${edge.proposal ? " · AI proposal — verify on-site" : ""}`;
+      const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Remove";
+      remove.setAttribute("aria-label", `Remove connection ${a?.name || edge.from} to ${b?.name || edge.to}`);
+      remove.addEventListener("click", () => { state.edges = state.edges.filter((item) => item.id !== edge.id); setDirty(); render(); });
+      li.append(label, remove);
       controls.edgeList.append(li);
     });
     const place = state.selected?.type === "place" ? selectedItem() : null;
@@ -474,17 +478,23 @@
 
   function selectedEvent() { return state.events.find((event) => event.id === state.eventId) || null; }
 
-  function loadDraft(draft = {}) {
+  function mergeById(persisted, draft) {
+    const records = new Map((Array.isArray(persisted) ? persisted : []).map((item) => [item.id, item]));
+    (Array.isArray(draft) ? draft : []).forEach((item) => records.set(item.id, item));
+    return [...records.values()];
+  }
+
+  function loadDraft(draft = {}, persisted = null) {
     state.imageData = draft.image_data || "";
     state.aiSuggestions = [];
     state.aiPathPoints = [];
     state.aiPathSuggestions = [];
     controls.analyze.disabled = !state.imageData;
     controls.aiStatus.textContent = "";
-    state.places = Array.isArray(draft.places) ? draft.places : [];
+    state.places = persisted ? mergeById(persisted.features, draft.places) : (Array.isArray(draft.places) ? draft.places : []);
     state.places.forEach((place, index) => { place.pin_number = Number(place.pin_number) || index + 1; });
-    state.nodes = Array.isArray(draft.nodes) ? draft.nodes : [];
-    state.edges = Array.isArray(draft.edges) ? draft.edges : [];
+    state.nodes = persisted ? mergeById(persisted.nodes, draft.nodes) : (Array.isArray(draft.nodes) ? draft.nodes : []);
+    state.edges = persisted ? mergeById(persisted.edges, draft.edges) : (Array.isArray(draft.edges) ? draft.edges : []);
     state.geoOutline = Array.isArray(draft.geo_outline) ? draft.geo_outline : [];
     state.currentLocation = draft.current_location || state.geoOutline.at(-1) || state.places.find((place) => place.geolocation)?.geolocation || state.nodes.find((node) => node.geolocation)?.geolocation || null;
     state.mapMode = draft.map_mode || (state.currentLocation ? "street" : "floorplan");
@@ -496,8 +506,11 @@
     const calibration = state.venue?.calibration || {};
     const drafts = calibration.organizer_drafts || {};
     const hasEventDraft = state.eventId && Object.prototype.hasOwnProperty.call(drafts, state.eventId);
-    const draft = hasEventDraft ? drafts[state.eventId] : (Object.keys(drafts).length ? {} : (calibration.organizer_draft || {}));
-    loadDraft(draft);
+    const isLegacy = !Object.keys(drafts).length;
+    const draft = hasEventDraft ? drafts[state.eventId] : (isLegacy ? (calibration.organizer_draft || {}) : {});
+    // Legacy venue-level drafts still merge with ORM-persisted map records;
+    // per-event drafts own their own pins so they stay independent.
+    loadDraft(draft, isLegacy ? state.mapDraft : null);
   }
 
   async function loadVenue(id) {
@@ -506,6 +519,9 @@
       const response = await fetch(`/api/venues/${encodeURIComponent(id)}/`, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error(`Could not load venue (${response.status}).`);
       state.venue = await response.json();
+      const mapResponse = await fetch(`/api/venues/${encodeURIComponent(id)}/map-draft/`, { headers: { Accept: "application/json" } });
+      if (!mapResponse.ok) throw new Error(`Could not load saved map data (${mapResponse.status}).`);
+      state.mapDraft = await mapResponse.json();
       const eventsResponse = await fetch("/api/events/", { headers: { Accept: "application/json" } });
       if (!eventsResponse.ok) throw new Error(`Could not load events (${eventsResponse.status}).`);
       const eventPayload = await eventsResponse.json();
@@ -546,6 +562,13 @@
     if (errors.length) { controls.saveState.textContent = "Fix validation issues"; return; }
     controls.saveState.textContent = "Saving…";
     try {
+      const mapResponse = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/map-draft/`, {
+        method: "PUT", headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ features: state.places, nodes: state.nodes, edges: state.edges }),
+      });
+      const mapData = await mapResponse.json().catch(() => ({}));
+      if (!mapResponse.ok) throw new Error(JSON.stringify(mapData) || `Map save failed (${mapResponse.status}).`);
+      state.mapDraft = mapData;
       const latestResponse = await fetch(`/api/venues/${encodeURIComponent(state.venue.id)}/`, { headers: { Accept: "application/json" } });
       if (!latestResponse.ok) throw new Error(`Could not refresh venue data before saving (${latestResponse.status}).`);
       const latestVenue = await latestResponse.json();
@@ -741,6 +764,13 @@
   $("[data-save]").addEventListener("click", save);
   $("[data-delete-place]").addEventListener("click", () => {
     state.places = state.places.filter((place) => place.id !== state.selected?.id); state.selected = null; setDirty(); render();
+  });
+  $("[data-delete-node]").addEventListener("click", () => {
+    const nodeId = state.selected?.type === "node" ? state.selected.id : null;
+    if (!nodeId) return;
+    state.nodes = state.nodes.filter((node) => node.id !== nodeId);
+    state.edges = state.edges.filter((edge) => edge.from !== nodeId && edge.to !== nodeId);
+    state.selected = null; setDirty(); render();
   });
   root.querySelectorAll("[data-field]").forEach((field) => field.addEventListener("input", () => {
     const place = selectedItem(); if (!place || state.selected.type !== "place") return;

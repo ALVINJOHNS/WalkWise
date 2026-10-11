@@ -34,19 +34,59 @@ Use the seeded venue or ORM-backed view context. Do not block on routing APIs; l
 
 Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with the [phase template](../PHASE_TEMPLATE.md). Keep this feature's owned paths intact.
 
-### P2-VIS-1 — Read-only venue map
+### P2-VIS-1 — Render the venue snapshot
 
-- Status: not started
-- Scope: Visitor screen props, map/backdrop, graph lines, labeled pins, and place status.
-- Exit checks: Seeded venue renders independently; place details/status legible; focused Django/page check passes.
-- Next: P2-VIS-2.
+- Status: `complete`
+- Goal: Show the published or seeded venue snapshot as a legible, read-only map.
+- Scope: Define the visitor template's expected view props; render the map image/backdrop, normalized graph paths, labeled destination pins, and each place's open/closed/delayed styling. Use only the owned visitor template and JavaScript paths.
+- Acceptance criteria:
+  - [x] The Django visitor page renders from the supplied venue snapshot without the organizer editor running.
+  - [x] The map backdrop, graph paths, and destination pins use normalized plan coordinates on the same map surface.
+  - [x] Destination labels and status remain legible at phone width.
+  - [x] Visitor rendering does not mutate the published snapshot.
+- Checks: Use the repository's available Django/page check and manually open the seeded visitor page; confirm overlay alignment and status labels. Record unavailable runtime prerequisites rather than claiming a pass.
+- Dependencies: Shared venue snapshot contract and the seeded or ORM-backed visitor view context; no other visitor phase.
+- Out of scope: Search, route computation, GPS, QR generation, and cache implementation.
+- Verification record: 2026-10-11 IST — `docker compose up --build -d` completed after the integration router fix. Compose reports database and Redis healthy, API healthy, and worker running. `http://localhost:8001/v/kochi-expo/` returned 200; response assertions confirmed the venue, Food Court, and path overlay. Opened the route in the in-app browser and visually confirmed saved-coordinate fallback, paths, and pins. No plan image is in the seed; statuses are unavailable because the seed supplies none. `git diff --check` passed.
+- Commit: Visitor implementation `2368e0d`; follow-up integration blocker fix pending.
+- Plan changes: 2026-10-11 — Split map rendering from visitor interactions so the first outcome can be reviewed independently.
 
-### P2-VIS-2 — Find and orient
+### P2-VIS-2 — Find and inspect a destination
 
-- Status: not started
-- Scope: Search/filter/select, freshness cue driven by props, Locate entry point and manual-start fallback, mobile layout, route-overlay prop slot.
-- Exit checks: Search/select works; freshness reflects supplied state; no location prompt on load; narrow layout and fallback usable; focused Django/page check passes.
-- Next: integration review; QR and cache remain integration-owned.
+- Status: `not started`
+- Goal: Let visitors search or filter destinations, select one, and inspect its details and status.
+- Scope: Add search/filter controls, selection behavior, and a selected-place detail panel/card using the supplied snapshot props and the owned visitor JavaScript/template paths.
+- Acceptance criteria:
+  - [ ] Search narrows destinations by their visible name, and the supported filter controls narrow the list by place/status.
+  - [ ] Selecting a result highlights its map pin and shows matching place details; selecting another result updates both.
+  - [ ] Open, closed, and delayed states remain explicit in both map/list or detail context where shown.
+  - [ ] Empty search/filter results have a useful empty state; no mutation is sent for visitor actions.
+- Checks: Run the focused Django/page check and manually exercise search, filters, selection changes, empty results, and status consistency on the seeded venue.
+- Dependencies: P2-VIS-1; visitor view data must expose the fields needed to search and display place details.
+- Out of scope: Route calculation and publishing/model/API changes.
+- Verification record: Not run; phase not started.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — Isolated discovery and selected-place details from the base map outcome for focused review.
+
+### P2-VIS-3 — Show freshness and offer manual orientation
+
+- Status: `not started`
+- Goal: Communicate server-supplied snapshot freshness and provide an accessible starting point for navigation.
+- Scope: Render a truthful saved/current/paused freshness cue from explicit view props; add a prominent “Locate me” entry point with a useful map-tap/manual-start prompt when GPS is unavailable or denied; ensure narrow mobile layout; reserve a visible route-overlay slot for the navigation workstream.
+- Acceptance criteria:
+  - [ ] Freshness wording is derived only from explicit server props and does not infer live/offline status from connectivity.
+  - [ ] The page does not request location on load; location is requested only after the visitor activates “Locate me”.
+  - [ ] Unavailable/denied GPS presents a usable map-tap or manual-start prompt.
+  - [ ] At narrow phone width, search/list, map, details, freshness, and locate entry remain usable without horizontal overflow.
+  - [ ] A route overlay placeholder is present and does not claim to calculate or display a route before routing integration.
+- Checks: Run the focused Django/page check; manually verify each freshness prop state, no location prompt on initial load, the locate fallback, and narrow-width layout.
+- Dependencies: P2-VIS-1 and P2-VIS-2; freshness context must be supplied by the Django visitor view. Route placeholder is an integration point only.
+- Out of scope: GPS snapping, route computation, spoken directions, QR generation, cache/offline implementation, and external map tiles.
+- Verification record: Not run; phase not started.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — Made freshness/location/mobile behavior a separate final visitor phase, keeping navigation integration and QR/cache ownership explicit.
+
+After P2-VIS-3, hand off for integration review. QR and cache remain integration-owned.
 
 ## Cut first
 

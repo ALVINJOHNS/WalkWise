@@ -16,12 +16,14 @@ class Venue(models.Model):
 
 
 class Event(models.Model):
+    STATUS_CHOICES = (("draft", "Draft"), ("published", "Published"))
+
     id = models.CharField(primary_key=True, max_length=80)
     venue = models.ForeignKey(Venue, related_name="events", on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=30, default="draft")
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="draft")
 
 
 class MapFeature(models.Model):
@@ -41,6 +43,7 @@ class PathNode(models.Model):
     plan_x = models.FloatField()
     plan_y = models.FloatField()
     location = models.PointField(srid=4326, null=True, blank=True)
+    properties = models.JSONField(default=dict, blank=True)
 
 
 class PathEdge(models.Model):
