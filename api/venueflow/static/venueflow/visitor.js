@@ -48,6 +48,9 @@
   const hasStreetData = geoNodes.length > 0 || geoPlaces.length > 0;
   const hasPlan = typeof data.plan_image === "string" && data.plan_image.startsWith("data:image/")
     || typeof data.plan_image === "string" && /^https?:\/\//i.test(data.plan_image);
+  const hasPlanCoordinates = [...nodes, ...places].some((item) => Number.isFinite(Number(item.x))
+    && Number.isFinite(Number(item.y)) && Number(item.x) >= 0 && Number(item.x) <= 1
+    && Number(item.y) >= 0 && Number(item.y) <= 1);
 
   function validPoint(point) {
     return point && Number.isFinite(Number(point.latitude)) && Number.isFinite(Number(point.longitude))
@@ -131,7 +134,7 @@
       mapModeButton.hidden = !hasPlan;
       mapModeButton.textContent = "Show venue plan";
     } else {
-      baseLayer = L.imageOverlay(data.plan_image, [[0, 0], [1000, 1000]]).addTo(map);
+      if (hasPlan) baseLayer = L.imageOverlay(data.plan_image, [[0, 0], [1000, 1000]]).addTo(map);
       map.fitBounds([[0, 0], [1000, 1000]]);
       mapModeButton.hidden = !hasStreetData && !currentLocation;
       mapModeButton.textContent = "Show street map";
@@ -481,9 +484,11 @@
   } else if (hasStreetData) {
     initializeMap("street");
     if (hasPlan) mapModeButton.hidden = false;
-  } else if (hasPlan) {
+  } else if (hasPlan || hasPlanCoordinates) {
     initializeMap("plan");
-    showMessage("This venue has a saved floor plan. Add GPS positions to its path points to show it on a street map.");
+    showMessage(hasPlan
+      ? "This venue has a saved floor plan. Add GPS positions to its path points to show it on a street map."
+      : "Showing organizer-saved path points on a neutral canvas; no floor-plan image or street locations are available.");
   } else {
     showMessage("The organizer has not uploaded a floor plan or positioned paths on a street map yet. Tap Locate me to see your location.");
     mapModeButton.hidden = true;

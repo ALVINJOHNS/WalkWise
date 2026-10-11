@@ -32,6 +32,22 @@ Use the seeded venue or ORM-backed view context. Do not block on routing APIs; l
 
 ## Phases
 
+### P2-VIS-5 — Show saved floor paths without a plan image
+
+- Status: verified
+- Goal: Make persisted organizer path points and edges visible to visitors when the venue has no uploaded floor-plan image or GPS positions.
+- Scope: In the visitor map, render saved normalized plan coordinates on a neutral, explicitly labeled canvas when there is no image; keep real image and street-map modes unchanged. Keep the empty state only when there is no usable map data at all.
+- Acceptance criteria:
+  - [x] A venue with saved plan-coordinate nodes/edges but no image or GPS coordinates displays its path graph and destinations on a neutral canvas.
+  - [x] The visitor UI clearly states that the canvas is not a floor-plan image and coordinates are not georeferenced.
+  - [x] A saved floor-plan image remains the background when present; street mode remains dependent on real GPS coordinates.
+- Checks: `node --check api/venueflow/static/venueflow/visitor.js`, `git diff --check`, and focused source/logic verification for image-only, plan-graph-only, GPS-only, and empty venue states.
+- Dependencies: P4-INT-3 map-draft persistence; P2-VIS-1 through P2-VIS-4.
+- Out of scope: Inferring street coordinates, fabricating a floor plan, route behavior changes, and server/API persistence changes.
+- Verification record: 2026-10-11 06:48 IST — `node --check api/venueflow/static/venueflow/visitor.js` and `git diff --check` passed. Reviewed image-backed plan, plan-coordinate-only, GPS, and empty-data branches; plan-coordinate-only data now initializes the plan-coordinate map without an image overlay, and displays an explicit neutral-canvas notice. Docker runtime/browser check was unavailable because Docker Desktop pipe access was denied.
+- Commit: Pending.
+- Plan changes: 2026-10-11 — User reported that organizer-authored paths saved without appearing in visitor view. Source review showed the visitor required an image or GPS location to enter a map mode, so plan-coordinate-only data was hidden.
+
 Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with the [phase template](../PHASE_TEMPLATE.md). Keep this feature's owned paths intact.
 
 ### P2-VIS-1 — Render the venue snapshot
@@ -111,7 +127,7 @@ Use the phase loop in [AGENTS.md](../../AGENTS.md) and record results here with 
 - Plan changes: 2026-10-11T06:16:48+05:30 — User clarified that the visitor experience must behave like an interactive map, show the visitor's location, route to selected destinations along organizer-defined paths, and avoid dummy visualizations. Added this phase and explicit mapping/geodata requirements; existing static coordinate illustration does not satisfy that goal.
 - Plan changes: 2026-10-11T06:34:00+05:30 — Expanded the visual cleanup to the overview after inspection found a decorative mock map and redundant summary tiles; preserve its real venue list and actions.
 
-After P2-VIS-4, hand off for integration review. QR and cache remain integration-owned.
+After P2-VIS-5, hand off for integration review. QR and cache remain integration-owned.
 
 ## Cut first
 

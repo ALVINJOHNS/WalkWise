@@ -1,5 +1,11 @@
 # Change log
 
+## 2026-10-11T06:48:00+05:30 — Show saved organizer paths in visitor map
+- Changed: The visitor now renders persisted normalized plan coordinates on a neutral canvas when a saved path exists without a floor-plan image or GPS positions. It labels the view so visitors do not mistake it for an uploaded plan or georeferenced map. Added P2-VIS-5 verification and updated the README behavior description.
+- Why: Organizer map-draft saves path nodes and edges to venue ORM rows, but the visitor previously entered only street mode for GPS coordinates or plan mode when an image was available, hiding path-only drafts.
+- Validation: `node --check api/venueflow/static/venueflow/visitor.js` and `git diff --check` passed. Reviewed image-backed, coordinate-only, GPS, and empty data branches. Docker/browser verification was unavailable because Docker Desktop pipe access was denied.
+- Limitations: The neutral canvas shows organizer plan coordinates without a floor-plan backdrop; street navigation still requires real GPS positions and explicit destination access-node assignments.
+
 Record each meaningful project change during the event, newest first. Update this file in the same commit as the change. Use a real timestamp with timezone, for example `YYYY-MM-DDTHH:MM:SS+05:30`.
 
 ## Event build log
