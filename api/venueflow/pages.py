@@ -1,11 +1,18 @@
 from django.http import Http404
 from django.shortcuts import render
 
-from .selectors import list_venues, venue_by_slug
+from .selectors import list_events, list_venues, venue_by_slug
 
 
 def home(request):
-    return render(request, "venueflow/home.html", {"venue_count": list_venues().count()})
+    venues = list_venues()
+    events = list_events()
+    return render(request, "venueflow/home.html", {
+        "venues": venues,
+        "venue_count": venues.count(),
+        "event_count": events.count(),
+        "published_count": events.filter(status="published").count(),
+    })
 
 
 def organizer(request):

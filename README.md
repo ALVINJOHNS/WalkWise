@@ -1,6 +1,6 @@
-# WalkWise — DevDay Exchange Community Hackathon: Kochi
+# Walkwise — DevDay Exchange Community Hackathon: Kochi
 
-WalkWise is a hackathon project for turning venue plans into reusable event maps and visitor navigation.
+Walkwise turns venue plans into clear event maps and visitor navigation.
 
 **[Event and registration on Luma](https://luma.com/z10nz8gp)** · **[Event rules](RULES.md)** · **[Agent instructions](AGENTS.md)**
 
@@ -27,15 +27,15 @@ Project and workflow context lives in [the team execution plan](docs/README.md),
 
 For a four-person, six-hour build, use the [team execution plan](docs/README.md), its [shared contract](docs/SHARED_CONTRACT.md), and the four role briefs. The full product plan remains in [docs/Walkwise_Development_Plan.md](docs/Walkwise_Development_Plan.md).
 
-- **Project name:** WalkWise
-- **Short description:** WalkWise is a QR-accessible, organizer-maintained map for temporary venues. It is designed to help visitors find destinations along organizer-defined walking paths, see current place status, and keep a saved venue snapshot useful when connectivity is limited.
+- **Project name:** Walkwise
+- **Short description:** Turn a venue plan into an editable event map with walkable paths and visitor destinations.
 - **Team:** TODO — participant names and GitHub handles; maximum 4 members.
-- **Working demo:** Local server at `http://localhost:8000`; feature behavior is still under development.
+- **Working demo:** Local server at `http://localhost:8001` in this checkout; the responsive overview summarizes venues/events and previews intended flows. Overview flow buttons are presentation-only and do not navigate yet.
 - **Technology stack:** Django server-rendered templates, Django REST Framework, Django ORM/GeoDjango, PostgreSQL/PostGIS, Tailwind CSS, Redis, Celery, Docker Compose.
 
 ### What we are building
 
-Temporary events such as college fests, fairs, and pop-up venues often rely on static maps that cannot show an updated route or whether a destination is open. WalkWise will let organizers publish a venue layout, paths, and place updates through a QR-accessible visitor map. The hackathon MVP focuses on one realistic venue, organizer-defined routes, clear destination status, and honest saved/offline state rather than claiming live or cross-device updates that have not been verified.
+Temporary events such as college fests, fairs, and pop-up venues often rely on static maps that cannot show an updated route or whether a destination is open. Walkwise will let organizers publish a venue layout, paths, and place updates through a QR-accessible visitor map. The hackathon MVP focuses on one realistic venue, organizer-defined routes, clear destination status, and honest saved/offline state rather than claiming live or cross-device updates that have not been verified.
 
 ### Run the project
 
@@ -45,14 +45,12 @@ Prerequisites: Docker Compose v2. Node.js 22+ and npm are needed only when rebui
 
 1. Copy `.env.example` to `.env` and adjust local ports/credentials if needed.
 2. Start the database, migration/seed jobs, Django SSR/API server, Redis, and worker: `docker compose up --build`.
-3. Open the host port shown by `docker compose ps` (default `http://localhost:8000`; this workspace currently uses `http://localhost:8001`). Organizer and visitor pages and the browsable API share this Django server. API health is at the same host and `/api/health`.
+3. Open `http://localhost:8000` (or the configured `API_PORT`; this checkout uses `http://localhost:8001` because port 8000 is occupied). Organizer and visitor pages and the browsable API share this Django server. API health is at `/api/health` on the same host/port.
 4. Stop services with `docker compose down`. Remove local database data with `docker compose down -v`.
 
-To open the visitor page on a phone on the same Wi-Fi, set `DJANGO_ALLOWED_HOSTS` in `.env` to include this computer's Wi-Fi IPv4 address (comma-separated with the defaults), restart the API service, then open `http://<computer-ip>:8000/v/kochi-expo/` on the phone. Keep the app running and allow local network access in Windows Firewall if prompted. This is a local development link and is not reachable from outside your Wi-Fi.
+Open the visitor map at `http://localhost:8001/v/kochi-expo/` in this checkout (or use your configured host port). The route was verified against the seeded venue. Do not open `api/venueflow/templates/venueflow/visitor.html` directly; Django must render its template tags.
 
-Open the visitor page at `<host>/v/kochi-expo/` after startup (for this workspace: `http://localhost:8001/v/kochi-expo/`). Do not open `api/venueflow/templates/venueflow/visitor.html` directly in a browser: it is a Django template, so its `{% ... %}` and `{{ ... }}` tags only render when Django serves the page.
-
-The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`.
+The `migrate` service applies Django ORM migrations to initialize PostGIS and create tables. The `seed` service adds an idempotent demo venue. Apply model changes with `docker compose run --rm api python manage.py makemigrations venueflow` then restart with `docker compose up --build`. When using the provided ngrok tunnel, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` include its hostname; update these values when the tunnel hostname changes.
 
 ### Rebuild Tailwind assets
 
@@ -60,10 +58,10 @@ Templates and the API are served by the same Django process. When changing Tailw
 
 ### Project status
 
-- Implemented: Django SSR landing and organizer pages; visitor map with saved paths, destination pins/status, search, status filters, selected-place details, server-supplied publication freshness, and user-triggered location/manual start-point fallback; Tailwind static styles and JS; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. Route calculation, GPS snapping, publishing workflow, and offline caching remain pending.
-- Not implemented: Map editing, route calculation (returns 501), publishing, QR, auth, and production deployment.
-- OpenStreetMap and Leaflet have not yet been added; add OSM attribution when the map view is introduced.
+- Implemented: Responsive Django SSR overview, organizer map editor (image preview and drag-and-drop, destination details/status/GPS fixes, live GPS outline recording with a moving location icon and accuracy halo, Leaflet/OpenStreetMap street view, add destinations and path points directly by clicking the street map, recorded GPS track distance, GPS path-point connections, validation, and venue draft save; API browser links are not exposed in the UI), and visitor snapshot map rendering for venue plan images or a coordinate fallback, saved path edges, destination pins, and supplied open/closed/delayed status; Tailwind static styles and JS; overview venue search and non-navigating flow feedback; Django REST Framework venue/event CRUD; ORM model/migration scaffold; database health endpoint; Celery worker task registration. OSM tiles and Leaflet require internet access. Distance is measured from recorded coordinates; it does not snap to roads or calculate walking directions. Local floor-plan coordinates need GPS or map placement before those items appear in street view.
+- Not implemented: Related `MapFeature`/`PathNode`/`PathEdge` API persistence and loading in the organizer editor (including GPS outline samples, which currently remain in venue calibration metadata rather than `Venue.boundary`), route calculation (returns 501), publishing, QR, auth, and production deployment.
+- OpenStreetMap tiles include visible attribution. The public tile service has usage limits and is not an offline tile source; see the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
 
-For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). Runtime packages are public libraries; there are no external map tiles or datasets configured yet.
+For team boundaries and data/API conventions, see [architecture.md](docs/architecture.md). The organizer uses public Leaflet assets and OpenStreetMap tiles.
 
-See [AI_USAGE.md](AI_USAGE.md) for AI assistance and [CHANGELOG.md](CHANGELOG.md) for the development record.
+See [AI_USAGE.md](AI_USAGE.md) for AI assistance and [CHANGELOG.md](CHANGELOG.md) for the development record. Leaflet 1.9.4 is loaded from its pinned CDN release with integrity metadata.

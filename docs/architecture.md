@@ -1,4 +1,4 @@
-# VenueFlow architecture and teammate handoff
+# Walkwise architecture and teammate handoff
 
 ## Shape
 
